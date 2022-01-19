@@ -1,0 +1,14 @@
+target/
+.classpath
+.project
+.settings/
+
+# We use pom.xml as the source of truth and don't rely on a specific IDE
+.idea
+*.iml
+
+README_OLD.md
+.openapi-generator/
+conf/ds-datahandler-environment.yaml
+conf/ds-datahandler-local.yaml
+setup_project.sh
