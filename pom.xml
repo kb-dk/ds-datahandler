@@ -260,6 +260,27 @@
             <version>3.2.4</version>
             <scope>test</scope>
         </dependency>
+        
+        
+         <!-- THESE 3 FOR SWAGGER CLIENT -->
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.11</version>  
+       </dependency>
+        
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>5.1.10.RELEASE</version>
+        </dependency>
+        <!-- HTTP client: Spring RestTemplate -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>5.1.10.RELEASE</version>
+        </dependency>
+       
 
         <!-- https://mvnrepository.com/artifact/org.mock-server/mockserver-junit-jupiter -->
         <dependency>
@@ -293,6 +314,10 @@
                     <artifactId>jsonassert</artifactId>
                 </exclusion>
             </exclusions>
+        
+        
+        
+        
         </dependency>
 
 
@@ -314,6 +339,38 @@
             </resource>
         </resources>
         <plugins>
+
+<plugin>
+                <!-- This 2019 version is required for OpenAPI 3 -->
+                <groupId>io.swagger.codegen.v3</groupId>
+                <artifactId>swagger-codegen-maven-plugin</artifactId>
+                <version>3.0.8</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>/home/teg/workspace/ds-datahandler/src/test/resources/ds-storage_v1.yaml</inputSpec>
+                            <language>java</language>
+                            <packageName>dk.kb.storageclient</packageName>
+                            <modelPackage>dk.kb.storageclient.model</modelPackage>
+                            <apiPackage>dk.kb.storageclient.api</apiPackage>
+                            <invokerPackage>dk.kb.storageclient.invoker</invokerPackage>
+                            <configOptions>
+                                <groupId>${project.groupId}</groupId>
+                                <artifactId>${project.artifactId}</artifactId>
+                                <artifactVersion>${project.version}</artifactVersion>
+                                <library>resttemplate</library>
+                                <java8>true</java8>
+                                <dateLibrary>java11</dateLibrary>
+                                <licenseName>Apache 2.0</licenseName>
+                                <licenseUrl>https://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
