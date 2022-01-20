@@ -1,4 +1,4 @@
-package dk.kb.datahandler.oai;
+package dk.kb.datahandler.storageclient;
 
 import org.junit.jupiter.api.Test;
 
@@ -8,7 +8,7 @@ import dk.kb.storageclient.invoker.ApiClient;
  * This is an integration test that must be run manually.
  * 
  */
-public class OaiHarvestClientTest {
+public class StorageClientTest{
 
     
     public static void main(String[] args) throws Exception {
