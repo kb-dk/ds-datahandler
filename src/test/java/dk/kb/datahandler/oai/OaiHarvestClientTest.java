@@ -2,7 +2,6 @@ package dk.kb.datahandler.oai;
 
 import org.junit.jupiter.api.Test;
 
-import dk.kb.storageclient.invoker.ApiClient;
 
 /*
  * This is an integration test that must be run manually.
