@@ -28,7 +28,7 @@
     </repositories>
 
     <scm>
-        <url>https://github.com/kb-dk/ds-storage</url>
+        <url>https://github.com/kb-dk/ds-datahandler</url>
         <connection>scm:git:ssh://git@github.com:kb-dk/ds-datahandler.git</connection>
         <developerConnection>scm:git:ssh://git@github.com:kb-dk/ds-datahandler.git</developerConnection>
         <tag>HEAD</tag>
