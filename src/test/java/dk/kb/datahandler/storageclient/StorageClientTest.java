@@ -1,6 +1,7 @@
 package dk.kb.datahandler.storageclient;
 
-import dk.kb.datahandler.backend.api.v1.DsDatahandlerApi;
+import dk.kb.datahandler.api.v1.DsDatahandlerApi;
+import dk.kb.datahandler.backend.api.v1.DsStorageApi;
 import dk.kb.datahandler.backend.invoker.v1.ApiClient;
 import dk.kb.datahandler.backend.model.v1.RecordBaseDto;
 
@@ -23,7 +24,7 @@ public class StorageClientTest{
         apiClient.setHost("devel11.statsbiblioteket.dk");
         apiClient.setPort(10001);
         apiClient.setBasePath("/ds-storage/v1");
-        DsDatahandlerApi dsAPI = new DsDatahandlerApi(apiClient);
+        DsStorageApi dsAPI = new DsStorageApi(apiClient);
         List<RecordBaseDto> basesConf = dsAPI.getBasesConfiguration();
         System.out.println(basesConf);
     }

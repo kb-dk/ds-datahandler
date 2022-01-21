@@ -508,7 +508,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.build.outputDirectory}/ds-storage_v1.yaml</inputSpec>
+                            <inputSpec>http://devel11.statsbiblioteket.dk:10001/ds-storage/v1/openapi_v1.yaml</inputSpec>
 <!--                            <ignoreFileOverride>${project.basedir}/.openapi-backend-codegen-ignore-api</ignoreFileOverride>-->
                             <generatorName>java</generatorName>
                             <library>native</library>
