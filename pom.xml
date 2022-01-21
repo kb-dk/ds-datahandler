@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.sbforge</groupId>
@@ -209,13 +210,13 @@
         </dependency>
         <!-- To get date parsing to work? -->
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-modules-java8 -->
-<!--        <dependency>
-            <groupId>com.fasterxml.jackson.module</groupId>
-            <artifactId>jackson-modules-java8</artifactId>
-            <version>2.13.1</version>
-            <type>pom</type>
-            <scope>runtime</scope>
-        </dependency>-->
+        <!--        <dependency>
+                    <groupId>com.fasterxml.jackson.module</groupId>
+                    <artifactId>jackson-modules-java8</artifactId>
+                    <version>2.13.1</version>
+                    <type>pom</type>
+                    <scope>runtime</scope>
+                </dependency>-->
 
 
         <!-- Logging dependencies -->
@@ -260,15 +261,15 @@
             <version>3.2.4</version>
             <scope>test</scope>
         </dependency>
-        
-        
-         <!-- THESE 3 FOR SWAGGER CLIENT -->
+
+
+        <!-- THESE 3 FOR SWAGGER CLIENT -->
         <dependency>
-          <groupId>junit</groupId>
-          <artifactId>junit</artifactId>
-          <version>4.11</version>  
-       </dependency>
-        
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
@@ -280,7 +281,7 @@
             <artifactId>spring-web</artifactId>
             <version>5.1.10.RELEASE</version>
         </dependency>
-       
+
 
         <!-- https://mvnrepository.com/artifact/org.mock-server/mockserver-junit-jupiter -->
         <dependency>
@@ -314,10 +315,8 @@
                     <artifactId>jsonassert</artifactId>
                 </exclusion>
             </exclusions>
-        
-        
-        
-        
+
+
         </dependency>
 
 
@@ -338,12 +337,23 @@
                 <filtering>false</filtering>
             </resource>
         </resources>
+        <testResources>
+
+            <testResource>
+                <directory>src/test/openapi</directory>
+                <filtering>true</filtering>
+            </testResource>
+            <!-- Needed as specifying <resources> overrides all previous definitions -->
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>false</filtering>
+            </testResource>
+        </testResources>
         <plugins>
 
-<!--
-<plugin>
-          
-          
+            <plugin>
+
+
                 <groupId>io.swagger.codegen.v3</groupId>
                 <artifactId>swagger-codegen-maven-plugin</artifactId>
                 <version>3.0.8</version>
@@ -352,8 +362,10 @@
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                        <phase>generate-test-sources</phase>
                         <configuration>
-                            <inputSpec>/home/teg/workspace/ds-datahandler/src/test/resources/ds-storage_v1.yaml</inputSpec>
+                            <inputSpec>target/test-classes/ds-storage_v1.yaml
+                            </inputSpec>
                             <language>java</language>
                             <packageName>dk.kb.storageclient</packageName>
                             <modelPackage>dk.kb.storageclient.model</modelPackage>
@@ -373,7 +385,6 @@
                     </execution>
                 </executions>
             </plugin>
-   -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.1.0</version>
@@ -416,7 +427,8 @@
                      which seems to be an unresolved issue: https://github.com/OpenAPITools/openapi-generator/issues/9008 -->
                 <configuration>
                     <generatorName>jaxrs-cxf-extended</generatorName>
-                    <inputSpec>${project.build.outputDirectory}/openapi.yaml</inputSpec><!-- Will always be overridden -->
+                    <inputSpec>${project.build.outputDirectory}/openapi.yaml
+                    </inputSpec><!-- Will always be overridden -->
                     <modelNameSuffix>Dto</modelNameSuffix>
                     <generateSupportingFiles>false</generateSupportingFiles>
                     <generateApiTests>false</generateApiTests>
@@ -502,7 +514,6 @@
                         </configuration>
                     </execution>
 
-                    
 
                 </executions>
             </plugin>
