@@ -141,6 +141,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable -->
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.2</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-client</artifactId>
@@ -351,40 +357,78 @@
         </testResources>
         <plugins>
 
+            <!-- The generated classes for the OpenAPI client are problematic. Disable checking of those for now.
+     This setup, minus the excludes-section, was copied from sbforge-parent 22-->
             <plugin>
-
-
-                <groupId>io.swagger.codegen.v3</groupId>
-                <artifactId>swagger-codegen-maven-plugin</artifactId>
-                <version>3.0.8</version>
+                <groupId>de.thetaphi</groupId>
+                <artifactId>forbiddenapis</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <!--
+                    if the used Java version is too new,
+                    don't fail, just do nothing:
+                  -->
+                    <failOnUnsupportedJava>true</failOnUnsupportedJava>
+                    <bundledSignatures>
+                        <!--
+                      This will automatically choose the right
+                      signatures based on 'maven.compiler.target':
+                    -->
+                        <bundledSignature>jdk-unsafe</bundledSignature>
+                        <bundledSignature>jdk-deprecated</bundledSignature>
+                        <!-- disallow undocumented classes like sun.misc.Unsafe: -->
+                        <bundledSignature>jdk-non-portable</bundledSignature>
+                        <!-- don't allow unsafe reflective access: -->
+                        <bundledSignature>jdk-reflection</bundledSignature>
+                    </bundledSignatures>
+                    <excludes>
+                        <exclude>**/*Api.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
+                        <phase>${api.check.phase}</phase>
                         <goals>
-                            <goal>generate</goal>
+                            <goal>check</goal>
+                            <goal>testCheck</goal>
                         </goals>
-                        <phase>generate-test-sources</phase>
-                        <configuration>
-                            <inputSpec>target/test-classes/ds-storage_v1.yaml
-                            </inputSpec>
-                            <language>java</language>
-                            <packageName>dk.kb.storageclient</packageName>
-                            <modelPackage>dk.kb.storageclient.model</modelPackage>
-                            <apiPackage>dk.kb.storageclient.api</apiPackage>
-                            <invokerPackage>dk.kb.storageclient.invoker</invokerPackage>
-                            <configOptions>
-                                <groupId>${project.groupId}</groupId>
-                                <artifactId>${project.artifactId}</artifactId>
-                                <artifactVersion>${project.version}</artifactVersion>
-                                <library>resttemplate</library>
-                                <java8>true</java8>
-                                <dateLibrary>java11</dateLibrary>
-                                <licenseName>Apache 2.0</licenseName>
-                                <licenseUrl>https://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-                            </configOptions>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <!--            <plugin>
+
+
+                            <groupId>io.swagger.codegen.v3</groupId>
+                            <artifactId>swagger-codegen-maven-plugin</artifactId>
+                            <version>3.0.8</version>
+                            <executions>
+                                <execution>
+                                    <goals>
+                                        <goal>generate</goal>
+                                    </goals>
+                                    <phase>test-compile</phase>
+                                    <configuration>
+                                        <inputSpec>target/test-classes/ds-storage_v1.yaml</inputSpec>
+                                        <language>java</language>
+                                        <generateSupportingFiles>false</generateSupportingFiles>
+                                        <generateApis>false</generateApis>
+                                        <generateApiTests>false</generateApiTests>
+                                        <generateModels>true</generateModels>
+
+                                        <modelPackage>dk.kb.storageclient.model</modelPackage>
+                                        <apiPackage>dk.kb.storageclient.api</apiPackage>
+                                        <invokerPackage>dk.kb.storageclient.invoker</invokerPackage>
+                                        <configOptions>
+                                            &lt;!&ndash;                                <sourceFolder>target/generated-sources</sourceFolder>&ndash;&gt;
+                                            <library>resttemplate</library>
+                                            <java8>true</java8>
+                                            <dateLibrary>java11</dateLibrary>
+                                        </configOptions>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>-->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.1.0</version>
@@ -453,7 +497,65 @@
                     </configOptions>
                     <packageName>${project.package}</packageName>
                 </configuration>
+
+
                 <executions>
+
+                    <!-- Client for the backend -->
+                    <execution>
+                        <id>Generate client for the backend</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.build.outputDirectory}/ds-storage_v1.yaml</inputSpec>
+<!--                            <ignoreFileOverride>${project.basedir}/.openapi-backend-codegen-ignore-api</ignoreFileOverride>-->
+                            <generatorName>java</generatorName>
+                            <library>native</library>
+                            <generateSupportingFiles>true</generateSupportingFiles>
+                            <!-- Do NOT use the customised templates as they are only for the webservice part, not the client-->
+                            <!-- Hacked by Asger by setting to an existing folder without templates -->
+                            <templateDirectory>src/main/</templateDirectory>
+                            <packageName>${project.package}.backend</packageName>
+                            <configOptions>
+                                <apiPackage>${project.package}.backend.api.v1</apiPackage>
+                                <modelPackage>${project.package}.backend.model.v1</modelPackage>
+                                <invokerPackage>${project.package}.backend.invoker.v1</invokerPackage>
+
+                                <sourceFolder>target/generated-sources</sourceFolder>
+                                <implFolder>target/generated-sources</implFolder>
+
+                            </configOptions>
+                        </configuration>
+                    </execution>
+<!--
+                    <execution>
+                        <id>client</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>target/classes/ds-storage_v1.yaml</inputSpec>
+                            <generateSupportingFiles>true</generateSupportingFiles>
+                            <generateApis>true</generateApis>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModels>true</generateModels>
+
+
+                            <generatorName>java</generatorName>
+                            <templateDirectory>src/main/</templateDirectory>
+
+                            <configOptions>
+                                <modelPackage>dk.kb.storageclient.model</modelPackage>
+                                <apiPackage>dk.kb.storageclient.api</apiPackage>
+                                <invokerPackage>dk.kb.storageclient.invoker</invokerPackage>
+                                <sourceFolder>target/generated-sources</sourceFolder>
+                                <library>resttemplate</library>
+                                <java8>true</java8>
+                                <dateLibrary>java11</dateLibrary>
+                            </configOptions>
+                        </configuration>
+                    </execution>-->
 
                     <!-- Version 1 -->
                     <!-- When a new version is needed, make a copy of two v1-related executions below, then change
