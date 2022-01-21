@@ -1,19 +1,22 @@
 package dk.kb.datahandler.api.v1.impl;
 
 import dk.kb.datahandler.api.v1.*;
-import dk.kb.datahandler.model.v1.BookDto;
+
 import dk.kb.datahandler.model.v1.ErrorDto;
 import java.io.File;
 import dk.kb.datahandler.model.v1.HelloReplyDto;
+import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.webservice.exception.InternalServiceException;
+import dk.kb.datahandler.webservice.exception.ServiceException;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import dk.kb.datahandler.webservice.exception.ServiceException;
-import dk.kb.datahandler.webservice.exception.InternalServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -90,210 +93,29 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
     @Context
     private transient MessageContext messageContext;
 
-
-    /**
-     * Add or update a single book
-     * 
-     * @param BookDto: Add or update a single book
-     * 
-     * @return <ul>
-      *   <li>code = 200, message = "If the book was added successfully", response = BookDto.class</li>
-      *   </ul>
-      * @throws ServiceException when other http codes should be returned
-      *
-      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
-     */
+    
     @Override
-    public BookDto addBook(BookDto bookDto) throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try { 
-            BookDto response = new BookDto();
-        response.setId("JGH5Gy");
-        response.setTitle("Io9qw");
-        response.setPages(591741973);
-        return response;
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
+    public Integer oaiIngestFull(String oaiTarget) {
+        // TODO Auto-generated method stub
+        int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);
+        return numberIngested;
     }
 
-    /**
-     * Perform some image processing and return the result as an image
-     * 
-     * @param image: The image to use as source for the colorization
-     * 
-     * @param method: The algorithm used to colorize the image
-     * 
-     * @param intensity: The intensity of the colorization
-     * 
-     * @return <ul>
-      *   <li>code = 200, message = "The colorized image", response = String.class</li>
-      *   </ul>
-      * @throws ServiceException when other http codes should be returned
-      *
-      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
-     */
     @Override
-    public javax.ws.rs.core.StreamingOutput colorize( Attachment imageDetail, String method, Double intensity) throws ServiceException {
-        // TODO: Implement...
-    
+    public List<OaiTargetDto> getOaiTargetsConfiguration() {
         
-        try { 
-            String filename = "somefile";
-            // Show download link in Swagger UI, inline when opened directly in browser
-            // https://github.com/swagger-api/swagger-ui/issues/3832
-            httpServletResponse.setHeader("Content-Disposition", "inline; swaggerDownload=\"attachment\"; filename=\"" + filename + "\"");
-
-            // Show inline in Swagger UI, inline when opened directly in browser
-            // httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
-
-            // Show download link in Swagger UI, download dialog when opened directly in browser
-            // httpServletResponse.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-
-            return output -> output.write("Magic".getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
-    }
-
-    /**
-     * Deletes metadata for a single book
-     * 
-     * @param id: The ID for the book to delete
-     * 
-     * @return <ul>
-      *   <li>code = 200, message = "OK", response = String.class</li>
-      *   <li>code = 404, message = "Not found"</li>
-      *   </ul>
-      * @throws ServiceException when other http codes should be returned
-      *
-      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
-     */
-    @Override
-    public String deleteBook(String id) throws ServiceException {
-        // TODO: Implement...
-    
+        //TODO configure in YAML
         
-        try { 
-            String response = "Iy174Y";
-        return response;
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
+        List<OaiTargetDto> oaiTargetList = new ArrayList<OaiTargetDto>();
+       
+        OaiTargetDto billedeSamling = new OaiTargetDto();
+        billedeSamling.setName("Billede samling");
+        billedeSamling.setUrl("http://www5.kb.dk/cop/oai/?metadataPrefix=mods&set=oai:kb.dk:images:billed:2010:okt:billeder");
+        oaiTargetList.add(billedeSamling);
+
+        return oaiTargetList;
     }
-
-    /**
-     * Sample OpenAPI definition for a service that constructs a PDF and delivers it
-     * 
-     * @param id: The ID of the article to process
-     * 
-     * @return <ul>
-      *   <li>code = 200, message = "OK", response = String.class</li>
-      *   <li>code = 404, message = "Article ID is unknown", response = ErrorDto.class</li>
-      *   </ul>
-      * @throws ServiceException when other http codes should be returned
-      *
-      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
-     */
-    @Override
-    public javax.ws.rs.core.StreamingOutput getArticle(String id) throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try { 
-            String filename = "somefile";
-            // Show download link in Swagger UI, inline when opened directly in browser
-            // https://github.com/swagger-api/swagger-ui/issues/3832
-            httpServletResponse.setHeader("Content-Disposition", "inline; swaggerDownload=\"attachment\"; filename=\"" + filename + "\"");
-
-            // Show inline in Swagger UI, inline when opened directly in browser
-            // httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
-
-            // Show download link in Swagger UI, download dialog when opened directly in browser
-            // httpServletResponse.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-
-            return output -> output.write("Magic".getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
-    }
-
-    /**
-     * Retrieves metadata for a single book
-     * 
-     * @param id: The ID for the book to retrieve
-     * 
-     * @return <ul>
-      *   <li>code = 200, message = "OK", response = BookDto.class</li>
-      *   <li>code = 404, message = "Not found"</li>
-      *   </ul>
-      * @throws ServiceException when other http codes should be returned
-      *
-      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
-     */
-    @Override
-    public BookDto getBook(String id) throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try { 
-            BookDto response = new BookDto();
-        response.setId("mMfo5");
-        response.setTitle("cy8v4t4Uus");
-        response.setPages(-500666798);
-        return response;
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
-    }
-
-    /**
-     * Delivers metadata on books
-     * 
-     * @param query: Search query for the books
-     * 
-     * @param max: The maximum number of books to return
-     * 
-     * @param format: The delivery format. This can also be specified using headers, as seen in the Responses section. If both headers and format are specified, format takes precedence.  * JSONL: Newline separated single-line JSON representations of Documents * JSON: Valid JSON in the form of a single array of Documents * CSV: Comma separated, missing values represented with nothing, strings encapsulated in quotes 
-     * 
-     * @return <ul>
-      *   <li>code = 200, message = "OK", response = String.class</li>
-      *   <li>code = 400, message = "Bad request"</li>
-      *   </ul>
-      * @throws ServiceException when other http codes should be returned
-      *
-      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
-     */
-    @Override
-    public javax.ws.rs.core.StreamingOutput getBooks(String query, Long max, String format) throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try { 
-            String filename = "somefile";
-            // Show download link in Swagger UI, inline when opened directly in browser
-            // https://github.com/swagger-api/swagger-ui/issues/3832
-            httpServletResponse.setHeader("Content-Disposition", "inline; swaggerDownload=\"attachment\"; filename=\"" + filename + "\"");
-
-            // Show inline in Swagger UI, inline when opened directly in browser
-            // httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
-
-            // Show download link in Swagger UI, download dialog when opened directly in browser
-            // httpServletResponse.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-
-            return output -> output.write("Magic".getBytes(java.nio.charset.StandardCharsets.UTF_8));
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
-    }
+   
 
     /**
      * Request a Hello World message, for testing purposes
@@ -323,33 +145,6 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
     }
 
     /**
-     * Ping the server to check if the server is reachable.
-     * 
-     * @return <ul>
-      *   <li>code = 200, message = "OK", response = String.class</li>
-      *   <li>code = 406, message = "Not Acceptable", response = ErrorDto.class</li>
-      *   <li>code = 500, message = "Internal Error", response = String.class</li>
-      *   </ul>
-      * @throws ServiceException when other http codes should be returned
-      *
-      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
-     */
-    @Override
-    public String ping() throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try { 
-            String response = "k74YDV";
-        return response;
-        } catch (Exception e){
-            throw handleException(e);
-        }
-    
-    }
-
-
-    /**
     * This method simply converts any Exception into a Service exception
     * @param e: Any kind of exception
     * @return A ServiceException
@@ -363,5 +158,10 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
             return new InternalServiceException(e.getMessage());
         }
     }
+
+
+    
+
+    
 
 }
