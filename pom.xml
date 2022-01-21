@@ -396,39 +396,6 @@
                 </executions>
             </plugin>
 
-            <!--            <plugin>
-
-
-                            <groupId>io.swagger.codegen.v3</groupId>
-                            <artifactId>swagger-codegen-maven-plugin</artifactId>
-                            <version>3.0.8</version>
-                            <executions>
-                                <execution>
-                                    <goals>
-                                        <goal>generate</goal>
-                                    </goals>
-                                    <phase>test-compile</phase>
-                                    <configuration>
-                                        <inputSpec>target/test-classes/ds-storage_v1.yaml</inputSpec>
-                                        <language>java</language>
-                                        <generateSupportingFiles>false</generateSupportingFiles>
-                                        <generateApis>false</generateApis>
-                                        <generateApiTests>false</generateApiTests>
-                                        <generateModels>true</generateModels>
-
-                                        <modelPackage>dk.kb.storageclient.model</modelPackage>
-                                        <apiPackage>dk.kb.storageclient.api</apiPackage>
-                                        <invokerPackage>dk.kb.storageclient.invoker</invokerPackage>
-                                        <configOptions>
-                                            &lt;!&ndash;                                <sourceFolder>target/generated-sources</sourceFolder>&ndash;&gt;
-                                            <library>resttemplate</library>
-                                            <java8>true</java8>
-                                            <dateLibrary>java11</dateLibrary>
-                                        </configOptions>
-                                    </configuration>
-                                </execution>
-                            </executions>
-                        </plugin>-->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.1.0</version>
@@ -498,6 +465,22 @@
                     <packageName>${project.package}</packageName>
                 </configuration>
 
+                <dependencies>
+                    <dependency>
+                        <groupId>dk.kb.storage</groupId>
+                        <artifactId>ds-storage</artifactId>
+                        <version>1.0-SNAPSHOT</version>
+                        <type>jar</type>
+                        <classifier>classes</classifier>
+                        <exclusions>
+                            <!-- We really just need the openapi_ds-storage_v1.yaml.yaml...-->
+                            <exclusion>
+                                <groupId>*</groupId>
+                                <artifactId>*</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
 
                 <executions>
 
@@ -508,8 +491,8 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>http://devel11.statsbiblioteket.dk:10001/ds-storage/v1/openapi_v1.yaml</inputSpec>
-<!--                            <ignoreFileOverride>${project.basedir}/.openapi-backend-codegen-ignore-api</ignoreFileOverride>-->
+                            <inputSpec>openapi_ds-storage_v1.yaml</inputSpec>
+                            <!--                            <ignoreFileOverride>${project.basedir}/.openapi-backend-codegen-ignore-api</ignoreFileOverride>-->
                             <generatorName>java</generatorName>
                             <library>native</library>
                             <generateSupportingFiles>true</generateSupportingFiles>
@@ -528,34 +511,6 @@
                             </configOptions>
                         </configuration>
                     </execution>
-<!--
-                    <execution>
-                        <id>client</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <inputSpec>target/classes/ds-storage_v1.yaml</inputSpec>
-                            <generateSupportingFiles>true</generateSupportingFiles>
-                            <generateApis>true</generateApis>
-                            <generateApiTests>false</generateApiTests>
-                            <generateModels>true</generateModels>
-
-
-                            <generatorName>java</generatorName>
-                            <templateDirectory>src/main/</templateDirectory>
-
-                            <configOptions>
-                                <modelPackage>dk.kb.storageclient.model</modelPackage>
-                                <apiPackage>dk.kb.storageclient.api</apiPackage>
-                                <invokerPackage>dk.kb.storageclient.invoker</invokerPackage>
-                                <sourceFolder>target/generated-sources</sourceFolder>
-                                <library>resttemplate</library>
-                                <java8>true</java8>
-                                <dateLibrary>java11</dateLibrary>
-                            </configOptions>
-                        </configuration>
-                    </execution>-->
 
                     <!-- Version 1 -->
                     <!-- When a new version is needed, make a copy of two v1-related executions below, then change
@@ -578,7 +533,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.build.outputDirectory}/openapi_v1.yaml</inputSpec>
+                            <inputSpec>${project.build.outputDirectory}/ds-datahandler_v1.yaml</inputSpec>
                             <ignoreFileOverride>
                                 ${project.basedir}/.openapi-codegen-ignore-api
                             </ignoreFileOverride>
@@ -602,7 +557,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.build.outputDirectory}/openapi_v1.yaml</inputSpec>
+                            <inputSpec>${project.build.outputDirectory}/ds-datahandler_v1.yaml</inputSpec>
                             <ignoreFileOverride>
                                 ${project.basedir}/.openapi-codegen-ignore-impl
                             </ignoreFileOverride>
@@ -638,8 +593,8 @@
                             <directory>${project.build.outputDirectory}</directory>
                             <targetPath>.</targetPath>
                             <includes>
-                                <include>openapi_v1.json</include>
-                                <include>openapi_v1.yaml</include>
+                                <include>ds-datatahandler_v1.json</include>
+                                <include>ds-datatahandler_v1.yaml</include>
                             </includes>
                         </resource>
                     </webResources>
