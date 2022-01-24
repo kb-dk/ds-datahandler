@@ -7,6 +7,8 @@ public class OaiResponse {
     
     private ArrayList<OaiRecord> records = new  ArrayList<OaiRecord> (); 
     private String resumptionToken = null;
+    private long totalRecords=0;
+    
     public ArrayList<OaiRecord> getRecords() {
         return records;
     }
@@ -18,6 +20,12 @@ public class OaiResponse {
     }
     public void setResumptionToken(String resumptionToken) {
         this.resumptionToken = resumptionToken;
+    }
+    public long getTotalRecords() {
+        return totalRecords;
+    }
+    public void setTotalRecords(long totalRecords) {
+        this.totalRecords = totalRecords;
     }
     
     

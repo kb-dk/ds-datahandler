@@ -16,11 +16,7 @@ public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
     public static Integer oaiIngestFull(String oaiTarget) throws Exception {
             
-        ApiClient apiClient = new ApiClient();
-        apiClient.setHost("devel11.statsbiblioteket.dk");
-        apiClient.setPort(10001);
-        apiClient.setBasePath("/ds-storage/v1");
-        DsStorageApi dsAPI = new DsStorageApi(apiClient);
+        DsStorageApi dsAPI = getDsStorageApiClient();
         
         String cumulusImageRecordBase="cumulus_image";
         
@@ -32,19 +28,31 @@ public class DsDatahandlerFacade {
         OaiHarvestClient client = new OaiHarvestClient(baseUrl, set);
 
         OaiResponse response = client.next();
-        for (OaiRecord  oaiRecord : response.getRecords()) {            
-            DsRecordDto dsRecord = new DsRecordDto();
-            dsRecord.setId(cumulusImageRecordBase+"_"+oaiRecord.getId());
-            dsRecord.setBase(cumulusImageRecordBase);
-            dsRecord.setData(oaiRecord.getMetadata());            
-            dsAPI.createOrUpdateRecordPost(dsRecord);                        
+        int totalRecordLoaded=0;
+        while (response.getRecords().size() >0) {
+            
+            for (OaiRecord  oaiRecord : response.getRecords()) {            
+                totalRecordLoaded++;
+                DsRecordDto dsRecord = new DsRecordDto();
+                dsRecord.setId(cumulusImageRecordBase+":"+oaiRecord.getId());
+                dsRecord.setBase(cumulusImageRecordBase);
+                dsRecord.setData(oaiRecord.getMetadata());            
+                dsAPI.createOrUpdateRecordPost(dsRecord);                        
+            }
+            log.info("Ingesting base:"+cumulusImageRecordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
+            response = client.next(); //load next (may be empty)            
         }
-        
-        
-        
-        
-        log.info("CALLED!");
-        return 1000;
+ 
+        return totalRecordLoaded;
+    }
+    
+    private static DsStorageApi getDsStorageApiClient() {
+        ApiClient apiClient = new ApiClient();
+        apiClient.setHost("devel11.statsbiblioteket.dk");
+        apiClient.setPort(10001);
+        apiClient.setBasePath("/ds-storage/v1");
+        DsStorageApi dsAPI = new DsStorageApi(apiClient);
+        return dsAPI;
     }
     
 }
