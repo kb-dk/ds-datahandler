@@ -13,7 +13,10 @@ public class OaiHarvestClientTest {
     public void main(String[] args) throws Exception {
    
         //example: http://www5.kb.dk/cop/oai/?metadataPrefix=mods&set=oai:kb.dk:images:billed:2010:okt:billeder&verb=ListRecords
-       //
+
+        // When using resumption token you must NOT include metadatPrefix+set again
+        //http://www5.kb.dk/cop/oai/?verb=ListRecords&resumptionToken=KB!1000!mods!0001-01-01!9999-12-31!oai:kb.dk:images:billed:2010:okt:billeder
+        
        String baseUrl="http://www5.kb.dk/cop/oai/";
        //String metadataPrefix="mods";        
        //String verb="ListRecords";
