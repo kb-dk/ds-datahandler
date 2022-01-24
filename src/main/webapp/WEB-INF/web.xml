@@ -29,7 +29,7 @@
             <!--THIS IS A HACK. But it seems like the simplest way to recover the original specs-->
             <param-name>static-resources-list</param-name>
             <param-value>
-                /openapi_.*\..+
+                /ds-datahandler_.*\..+
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
