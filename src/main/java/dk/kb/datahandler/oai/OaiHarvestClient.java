@@ -18,15 +18,26 @@ import org.xml.sax.InputSource;
 
 public class OaiHarvestClient {
 
+    private String baseURL;
+    private String set;
+    private String resumptionToken=null;
     
-    public static OaiResponse harvestOAI(String baseURl,String metadataPrefix,String set, String verb) throws Exception {
-                    
+    public OaiHarvestClient (String baseURL,String set){
+        this.baseURL=baseURL;
+        this.set=set;
+    }
+    
+    
+    public OaiResponse next() throws Exception{
         OaiResponse oaiResponse = new OaiResponse();
         ArrayList<OaiRecord> oaiRecords = new  ArrayList<OaiRecord> ();
         oaiResponse.setRecords(oaiRecords);
         
-        String uri =baseURl+"?metadataPrefix="+metadataPrefix+"&set="+set+"&verb="+verb;
-        
+        String uri =baseURL+"?metadataPrefix=mods&verb=ListRecords&set="+set;
+        if (resumptionToken != null){             
+            uri = uri +"&resumptionToken="+resumptionToken;
+        }
+
         
         String response=getHttpResponse(uri);
         System.out.println(response);
@@ -40,8 +51,17 @@ public class OaiHarvestClient {
            
           //Root
           Element root = document.getDocumentElement();
-                              
+
+          
+          try {
           String  resumptionToken=  document.getElementsByTagName("resumptionToken").item(0).getTextContent();
+          this.resumptionToken = resumptionToken;          
+          }
+          catch(NullPointerException e) { //no more records
+              this.resumptionToken=null;
+          }
+          
+          System.out.println("setting resumptionToken:"+resumptionToken);
           
           oaiResponse.setResumptionToken(resumptionToken);
           
@@ -58,7 +78,12 @@ public class OaiHarvestClient {
              oaiRecords.add(oaiRecord);                                  
     }
     return oaiResponse;
+        
 }
+    
+    
+    
+    
 
     public static String getHttpResponse(String uri) throws Exception {
         HttpClient client = HttpClient.newHttpClient();

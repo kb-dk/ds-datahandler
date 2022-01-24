@@ -95,10 +95,20 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
 
     
     @Override
-    public Integer oaiIngestFull(String oaiTarget) {
+    public Integer oaiIngestFull(String oaiTarget){
         // TODO Auto-generated method stub
-        int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);
-        return numberIngested;
+        
+        try { 
+            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);        
+            return numberIngested;
+        
+        } catch (Exception e){
+            throw handleException(e);
+        }
+        
+        
+        
+        
     }
 
     @Override
