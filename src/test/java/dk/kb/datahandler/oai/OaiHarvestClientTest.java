@@ -10,26 +10,25 @@ import org.junit.jupiter.api.Test;
 public class OaiHarvestClientTest {
 
 
-    /*
-        
-    @Test
-    public void testOAI() throws Exception {
+    public void main(String[] args) throws Exception {
    
-       String uri="http://www5.kb.dk/cop/oai/?metadataPrefix=mods&set=oai:kb.dk:images:billed:2010:okt:billeder&verb=";
+        //example: http://www5.kb.dk/cop/oai/?metadataPrefix=mods&set=oai:kb.dk:images:billed:2010:okt:billeder&verb=ListRecords
+       //
        String baseUrl="http://www5.kb.dk/cop/oai/";
-       String metadataPrefix="mods";        
-       String verb="ListRecords";
+       //String metadataPrefix="mods";        
+       //String verb="ListRecords";
        String set="oai:kb.dk:images:billed:2010:okt:billeder";
         
-        OaiResponse oaiResponse = OaiHarvestClient.harvestOAI(baseUrl, metadataPrefix, set, verb);
-        System.out.println(oaiResponse.getRecords().size());
-        System.out.println(oaiResponse.getResumptionToken());
-        
-        OaiRecord r = oaiResponse.getRecords().get(0);
-        System.out.println(r.getId());
-        System.out.println(r.getMetadata());         
+       OaiHarvestClient client = new OaiHarvestClient(baseUrl, set);
+       
+       OaiResponse r1 = client.next();
+       System.out.println(r1.getRecords().size());
+       OaiResponse r2= client.next();
+       System.out.println(r2.getRecords().size());
+       
+       
         }
-      */
+   
 
 
 }
