@@ -25,7 +25,7 @@ public class StorageClientTest{
         apiClient.setPort(10001);
         apiClient.setBasePath("/ds-storage/v1");
         DsStorageApi dsAPI = new DsStorageApi(apiClient);
-        List<RecordBaseDto> basesConf = dsAPI.getBasesConfiguration();
+        List<RecordBaseDto> basesConf = dsAPI.getBasesConfiguration();        
         System.out.println(basesConf);
     }
     
