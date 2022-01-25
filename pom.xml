@@ -486,7 +486,12 @@
 
                             <generatorName>java</generatorName>
                             <library>native</library>
+
+
+                            <!-- Ensure ONLY the ApiClient and supporting classes are created, not the gradle mess-->
                             <generateSupportingFiles>true</generateSupportingFiles>
+                            <supportingFilesToGenerate>ApiClient.java,ApiException.java,Configuration.java,Pair.java</supportingFilesToGenerate>
+
                             <!-- Do NOT use the customised templates as they are only for the webservice part, not the client-->
                             <!-- Hacked by Asger by setting to an existing folder without templates -->
                             <templateDirectory>src/main/</templateDirectory>
