@@ -11,15 +11,21 @@ import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+
 public class OaiHarvestClient {
+
+    private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
     private String baseURL;
     private String set;
+    private boolean completed=false;
     private String resumptionToken=null;
 
 
@@ -35,8 +41,13 @@ public class OaiHarvestClient {
         oaiResponse.setRecords(oaiRecords);
         String uri= null;
 
+        if (completed) {            
+            //The caller should know not to ask for more since last batch had 0 entries.
+            log.info("No more records to load for set:"+set);
+            return new OaiResponse();
+        }
 
-        //For unknown reason cumulus oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
+        //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
         if (resumptionToken==null) {
             uri =baseURL+"?metadataPrefix=mods&verb=ListRecords&set="+set;                        
         }
@@ -44,7 +55,7 @@ public class OaiHarvestClient {
             uri =baseURL+"?verb=ListRecords&resumptionToken="+resumptionToken;
 
         }      
-
+        //log.info("resumption token at:"+resumptionToken);
         String response=getHttpResponse(uri);
         //System.out.println(response);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -54,17 +65,16 @@ public class OaiHarvestClient {
         Document document = builder.parse(new InputSource(new StringReader(response)));
         document.getDocumentElement().normalize();
 
-        //Root
-        Element root = document.getDocumentElement();
-
         try {
-             String  resumptionToken=  document.getElementsByTagName("resumptionToken").item(0).getTextContent();
-             String totalListSize =  document.getElementsByTagName("resumptionToken").item(0).getAttributes().getNamedItem("completeListSize").getNodeValue();
-             oaiResponse.setTotalRecords(Long.parseLong(totalListSize));           
-             this.resumptionToken = resumptionToken;          
+            String  resumptionToken=  document.getElementsByTagName("resumptionToken").item(0).getTextContent();
+            String totalListSize =  document.getElementsByTagName("resumptionToken").item(0).getAttributes().getNamedItem("completeListSize").getNodeValue();
+            oaiResponse.setTotalRecords(Long.parseLong(totalListSize));           
+            this.resumptionToken = resumptionToken;          
         }
         catch(NullPointerException e) { //no more records
             this.resumptionToken=null;
+            completed=true;
+            log.info("No more records to load for set="+set);            
         }
 
         NodeList nList = document.getElementsByTagName("record");         
@@ -74,7 +84,7 @@ public class OaiHarvestClient {
             String metadata =  record.getElementsByTagName("metadata").item(0).getTextContent();            
             String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();
 
-            OaiRecord oaiRecord = new OaiRecord();             
+            OaiRecord oaiRecord = new OaiRecord();
             oaiRecord.setMetadata(metadata);
             oaiRecord.setId(identifier);
             oaiRecords.add(oaiRecord);                                  
@@ -82,7 +92,7 @@ public class OaiHarvestClient {
 
         return oaiResponse;
     }
-    
+
     public static String getHttpResponse(String uri) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
