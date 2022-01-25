@@ -9,22 +9,49 @@
 #
 #
 config:
-  limits:
-    min: 10
-    max: 100
-  mylist:
-    - Hello
-    - World
-    - from
-    - java-template
-
-# The entries below are just place holders.
-#  
-# There should be a corresponding `-environment.yaml`-file with the structure below, but with real values.
-# The entries in the environment-YAML will override the ones in the behaviour-YAML. The sole purpose of having the
-# structure in the behaviour-YAML is to document what needs to be defined in the environment.
-  backend:
-   db: 'http://placeholdermachine:8090/foobar/'
-   user: 'placeholder_dbuser'
-   password: 'placeholder_dbpassword'
-                                                                                                                                                                                           
+  # update_strategy must match enums defined in open API
+  oai_targets:
+    - name: kb_letters_judsam_dsa
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:letters:judsam:2011:mar:dsa
+      description: David Simonsens Arkiv
+    - name: kb_image_judsam_jmss
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:manus:judsam:2010:maj:jsmss
+      description: 'Judaistisk Samling: Håndskrifter'
+   - name: kb_image_luftfo_luftfoto
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:images:luftfo:2011:maj:luftfoto
+      description: Luftfoto
+    - name: kb_pamphlets_dasmaa_smaatryk
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:pamphlets:dasmaa:2012:jul:smaatryk
+      description: Småtryk
+    - name: kb_maps_kortsa_kortatlas
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:maps:kortsa:2012:jul:kortatlas
+      description: David Simonsens Arkiv    
+    - name: kb_image_dasmaa_partiprogrammer
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:pamphlets:dasmaa:2008:feb:partiprogrammer
+      description: David Simonsens Arkiv
+    - name: kb_images_billed_billeder
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:images:billed:2010:okt:billeder
+      description: David Simonsens Arkiv    
+    - name: kb_books_dassmaa_daellsvarehus
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:pamphlets:dasmaa:2008:feb:daellsvarehus
+      description: David Simonsens Arkiv
+    - name: kb_books_judsam_jstryk
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:books:judsam:2010:maj:jstryk
+      description: David Simonsens Arkiv
+    - name: kb_manus_judsam_dsh
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:manus:judsam:2009:sep:dsh
+    - name: kb_books_ortsam_ostryk
+      url: http://www5.kb.dk/cop/oai/
+      set: oai:kb.dk:books:ortsam:2011:mar:ostryk
+      description: David Simonsens Arkiv
+      
