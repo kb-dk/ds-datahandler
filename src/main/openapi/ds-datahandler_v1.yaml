@@ -53,28 +53,6 @@ paths:
                 type: integer
                 format: int32      
 
-# This definition uses parameters: http://example.com/myservice/v1/hello?alternateHello=Boston
-  /hello:
-    get:
-      tags:
-        - '${project.name}'
-      summary: 'Request a Hello World message, for testing purposes'
-      operationId: getGreeting
-      parameters:
-        - name: alternateHello
-          in: query
-          description: 'Optional alternative to using the word ''Hello'' in the reply'
-          required: false
-          schema:
-            type: string
-            default: 'World'
-      responses:
-        '200':
-          description: 'A JSON structure containing a Hello World message'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HelloReply'
 
 components:
   schemas:
@@ -93,18 +71,13 @@ components:
           description: 'Name of the OAI target'
         url:
           type: string
-          description: 'URl to the OAI target'                
-
-
-
-    HelloReply:
-      type: object
-      required:
-        - message
-      properties:
-        message:
+          description: 'Base YRL to the OAI server'                
+        set:
           type: string
-          description: 'Greeting from the API'
+          description: 'OAI parameter to specify which collection to harvest'                
+        decription:
+          type: string
+          description: 'Human readable name for the collection'                
 
     Error:
       type: object

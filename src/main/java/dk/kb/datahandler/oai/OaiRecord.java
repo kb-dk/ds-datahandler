@@ -5,9 +5,7 @@ private String id;
 private String metadata;
 
 
-public OaiRecord () {
-    
-    
+public OaiRecord () {        
 }
 
 

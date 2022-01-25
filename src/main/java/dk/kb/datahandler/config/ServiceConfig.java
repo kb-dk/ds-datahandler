@@ -1,11 +1,13 @@
 package dk.kb.datahandler.config;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.yaml.YAML;
 
 /**
@@ -16,6 +18,8 @@ public class ServiceConfig {
 
     private static final Logger log = LoggerFactory.getLogger(ServiceConfig.class);
     
+    private static final HashMap<String, OaiTargetDto> oaiTargets = new HashMap<String, OaiTargetDto>();
+   
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
      * methods like {@code getInteger("someKey", defaultValue)} and {@code getSubMap("config.sub1.sub2")}.
@@ -47,9 +51,13 @@ public class ServiceConfig {
         }
         return serviceConfig;
     }
- 
-    private static void loadOaiTargets() {
 
+    public static HashMap<String, OaiTargetDto> getOaiTargets() {
+        return oaiTargets;
+    }
+
+    
+    private static void loadOaiTargets() {
         List<YAML> targets = serviceConfig.getYAMLList("config.oai_targets");
         //Load updtateStategy for each
         for (YAML target: targets) {
@@ -57,11 +65,16 @@ public class ServiceConfig {
             String url = target.getString("url");
             String set = target.getString("set");
             String description = target.getString("description");
-                                    
+                           
+            OaiTargetDto oaiTarget = new OaiTargetDto();
+            oaiTarget.setName(name);
+            oaiTarget.setUrl(url);
+            oaiTarget.set(set);
+            oaiTarget.setDecription(description);            
+            oaiTargets.put(name, oaiTarget);
+            
             log.info("Laded for oai target:"+description);
         }
-
-
         
         //log.info("Allowed bases loaded from config. Number of bases:"+allowedBases.size());
         

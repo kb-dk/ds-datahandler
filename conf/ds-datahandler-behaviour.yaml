@@ -15,7 +15,7 @@ config:
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:letters:judsam:2011:mar:dsa
       description: David Simonsens Arkiv
-    - name: kb_image_judsam_jmss
+    - name: kb_image_judsam_jsmss
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:judsam:2010:maj:jsmss
       description: 'Judaistisk Samling: Håndskrifter'
@@ -43,7 +43,7 @@ config:
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:ortsam:2009:okt:orientalia
       description: 'Oriental Collection: Manuscripts'    
-    - name: kb_books_dassmaa_daellsvarehus
+    - name: kb_books_dasmaa_daellsvarehus
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:pamphlets:dasmaa:2008:feb:daellsvarehus
       description: Varehuskataloger
@@ -67,7 +67,7 @@ config:
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:images:billed:2014:jun:hca
       description: H.C. Andersen
-    - name: kb_manuss_vmanus_ha
+    - name: kb_manus_vmanus_ha
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:vmanus:2011:dec:ha
       description: Vesterlandske håndskrifter      

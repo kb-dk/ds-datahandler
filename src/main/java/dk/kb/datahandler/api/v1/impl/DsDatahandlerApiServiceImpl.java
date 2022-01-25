@@ -1,18 +1,20 @@
 package dk.kb.datahandler.api.v1.impl;
 
 import dk.kb.datahandler.api.v1.*;
-
+import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.ErrorDto;
 import java.io.File;
-import dk.kb.datahandler.model.v1.HelloReplyDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.webservice.exception.InternalServiceException;
 import dk.kb.datahandler.webservice.exception.ServiceException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +98,6 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
     
     @Override
     public Integer oaiIngestFull(String oaiTarget){
-        // TODO Auto-generated method stub
         
         try { 
             int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);        
@@ -107,52 +108,25 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
         }
         
         
-        
-        
     }
 
     @Override
-    public List<OaiTargetDto> getOaiTargetsConfiguration() {
-        
-        //TODO configure in YAML
-        
-        List<OaiTargetDto> oaiTargetList = new ArrayList<OaiTargetDto>();
-       
-        OaiTargetDto billedeSamling = new OaiTargetDto();
-        billedeSamling.setName("Billede samling");
-        billedeSamling.setUrl("http://www5.kb.dk/cop/oai/?metadataPrefix=mods&set=oai:kb.dk:images:billed:2010:okt:billeder");
-        oaiTargetList.add(billedeSamling);
-
-        return oaiTargetList;
-    }
-   
-
-    /**
-     * Request a Hello World message, for testing purposes
-     * 
-     * @param alternateHello: Optional alternative to using the word &#39;Hello&#39; in the reply
-     * 
-     * @return <ul>
-      *   <li>code = 200, message = "A JSON structure containing a Hello World message", response = HelloReplyDto.class</li>
-      *   </ul>
-      * @throws ServiceException when other http codes should be returned
-      *
-      * @implNote return will always produce a HTTP 200 code. Throw ServiceException if you need to return other codes
-     */
-    @Override
-    public HelloReplyDto getGreeting(String alternateHello) throws ServiceException {
-        // TODO: Implement...
-    
-        
-        try { 
-            HelloReplyDto response = new HelloReplyDto();
-        response.setMessage("f8Her5li");
-        return response;
+    public List<OaiTargetDto> getOaiTargetsConfiguration() {        
+        try {            
+            
+            //return as list. Internal they are saved in HashMap since they are retrieved by name when harvesting.
+            List<OaiTargetDto> targets = new ArrayList<OaiTargetDto>();
+            HashMap<String, OaiTargetDto> oaiTargets = ServiceConfig.getOaiTargets();            
+            for (String target : oaiTargets.keySet()) {
+              targets.add(oaiTargets.get(target));                               
+            }
+            
+            return  targets;
         } catch (Exception e){
             throw handleException(e);
         }
-    
     }
+
 
     /**
     * This method simply converts any Exception into a Service exception
