@@ -34,15 +34,15 @@ config:
     - name: kb_image_dasmaa_partiprogrammer
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:pamphlets:dasmaa:2008:feb:partiprogrammer
-      description: Partiprogram
+      description: Partiprogram    
     - name: kb_images_billed_billeder
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:images:billed:2010:okt:billeder
-      description: Billeder
-    - name: kb_images_billed_billeder
+      description: Billeder    
+    - name: kb_manus_ortsam_orientalia
       url: http://www5.kb.dk/cop/oai/
-      set: oai:kb.dk:images:billed:2010:okt:billeder
-      description: Billeder     
+      set: oai:kb.dk:manus:ortsam:2009:okt:orientalia
+      description: 'Oriental Collection: Manuscripts'    
     - name: kb_books_dassmaa_daellsvarehus
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:pamphlets:dasmaa:2008:feb:daellsvarehus
