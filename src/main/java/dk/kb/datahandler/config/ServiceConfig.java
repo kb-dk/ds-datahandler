@@ -3,6 +3,9 @@ package dk.kb.datahandler.config;
 import java.io.IOException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dk.kb.util.yaml.YAML;
 
 /**
@@ -11,6 +14,8 @@ import dk.kb.util.yaml.YAML;
  */
 public class ServiceConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(ServiceConfig.class);
+    
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
      * methods like {@code getInteger("someKey", defaultValue)} and {@code getSubMap("config.sub1.sub2")}.
@@ -26,18 +31,10 @@ public class ServiceConfig {
      */
     public static synchronized void initialize(String configFile) throws IOException {
         serviceConfig = YAML.resolveLayeredConfigs(configFile);
+        loadOaiTargets();
     }
 
-    /**
-     * Demonstration of a first-class property, meaning that an explicit method has been provided.
-     * @see #getConfig() for alternative.
-     * @return the "Hello World" lines defined in the config file.
-     */
-    public static List<String> getHelloLines() {
-        List<String> lines = serviceConfig.getList("config.helloLines");
-        return lines;
-    }
-
+  
     /**
      * Direct access to the backing YAML-class is used for configurations with more flexible content
      * and/or if the service developer prefers key-based property access.
@@ -50,5 +47,26 @@ public class ServiceConfig {
         }
         return serviceConfig;
     }
-  
+ 
+    private static void loadOaiTargets() {
+
+        List<YAML> targets = serviceConfig.getYAMLList("config.oai_targets");
+        //Load updtateStategy for each
+        for (YAML target: targets) {
+            String name = target.getString("name");
+            String url = target.getString("url");
+            String set = target.getString("set");
+            String description = target.getString("description");
+                                    
+            log.info("Laded for oai target:"+description);
+        }
+
+
+        
+        //log.info("Allowed bases loaded from config. Number of bases:"+allowedBases.size());
+        
+    }
+
+    
+    
 }
