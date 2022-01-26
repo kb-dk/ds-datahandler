@@ -53,8 +53,8 @@ public class OaiHarvestClient {
         }
         else {
             uri =baseURL+"?verb=ListRecords&resumptionToken="+resumptionToken;
-
         }      
+         //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
         //log.info("resumption token at:"+resumptionToken);
         String response=getHttpResponse(uri);
         //System.out.println(response);
@@ -64,7 +64,17 @@ public class OaiHarvestClient {
         //Build Document
         Document document = builder.parse(new InputSource(new StringReader(response)));
         document.getDocumentElement().normalize();
-
+        
+        try {
+        String error = document.getElementsByTagName("error").item(0).getTextContent();        
+          log.info("No records returned from OAI server when harvesting set:"+set +" message:"+error);
+        return oaiResponse;// will have no records
+        }
+        catch(Exception e) {
+           //Ignore, no error tag was found 
+           
+        }
+        
         try {
             String  resumptionToken=  document.getElementsByTagName("resumptionToken").item(0).getTextContent();
             String totalListSize =  document.getElementsByTagName("resumptionToken").item(0).getAttributes().getNamedItem("completeListSize").getNodeValue();
