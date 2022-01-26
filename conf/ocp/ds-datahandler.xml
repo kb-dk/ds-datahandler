@@ -2,7 +2,7 @@
 <Context override="true" docBase="/app/tomcat-apps/ds-datahandler.war">
 
     <Environment name="ds-datahandler-logback-config"
-        value="/app/conf/logback.xml"
+        value="/app/conf/ds-datahandler.logback.xml"
         type="java.lang.String"
         override="false"/>
     <Environment name="application-config"
