@@ -106,10 +106,22 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
         } catch (Exception e){
             throw handleException(e);
         }
+                
+    }
+
+public Integer oaiIngestDelta(String oaiTarget, String date){
+        
+        try { 
+            int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget,date);        
+            return numberIngested;
+        
+        } catch (Exception e){
+            throw handleException(e);
+        }
         
         
     }
-
+    
     @Override
     public List<OaiTargetDto> getOaiTargetsConfiguration() {        
         try {            

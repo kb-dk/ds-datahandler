@@ -17,6 +17,17 @@ public class DsDatahandlerFacade {
     
     
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
+    
+    
+    public static Integer oaiIngestDelta(String oaiTarget,String date) throws Exception {
+        
+        
+        
+        
+        return 0;
+    }
+    
+    
     public static Integer oaiIngestFull(String oaiTarget) throws Exception {
             
         
