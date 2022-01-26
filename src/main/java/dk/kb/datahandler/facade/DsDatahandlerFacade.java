@@ -1,5 +1,10 @@
 package dk.kb.datahandler.facade;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,41 +19,42 @@ import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 public class DsDatahandlerFacade {
-    
-    
+
+
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
-    
-    
+
+
     public static Integer oaiIngestDelta(String oaiTarget,String date) throws Exception {
-        
-        
-        
-        
-        return 0;
+      if (!checkDataFormat(date)) {
+       log.error("Invalid date format for delta ingest. oaiTarget="+oaiTarget +" date:"+date);
+       throw new InvalidArgumentServiceException("Date for delta import must have format yyyy-MM-dd. Value was:"+date);       
+     } 
+
+      return 0;
     }
-    
-    
+
+
     public static Integer oaiIngestFull(String oaiTarget) throws Exception {
-            
-        
+
+
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTarget);
-        
+
         if (oaiTargetDto == null) {            
-          throw new  InvalidArgumentServiceException("No OAI targets defined in YAML file for:"+oaiTarget);
+            throw new  InvalidArgumentServiceException("No OAI targets defined in YAML file for:"+oaiTarget);
         }
-        
+
         String recordBase=oaiTargetDto.getName(); //FIX
         String baseUrl=oaiTargetDto.getUrl();
-               
+
         String set=oaiTargetDto.getSet();
-        
+
         DsStorageApi dsAPI = getDsStorageApiClient();
         OaiHarvestClient client = new OaiHarvestClient(baseUrl, set);
 
         OaiResponse response = client.next();
         int totalRecordLoaded=0;
         while (response.getRecords().size() >0) {
-            
+
             for (OaiRecord  oaiRecord : response.getRecords()) {            
                 totalRecordLoaded++;
                 DsRecordDto dsRecord = new DsRecordDto();
@@ -60,11 +66,11 @@ public class DsDatahandlerFacade {
             log.info("Ingesting base:"+recordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
             response = client.next(); //load next (may be empty)            
         }
- 
+
         log.info("Completed full Ingesting base:"+recordBase+ " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());
         return totalRecordLoaded;
     }
-    
+
     private static DsStorageApi getDsStorageApiClient() {
         ApiClient apiClient = new ApiClient();
         apiClient.setHost("devel11.statsbiblioteket.dk");
@@ -73,5 +79,16 @@ public class DsDatahandlerFacade {
         DsStorageApi dsAPI = new DsStorageApi(apiClient);
         return dsAPI;
     }
-    
+
+    public  static boolean checkDataFormat(String date) {            
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        formatter.setLenient(false);
+        try {
+            Date dateParsed= formatter.parse(date);
+        } catch (ParseException e) {
+            return false;
+        }
+        return true;
+    }
+
 }

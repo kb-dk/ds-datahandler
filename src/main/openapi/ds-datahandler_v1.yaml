@@ -83,18 +83,6 @@ paths:
                 format: int32      
 
 
-                        
-      responses:
-        '200':
-          description: OK. Returns total number of records ingested.
-          content:
-            application/json:
-              schema:
-                type: integer
-                format: int32      
-
-
-
 components:
   schemas:
 
