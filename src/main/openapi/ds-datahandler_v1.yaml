@@ -46,7 +46,7 @@ paths:
             type: string
       responses:
         '200':
-          description: OK
+          description: OK. Returns total number of records ingested.
           content:
             application/json:
               schema:
@@ -75,6 +75,9 @@ components:
         set:
           type: string
           description: 'OAI parameter to specify which collection to harvest'                
+        recordBase:
+          type: string
+          description: 'Name of the recordBase when ingesting into DS-storage.'
         decription:
           type: string
           description: 'Human readable name for the collection'                

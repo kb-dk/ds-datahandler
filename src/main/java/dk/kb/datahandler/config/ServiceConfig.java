@@ -64,16 +64,18 @@ public class ServiceConfig {
             String name = target.getString("name");
             String url = target.getString("url");
             String set = target.getString("set");
+            String recordBase = target.getString("recordBase");
             String description = target.getString("description");
-                           
+                                       
             OaiTargetDto oaiTarget = new OaiTargetDto();
             oaiTarget.setName(name);
             oaiTarget.setUrl(url);
             oaiTarget.set(set);
+            oaiTarget.setRecordBase(recordBase);
             oaiTarget.setDecription(description);            
             oaiTargets.put(name, oaiTarget);
             
-            log.info("Load OAI target from yaml:"+description);
+            log.info("Load OAI target from yaml:"+name);
         }
         
         //log.info("Allowed bases loaded from config. Number of bases:"+allowedBases.size());

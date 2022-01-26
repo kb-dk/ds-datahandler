@@ -6,9 +6,12 @@ import org.slf4j.LoggerFactory;
 import dk.kb.datahandler.backend.api.v1.DsStorageApi;
 import dk.kb.datahandler.backend.invoker.v1.ApiClient;
 import dk.kb.datahandler.backend.model.v1.DsRecordDto;
+import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
+import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 public class DsDatahandlerFacade {
     
@@ -16,18 +19,20 @@ public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
     public static Integer oaiIngestFull(String oaiTarget) throws Exception {
             
+        
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTarget);
+        
+        if (oaiTargetDto == null) {            
+          throw new  InvalidArgumentServiceException("No OAI targets defined in YAML file for:"+oaiTarget);
+        }
+        
+        String recordBase=oaiTargetDto.getName(); //FIX
+        String baseUrl=oaiTargetDto.getUrl();
+               
+        String set=oaiTargetDto.getSet();
+        
         DsStorageApi dsAPI = getDsStorageApiClient();
-        
-//        String cumulusImageRecordBase="cumulus_image";
-        String vManusRecordBase="cumulus_image";
-        String baseUrl="http://www5.kb.dk/cop/oai/";
- 
-        
-        //String metadataPrefix="mods";        
-        //String verb="ListRecords";
-        String set="oai:kb.dk:images:billed:2010:okt:billeder";
-        String set_vmanus="oai:kb.dk:manus:vmanus:2011";
-        OaiHarvestClient client = new OaiHarvestClient(baseUrl, set_vmanus);
+        OaiHarvestClient client = new OaiHarvestClient(baseUrl, set);
 
         OaiResponse response = client.next();
         int totalRecordLoaded=0;
@@ -36,16 +41,16 @@ public class DsDatahandlerFacade {
             for (OaiRecord  oaiRecord : response.getRecords()) {            
                 totalRecordLoaded++;
                 DsRecordDto dsRecord = new DsRecordDto();
-                dsRecord.setId(vManusRecordBase+":"+oaiRecord.getId());
-                dsRecord.setBase(vManusRecordBase);
+                dsRecord.setId(recordBase+":"+oaiRecord.getId());
+                dsRecord.setBase(recordBase);
                 dsRecord.setData(oaiRecord.getMetadata());            
                 dsAPI.createOrUpdateRecordPost(dsRecord);                        
             }
-            log.info("Ingesting base:"+vManusRecordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
+            log.info("Ingesting base:"+recordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
             response = client.next(); //load next (may be empty)            
         }
  
-        log.info("Completed full Ingesting base:"+vManusRecordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());
+        log.info("Completed full Ingesting base:"+recordBase+ " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());
         return totalRecordLoaded;
     }
     

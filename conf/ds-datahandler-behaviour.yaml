@@ -12,64 +12,78 @@ config:
   # List of oai targets
   oai_targets:
     - name: kb_letters_judsam_dsa
+      recordBase: kb_letters_judsam_dsa
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:letters:judsam:2011:mar:dsa
       description: David Simonsens Arkiv
     - name: kb_image_judsam_jsmss
+      recordBase: kb_image_judsam_jsmss
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:judsam:2010:maj:jsmss
       description: 'Judaistisk Samling: Håndskrifter'
     - name: kb_image_luftfo_luftfoto
+      recordBase: kb_image_luftfo_luftfoto
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:images:luftfo:2011:maj:luftfoto
       description: Luftfoto
     - name: kb_pamphlets_dasmaa_smaatryk
+      recordBase: kb_pamphlets_dasmaa_smaatryk
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:pamphlets:dasmaa:2012:jul:smaatryk
       description: Småtryk
     - name: kb_maps_kortsa_kortatlas
+      recordBase: kb_maps_kortsa_kortatlas
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:maps:kortsa:2012:jul:kortatlas
       description: Kort og Atlas
     - name: kb_image_dasmaa_partiprogrammer
+      recordBase: kb_image_dasmaa_partiprogrammer
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:pamphlets:dasmaa:2008:feb:partiprogrammer
       description: Partiprogram    
     - name: kb_images_billed_billeder
+      recordBase: kb_images_billed_billeder
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:images:billed:2010:okt:billeder
       description: Billeder    
     - name: kb_manus_ortsam_orientalia
+      recordBase: kb_manus_ortsam_orientalia
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:ortsam:2009:okt:orientalia
       description: 'Oriental Collection: Manuscripts'    
     - name: kb_books_dasmaa_daellsvarehus
+      recordBase: kb_books_dasmaa_daellsvarehus
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:pamphlets:dasmaa:2008:feb:daellsvarehus
       description: Varehuskataloger
     - name: kb_books_judsam_jstryk
+      recordBase: kb_books_judsam_jstryk
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:books:judsam:2010:maj:jstryk
       description: 'Judaistisk Samling: Tidlige & sjældne tryk'
     - name: kb_manus_judsam_dsh
+      recordBase: kb_manus_judsam_dsh
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:judsam:2009:sep:dsh
       description: David Simonsens Håndskrifter
     - name: kb_books_ortsam_ostryk
+      recordBase: kb_books_ortsam_ostryk
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:books:ortsam:2011:mar:ostryk
       description: Tidlige tryk i Orientalsk Samling
     - name: kb_manus_musman_viser
+      recordBase: kb_manus_musman_viser
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:musman:2010:dec:viser
       description: DFS
     - name: kb_images_billed_hca
+      recordBase: kb_images_billed_hca
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:images:billed:2014:jun:hca
       description: H.C. Andersen
     - name: kb_manus_vmanus_ha
+      recordBase: kb_manus_vmanus_ha
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:vmanus:2011:dec:ha
       description: Vesterlandske håndskrifter      
-      
       
