@@ -73,7 +73,7 @@ public class ServiceConfig {
             oaiTarget.setDecription(description);            
             oaiTargets.put(name, oaiTarget);
             
-            log.info("Laded for oai target:"+description);
+            log.info("Load OAI target from yaml:"+description);
         }
         
         //log.info("Allowed bases loaded from config. Number of bases:"+allowedBases.size());
