@@ -1,6 +1,8 @@
 package dk.kb.datahandler.oai;
 
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -13,6 +15,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -96,12 +99,10 @@ public class OaiHarvestClient {
             Element record =  (Element)nList.item(i);                      
 
             // Get raw XML within the record tag
-            DOMImplementationLS ls = (DOMImplementationLS) document.getImplementation();
-            LSSerializer ser = ls.createLSSerializer();
                         
-            Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                
-            String metadataXml = ser.writeToString(metadataElement);
-       
+            Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
+            String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);
+
             String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();
             OaiRecord oaiRecord = new OaiRecord();
             oaiRecord.setMetadata(metadataXml);
@@ -122,4 +123,21 @@ public class OaiHarvestClient {
 
         return response.body();
     }
+    
+    
+    public String serializeXmlElementToStringUTF8(Document document , Element element) { 
+        DOMImplementation impl = document.getImplementation();
+        DOMImplementationLS implLS = (DOMImplementationLS) impl.getFeature("LS", "3.0");
+        LSSerializer lsSerializer = implLS.createLSSerializer();
+        lsSerializer.getDomConfig().setParameter("format-pretty-print", true);
+        LSOutput lsOutput = implLS.createLSOutput();
+        lsOutput.setEncoding("UTF-8");
+        Writer stringWriter = new StringWriter();
+        lsOutput.setCharacterStream(stringWriter);
+        lsSerializer.write(element, lsOutput);
+        return stringWriter.toString();
+      }
+
+    
+    
 }
