@@ -17,7 +17,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
+import org.w3c.dom.ls.*;
 
 public class OaiHarvestClient {
 
@@ -54,7 +54,10 @@ public class OaiHarvestClient {
         else {
             uri =baseURL+"?verb=ListRecords&resumptionToken="+resumptionToken;
         }      
-         //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
+
+        
+       //System.out.println("uri:"+uri);
+        //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
         //log.info("resumption token at:"+resumptionToken);
         String response=getHttpResponse(uri);
         //System.out.println(response);
@@ -91,11 +94,17 @@ public class OaiHarvestClient {
 
         for (int i =0;i<nList.getLength();i++) {                                         
             Element record =  (Element)nList.item(i);                      
-            String metadata =  record.getElementsByTagName("metadata").item(0).getTextContent();            
-            String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();
 
+            // Get raw XML within the record tag
+            DOMImplementationLS ls = (DOMImplementationLS) document.getImplementation();
+            LSSerializer ser = ls.createLSSerializer();
+                        
+            Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                
+            String metadataXml = ser.writeToString(metadataElement);
+       
+            String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();
             OaiRecord oaiRecord = new OaiRecord();
-            oaiRecord.setMetadata(metadata);
+            oaiRecord.setMetadata(metadataXml);
             oaiRecord.setId(identifier);
             oaiRecords.add(oaiRecord);                                  
         }

@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,7 @@ public class DsDatahandlerFacade {
             response = client.next(); //load next (may be empty)            
         }
 
-        log.info("Completed full Ingesting base:"+recordBase+ " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());
+        log.info("Completed full Ingesting base:"+recordBase+ " process:"+totalRecordLoaded);
         return totalRecordLoaded;
     }
 
@@ -81,7 +82,7 @@ public class DsDatahandlerFacade {
     }
 
     public  static boolean checkDataFormat(String date) {            
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault());
         formatter.setLenient(false);
         try {
             Date dateParsed= formatter.parse(date);
