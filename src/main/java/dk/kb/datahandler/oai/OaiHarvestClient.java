@@ -67,9 +67,22 @@ public class OaiHarvestClient {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
 
-        //Build Document
-        Document document = builder.parse(new InputSource(new StringReader(response)));
+        
+        
+        //If the OAI does not return valid XML, then we can not parse it.
+        // All records in this dokument is lost and also those after because we have no resumption token
+        Document document = null;
+        try {
+        document = builder.parse(new InputSource(new StringReader(response)));
         document.getDocumentElement().normalize();
+        }
+        catch(Exception e) {                       
+            log.error("Invalid XML from OAI harvest. ",e);            
+            log.error("The invalid XML was retrived from this url:"+uri);                        
+            completed=true;
+            return oaiResponse;  
+        }
+        
         
         try {
         String error = document.getElementsByTagName("error").item(0).getTextContent();        
