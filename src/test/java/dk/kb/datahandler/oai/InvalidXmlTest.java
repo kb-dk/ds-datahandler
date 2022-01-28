@@ -9,6 +9,7 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import dk.kb.datahandler.util.XMLEscapeSanitiser;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +21,14 @@ public class InvalidXmlTest {
     
     @Test
     void invalidXmlTest() throws Exception {
+        XMLEscapeSanitiser sanitiser = new XMLEscapeSanitiser();
+
     String uri="http://www5.kb.dk/cop/oai/?verb=ListRecords&resumptionToken=KB!214000!mods!0001-01-01!9999-12-31!oai:kb.dk:images:luftfo:2011:maj:luftfoto"; 
     
        
      String xmlResponse = OaiHarvestClient.getHttpResponse(uri);
+     xmlResponse = sanitiser.apply(xmlResponse);
+
      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
      DocumentBuilder builder = factory.newDocumentBuilder();
 
