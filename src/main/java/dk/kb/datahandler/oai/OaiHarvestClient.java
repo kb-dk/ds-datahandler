@@ -103,6 +103,8 @@ public class OaiHarvestClient {
             Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
             String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);
 
+            metadataXml = removeMetadataTag(metadataXml);
+            //System.out.println(metadataXml);
             String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();
             OaiRecord oaiRecord = new OaiRecord();
             oaiRecord.setMetadata(metadataXml);
@@ -112,7 +114,8 @@ public class OaiHarvestClient {
 
         return oaiResponse;
     }
-
+    
+    
     public static String getHttpResponse(String uri) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -123,15 +126,25 @@ public class OaiHarvestClient {
 
         return response.body();
     }
+  
+    //Dirty string hacking. But can not find a way to do this with the DOM parser       
+    public static String removeMetadataTag(String xml) {   
+       xml = xml.replaceFirst("<metadata>", "");       
+       xml = xml.substring(0,xml.length()-12); //End of string always </metadata>
+       return xml;       
+    }
     
-    
+    /*
+     * Get the raw XML text from a node. Also make sure encoding is UTF-8.  
+     * 
+     */
     public String serializeXmlElementToStringUTF8(Document document , Element element) { 
         DOMImplementation impl = document.getImplementation();
         DOMImplementationLS implLS = (DOMImplementationLS) impl.getFeature("LS", "3.0");
         LSSerializer lsSerializer = implLS.createLSSerializer();
-        lsSerializer.getDomConfig().setParameter("format-pretty-print", true);
+        lsSerializer.getDomConfig().setParameter("format-pretty-print", true); // optional.
         LSOutput lsOutput = implLS.createLSOutput();
-        lsOutput.setEncoding("UTF-8");
+        lsOutput.setEncoding("UTF-8");  //The reason we do all this stuff.
         Writer stringWriter = new StringWriter();
         lsOutput.setCharacterStream(stringWriter);
         lsSerializer.write(element, lsOutput);

@@ -21,8 +21,8 @@ public class OaiHarvestClientTest {
        //String metadataPrefix="mods";        
        //String verb="ListRecords";
 //       String set="oai:kb.dk:images:billed:2010:okt:billeder";
-  
-       String set="oai:kb.dk:manus:vmanus:2011:dec:ha";
+       
+       String set="oai:kb.dk:images:billed:2014:jun:hca";
        OaiHarvestClient client = new OaiHarvestClient(baseUrl, set);
        
        OaiResponse r1 = client.next();
