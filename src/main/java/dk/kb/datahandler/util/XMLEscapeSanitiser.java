@@ -29,15 +29,29 @@ public class XMLEscapeSanitiser extends CallbackReplacer {
 
     private final String replacement;
 
+    /**
+     * Constructs an XML unicode escape validator, where illegal Unicode codepoint are replaced with {@code ?}.
+     */
     public XMLEscapeSanitiser() {
         this("?");
     }
 
+    /**
+     * Constructs an XML unicode escape validator.
+     * @param replacement returned if an illegal Unicode codepoint is encountered.
+     */
     public XMLEscapeSanitiser(String replacement) {
         super(ESCAPE, getEscapeSanitizer(replacement));
         this.replacement = replacement;
     }
 
+    /**
+     * Isolates the unicode part of an XML escape (either hex or decimal) and parses that to a long, then checks if the
+     * alledged Unicode codepoint is valid. If it is balid, the full original escape is returned, else the replacement
+     * character (fefault {@code ?} is returned.
+     * @param replacement the replacement character for illegal codepoints.
+     * @return the original input if valid Unicode escape, else replacement.
+     */
     public static Function<String, String> getEscapeSanitizer(String replacement) {
         return escape -> { // &#xABCD; or &#12345; (or &#xAB etc.)
             try {
