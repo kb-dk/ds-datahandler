@@ -21,7 +21,9 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
- * Checks input for XML-escapes, e.g. {@code &#xABCD} or {@code &#12345} and replaces those with '?' or a custom String.
+ * Checks input for XML-escapes, e.g. {@code &#xABCD} or {@code &#12345}. If an escape refers to an illegal Unicode codepoint,
+ * it is replaced with '?' (or a custom String specified in config).
+ * If it is not illegal, the escape is left as-is.
  */
 public class XMLEscapeSanitiser extends CallbackReplacer {
     private static final Logger log = LoggerFactory.getLogger(XMLEscapeSanitiser.class);
