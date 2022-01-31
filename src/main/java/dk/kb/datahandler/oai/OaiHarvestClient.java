@@ -20,6 +20,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import dk.kb.util.xml.XMLEscapeSanitiser;
+
 import org.w3c.dom.ls.*;
 
 public class OaiHarvestClient {
@@ -63,6 +66,12 @@ public class OaiHarvestClient {
         //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
         //log.info("resumption token at:"+resumptionToken);
         String response=getHttpResponse(uri);
+
+        //Important to remove invalid XML encodings since they will be present in metadata. 
+        //If they are not replaced, the DOM parse will fail completely to read anything.
+        XMLEscapeSanitiser sanitiser = new XMLEscapeSanitiser(""); //Do not replace with anything
+        String responseSanitized  =  sanitiser.apply(response);
+        
         //System.out.println(response);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -73,7 +82,7 @@ public class OaiHarvestClient {
         // All records in this dokument is lost and also those after because we have no resumption token
         Document document = null;
         try {
-        document = builder.parse(new InputSource(new StringReader(response)));
+        document = builder.parse(new InputSource(new StringReader(responseSanitized)));
         document.getDocumentElement().normalize();
         }
         catch(Exception e) {                       
