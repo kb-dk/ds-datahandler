@@ -26,16 +26,26 @@ public class DsDatahandlerFacade {
 
 
     public static Integer oaiIngestDelta(String oaiTarget,String date) throws Exception {
-      if (!checkDataFormat(date)) {
-       log.error("Invalid date format for delta ingest. oaiTarget="+oaiTarget +" date:"+date);
-       throw new InvalidArgumentServiceException("Date for delta import must have format yyyy-MM-dd. Value was:"+date);       
-     } 
-
-      return 0;
+        if (!checkDataFormat(date)) {
+            log.error("Invalid date format for delta ingest. oaiTarget="+oaiTarget +" date:"+date);
+            throw new InvalidArgumentServiceException("Date for delta import must have format yyyy-MM-dd. Value was:"+date);       
+        } 
+        return oaiIngest(oaiTarget, date);
     }
 
 
+
+
     public static Integer oaiIngestFull(String oaiTarget) throws Exception {
+        return oaiIngest(oaiTarget, null);
+    }
+    /*
+     * If from is null it will harvest everything.
+     * Format for from is yyyy-MM-dd as this is only one supported by COPs/Cumulus.
+     * Will be changed later when more OAI targets comes.
+     *  
+     */
+    public static Integer oaiIngest(String oaiTarget, String from) throws Exception {
 
 
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTarget);
@@ -50,7 +60,7 @@ public class DsDatahandlerFacade {
         String set=oaiTargetDto.getSet();
 
         DsStorageApi dsAPI = getDsStorageApiClient();
-        OaiHarvestClient client = new OaiHarvestClient(baseUrl, set);
+        OaiHarvestClient client = new OaiHarvestClient(baseUrl, set, from);
 
         OaiResponse response = client.next();
         int totalRecordLoaded=0;

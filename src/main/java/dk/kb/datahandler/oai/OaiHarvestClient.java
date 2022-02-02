@@ -33,11 +33,13 @@ public class OaiHarvestClient {
     private String set;
     private boolean completed=false;
     private String resumptionToken=null;
+    private String from;
+    
 
-
-    public OaiHarvestClient (String baseURL,String set){
+    public OaiHarvestClient (String baseURL,String set, String from){
         this.baseURL=baseURL;
         this.set=set;
+        this.from=from;
     }
 
 
@@ -60,9 +62,11 @@ public class OaiHarvestClient {
         else {
             uri =baseURL+"?verb=ListRecords&resumptionToken="+resumptionToken;
         }      
-
+        if (from != null && resumptionToken == null) {
+            uri= uri+"&from="+from;            
+        }
         
-       //System.out.println("uri:"+uri);
+       System.out.println("uri:"+uri);
         //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
         //log.info("resumption token at:"+resumptionToken);
         String response=getHttpResponse(uri);

@@ -20,16 +20,18 @@ public class OaiHarvestClientTest {
        String baseUrl="http://www5.kb.dk/cop/oai/";
        //String metadataPrefix="mods";        
        //String verb="ListRecords";
-//       String set="oai:kb.dk:images:billed:2010:okt:billeder";
+   String set="oai:kb.dk:images:billed:2010:okt:billeder";
        
-       String set="oai:kb.dk:images:billed:2014:jun:hca";
-       OaiHarvestClient client = new OaiHarvestClient(baseUrl, set);
+//       String set="oai:kb.dk:images:billed:2014:jun:hca";
+       OaiHarvestClient client = new OaiHarvestClient(baseUrl, set,"2012-03-01");
        
        OaiResponse r1 = client.next();
        System.out.println(r1.getRecords().size());
        OaiResponse r2= client.next();
        System.out.println(r2.getRecords().size());
        
+       OaiResponse r3= client.next();
+       System.out.println(r3.getRecords().size());
               
        
         }

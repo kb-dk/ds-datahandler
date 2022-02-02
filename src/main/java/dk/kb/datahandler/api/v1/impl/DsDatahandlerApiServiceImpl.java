@@ -95,44 +95,45 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
     @Context
     private transient MessageContext messageContext;
 
-    
+
     @Override
     public Integer oaiIngestFull(String oaiTarget){
-        
+
         try { 
             int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);        
             return numberIngested;
-        
+
         } catch (Exception e){
             throw handleException(e);
         }
-                
+
     }
 
-public Integer oaiIngestDelta(String oaiTarget, String date){
-        
+
+
+    public Integer oaiIngestDelta(String oaiTarget, String date){        
         try { 
             int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget,date);        
             return numberIngested;
-        
+
         } catch (Exception e){
             throw handleException(e);
         }
-        
-        
+
+
     }
-    
+
     @Override
     public List<OaiTargetDto> getOaiTargetsConfiguration() {        
         try {            
-            
+
             //return as list. Internal they are saved in HashMap since they are retrieved by name when harvesting.
             List<OaiTargetDto> targets = new ArrayList<OaiTargetDto>();
             HashMap<String, OaiTargetDto> oaiTargets = ServiceConfig.getOaiTargets();            
             for (String target : oaiTargets.keySet()) {
-              targets.add(oaiTargets.get(target));                               
+                targets.add(oaiTargets.get(target));                               
             }
-            
+
             return  targets;
         } catch (Exception e){
             throw handleException(e);
@@ -141,11 +142,11 @@ public Integer oaiIngestDelta(String oaiTarget, String date){
 
 
     /**
-    * This method simply converts any Exception into a Service exception
-    * @param e: Any kind of exception
-    * @return A ServiceException
-    * @see dk.kb.datahandler.webservice.ServiceExceptionMapper
-    */
+     * This method simply converts any Exception into a Service exception
+     * @param e: Any kind of exception
+     * @return A ServiceException
+     * @see dk.kb.datahandler.webservice.ServiceExceptionMapper
+     */
     private ServiceException handleException(Exception e) {
         if (e instanceof ServiceException) {
             return (ServiceException) e; // Do nothing - this is a declared ServiceException from within module.
@@ -156,8 +157,8 @@ public Integer oaiIngestDelta(String oaiTarget, String date){
     }
 
 
-    
 
-    
+
+
 
 }
