@@ -63,10 +63,13 @@ public class ServiceConfig {
         for (YAML target: targets) {
             String name = target.getString("name");
             String url = target.getString("url");
-            String set = target.getString("set");
+            String set = target.getString("set",null);
             String recordBase = target.getString("recordBase");
             String description = target.getString("description");
-                                       
+            String user=target.getString("user",null);
+            String password=target.getString("password",null);
+            
+            
             OaiTargetDto oaiTarget = new OaiTargetDto();
             oaiTarget.setName(name);
             oaiTarget.setUrl(url);
