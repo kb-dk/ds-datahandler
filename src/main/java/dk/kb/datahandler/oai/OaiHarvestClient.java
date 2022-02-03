@@ -9,6 +9,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
+import java.util.Base64;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -52,7 +53,7 @@ public class OaiHarvestClient {
         OaiResponse oaiResponse = new OaiResponse();
         ArrayList<OaiRecord> oaiRecords = new  ArrayList<OaiRecord> ();
         oaiResponse.setRecords(oaiRecords);
-        String uri= null;
+        String uri= baseURL+"?verb=ListRecords";
 
         if (completed) {            
             //The caller should know not to ask for more since last batch had 0 entries.
@@ -61,11 +62,13 @@ public class OaiHarvestClient {
         }
 
         //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
-        if (resumptionToken==null && set != null) {
-            uri =baseURL+"?verb=ListRecords&set="+set;                        
+        if (resumptionToken==null && set != null) { //COPS fails if set is still used with resumptiontoken
+            uri =uri+ "&set="+set;                        
         }
         else {
-            uri =baseURL+"?verb=ListRecords&resumptionToken="+resumptionToken;
+            if (resumptionToken != null) {             
+               uri ="resumptionToken="+resumptionToken;
+            }
         }      
         if (from != null && resumptionToken == null) {
             uri= uri+"&from="+from;            
@@ -79,8 +82,9 @@ public class OaiHarvestClient {
        System.out.println("uri:"+uri);
         //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
         //log.info("resumption token at:"+resumptionToken);
-        String response=getHttpResponse(uri);
+        String response=getHttpResponse(uri,"",""); //TODO USER PASSWORD
 
+        System.out.println("response:"+response);
         //Important to remove invalid XML encodings since they will be present in metadata. 
         //If they are not replaced, the DOM parse will fail completely to read anything.
         XMLEscapeSanitiser sanitiser = new XMLEscapeSanitiser(""); //Do not replace with anything
@@ -151,14 +155,22 @@ public class OaiHarvestClient {
     }
     
     
-    public static String getHttpResponse(String uri) throws Exception {
-        HttpClient client = HttpClient.newHttpClient();
+    public static String getHttpResponse(String uri, String user, String password) throws Exception {
+        
+        HttpClient client = HttpClient.newHttpClient();        
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(uri))
+                .header("Authorization", basicAuth("user", "password"))
                 .build();
+        
+        //                if (username != null && password != null){
+        //String encoded = Base64.getEncoder().encodeToString((username+":"+password).getBytes(StandardCharsets.UTF_8));  //Java 8
+       // conn.setRequestProperty("Authorization", "Basic "+encoded);                       
+      //}
 
+        
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-
+         System.out.println("http code:"+response.statusCode());
         return response.body();
     }
   
@@ -167,6 +179,10 @@ public class OaiHarvestClient {
        xml = xml.replaceFirst("<metadata>", "");       
        xml = xml.substring(0,xml.length()-12); //End of string always </metadata>
        return xml;       
+    }
+    
+    private static String basicAuth(String username, String password) {
+        return "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
     }
     
     /*

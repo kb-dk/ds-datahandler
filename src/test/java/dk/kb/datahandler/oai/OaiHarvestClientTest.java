@@ -16,13 +16,22 @@ public class OaiHarvestClientTest {
 
         // When using resumption token you must NOT include metadatPrefix+set again
         //http://www5.kb.dk/cop/oai/?verb=ListRecords&resumptionToken=KB!1000!mods!0001-01-01!9999-12-31!oai:kb.dk:images:billed:2010:okt:billeder
-        
+        /*
        String baseUrl="http://www5.kb.dk/cop/oai/";
        String metadataPrefix="mods";               
        String set="oai:kb.dk:images:billed:2010:okt:billeder";
        String user = null;
        String password=null;
-       
+       */
+        
+        String baseUrl="https://pvica-devel2.statsbiblioteket.dk/OAI-PMH";
+        String metadataPrefix="XIP_full_schema";               
+        String set=null;
+        String user = "oai-pmh-devel";
+        String password="XXXX";
+
+        
+        
 //       String set="oai:kb.dk:images:billed:2014:jun:hca";
        OaiHarvestClient client = new OaiHarvestClient(baseUrl, set,metadataPrefix,"2012-03-01", user,password);
        
@@ -34,7 +43,7 @@ public class OaiHarvestClientTest {
        OaiResponse r3= client.next();
        System.out.println(r3.getRecords().size());
               
-       
+     
         }
    
 
