@@ -59,21 +59,23 @@ public class ServiceConfig {
     
     private static void loadOaiTargets() {
         List<YAML> targets = serviceConfig.getYAMLList("config.oai_targets");
-        //Load updtateStategy for each
         for (YAML target: targets) {
             String name = target.getString("name");
             String url = target.getString("url");
             String set = target.getString("set",null);
             String recordBase = target.getString("recordBase");
+            String metadataPrefix = target.getString("metadataPrefix");
             String description = target.getString("description");
             String user=target.getString("user",null);
             String password=target.getString("password",null);
-            
-            
+                        
             OaiTargetDto oaiTarget = new OaiTargetDto();
             oaiTarget.setName(name);
-            oaiTarget.setUrl(url);
-            oaiTarget.set(set);
+            oaiTarget.setUrl(url);       
+            oaiTarget.setSet(set);
+            oaiTarget.setMetadataprefix(metadataPrefix);
+            oaiTarget.setUsername(user); 
+            oaiTarget.setPassword(password);
             oaiTarget.setRecordBase(recordBase);
             oaiTarget.setDecription(description);            
             oaiTargets.put(name, oaiTarget);
@@ -81,7 +83,7 @@ public class ServiceConfig {
             log.info("Load OAI target from yaml:"+name);
         }
         
-        //log.info("Allowed bases loaded from config. Number of bases:"+allowedBases.size());
+        log.info("Number of OAI targets loaded:"+oaiTargets.size());
         
     }
 

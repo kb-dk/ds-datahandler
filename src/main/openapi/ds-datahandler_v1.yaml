@@ -103,7 +103,16 @@ components:
           description: 'Base YRL to the OAI server'                
         set:
           type: string
-          description: 'OAI parameter to specify which collection to harvest'                
+          description: 'Optional OAI parameter to specify which collection to harvest'                
+        metadataprefix:
+          type: string
+          description: 'Specify for the dataformat. Some OAI servers can return data in different formats.'                
+        username:
+          type: string
+          description: 'User name if the OAI server require authentication'                
+        password:
+          type: string
+          description: 'Password if the OAI server require authentication'                
         recordBase:
           type: string
           description: 'Name of the recordBase when ingesting into DS-storage.'

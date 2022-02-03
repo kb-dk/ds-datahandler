@@ -34,12 +34,17 @@ public class OaiHarvestClient {
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
-    
+    private String metadataPrefix;
+    private String user;
+    private String password;
 
-    public OaiHarvestClient (String baseURL,String set, String from){
+    public OaiHarvestClient (String baseURL,String set, String metadataPrefix, String from, String user, String password){
         this.baseURL=baseURL;
         this.set=set;
         this.from=from;
+        this.metadataPrefix=metadataPrefix;
+        this.user=user;
+        this.password=password;
     }
 
 
@@ -56,8 +61,8 @@ public class OaiHarvestClient {
         }
 
         //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
-        if (resumptionToken==null) {
-            uri =baseURL+"?metadataPrefix=mods&verb=ListRecords&set="+set;                        
+        if (resumptionToken==null && set != null) {
+            uri =baseURL+"?verb=ListRecords&set="+set;                        
         }
         else {
             uri =baseURL+"?verb=ListRecords&resumptionToken="+resumptionToken;
@@ -65,6 +70,11 @@ public class OaiHarvestClient {
         if (from != null && resumptionToken == null) {
             uri= uri+"&from="+from;            
         }
+        if (metadataPrefix != null && resumptionToken == null) {
+            uri= uri+"&metadataPrefix="+metadataPrefix;            
+        }
+        
+        //TODO user
         
        System.out.println("uri:"+uri);
         //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
@@ -124,8 +134,7 @@ public class OaiHarvestClient {
         for (int i =0;i<nList.getLength();i++) {                                         
             Element record =  (Element)nList.item(i);                      
 
-            // Get raw XML within the record tag
-                        
+            // Get raw XML within the record tag                        
             Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
             String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);
 

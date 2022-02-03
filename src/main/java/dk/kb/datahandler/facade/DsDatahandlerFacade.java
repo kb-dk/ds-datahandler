@@ -56,12 +56,13 @@ public class DsDatahandlerFacade {
 
         String recordBase=oaiTargetDto.getName(); //FIX
         String baseUrl=oaiTargetDto.getUrl();
-
         String set=oaiTargetDto.getSet();
+        String metadataPrefix = oaiTargetDto.getMetadataprefix();
+        String user = oaiTargetDto.getUsername();
+        String password = oaiTargetDto.getPassword();
 
-        DsStorageApi dsAPI = getDsStorageApiClient();
-        OaiHarvestClient client = new OaiHarvestClient(baseUrl, set, from);
-
+        DsStorageApi dsAPI = getDsStorageApiClient();        
+        OaiHarvestClient client = new OaiHarvestClient(baseUrl, set, metadataPrefix, from, user, password);
         OaiResponse response = client.next();
         int totalRecordLoaded=0;
         while (response.getRecords().size() >0) {
