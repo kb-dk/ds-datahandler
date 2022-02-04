@@ -7,7 +7,7 @@ public class OaiResponse {
     
     private ArrayList<OaiRecord> records = new  ArrayList<OaiRecord> (); 
     private String resumptionToken = null;
-    private long totalRecords=0;
+    private String totalRecords="0";// can be "?" if unknown
     
     public ArrayList<OaiRecord> getRecords() {
         return records;
@@ -21,10 +21,10 @@ public class OaiResponse {
     public void setResumptionToken(String resumptionToken) {
         this.resumptionToken = resumptionToken;
     }
-    public long getTotalRecords() {
+    public String getTotalRecords() {
         return totalRecords;
     }
-    public void setTotalRecords(long totalRecords) {
+    public void setTotalRecords(String totalRecords) {
         this.totalRecords = totalRecords;
     }
     

@@ -24,19 +24,23 @@ public class OaiHarvestClientTest {
        String password=null;
        */
         
-        String baseUrl="https://pvica-devel2.statsbiblioteket.dk/OAI-PMH";
+        String baseUrl="https://pvica-devel2.statsbiblioteket.dk/OAI-PMH/";
         String metadataPrefix="XIP_full_schema";               
         String set=null;
         String user = "oai-pmh-devel";
         String password="XXXX";
 
+
         
         
 //       String set="oai:kb.dk:images:billed:2014:jun:hca";
-       OaiHarvestClient client = new OaiHarvestClient(baseUrl, set,metadataPrefix,"2012-03-01", user,password);
+       OaiHarvestClient client = new OaiHarvestClient(baseUrl, set,metadataPrefix,null, user,password);
        
        OaiResponse r1 = client.next();
-       System.out.println(r1.getRecords().size());
+       System.out.println("records:"+r1.getRecords().size());
+       System.out.println("token:"+r1.getResumptionToken());
+       
+       
        OaiResponse r2= client.next();
        System.out.println(r2.getRecords().size());
        
