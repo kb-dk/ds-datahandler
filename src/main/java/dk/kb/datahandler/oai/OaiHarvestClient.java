@@ -154,7 +154,7 @@ public class OaiHarvestClient {
             Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
             String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);            
             metadataXml = removeMetadataTag(metadataXml.trim());           
-            System.out.println("meta:"+metadataXml);
+            //System.out.println("meta:"+metadataXml);
             oaiRecord.setMetadata(metadataXml);
             }
             
