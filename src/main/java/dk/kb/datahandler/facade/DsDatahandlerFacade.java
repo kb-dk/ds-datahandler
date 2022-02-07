@@ -66,14 +66,20 @@ public class DsDatahandlerFacade {
         OaiResponse response = client.next();
         int totalRecordLoaded=0;
         while (response.getRecords().size() >0) {
-
-            for (OaiRecord  oaiRecord : response.getRecords()) {            
+            
+            for (OaiRecord  oaiRecord : response.getRecords()) {                
                 totalRecordLoaded++;
+                String storageId=recordBase+":"+oaiRecord.getId();
+            if (oaiRecord.isDeleted()) { //mark for delete
+              dsAPI.markRecordForDelete(storageId);  
+            }
+            else { //Create or update                
                 DsRecordDto dsRecord = new DsRecordDto();
-                dsRecord.setId(recordBase+":"+oaiRecord.getId());
+                dsRecord.setId(storageId);
                 dsRecord.setBase(recordBase);
                 dsRecord.setData(oaiRecord.getMetadata());            
-                dsAPI.createOrUpdateRecordPost(dsRecord);                        
+                dsAPI.createOrUpdateRecordPost(dsRecord);
+              }
             }
             log.info("Ingesting base:"+recordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
             response = client.next(); //load next (may be empty)            

@@ -80,8 +80,7 @@ public class OaiHarvestClient {
         }
         
         //TODO user
-        
-       System.out.println("uri:"+uri);
+               
         //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
         //log.info("resumption token at:"+resumptionToken);
         String response=getHttpResponse(uri,user,password); //TODO USER PASSWORD
@@ -153,8 +152,7 @@ public class OaiHarvestClient {
             }
             else {// Get raw XML within the record tag                                    
             Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
-            String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);
-
+            String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);            
             metadataXml = removeMetadataTag(metadataXml);
             //System.out.println(metadataXml);
             oaiRecord.setMetadata(metadataXml);
@@ -185,12 +183,6 @@ public class OaiHarvestClient {
                 .uri(URI.create(uri))              
                 .setHeader("User-Agent", "Java 11 HttpClient Bot")            
                 .build();
-        
-        //                if (username != null && password != null){
-        //String encoded = Base64.getEncoder().encodeToString((username+":"+password).getBytes(StandardCharsets.UTF_8));  //Java 8
-       // conn.setRequestProperty("Authorization", "Basic "+encoded);                       
-      //}
-
         
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         if (200 != response.statusCode()) {
