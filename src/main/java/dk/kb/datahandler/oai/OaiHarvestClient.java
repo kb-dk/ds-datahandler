@@ -153,8 +153,7 @@ public class OaiHarvestClient {
             else {// Get raw XML within the record tag                                    
             Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
             String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);            
-            metadataXml = removeMetadataTag(metadataXml);
-            //System.out.println(metadataXml);
+            metadataXml = removeMetadataTag(metadataXml.trim());           
             oaiRecord.setMetadata(metadataXml);
             }
             
@@ -196,10 +195,6 @@ public class OaiHarvestClient {
   
     //Dirty string hacking. But can not find a way to do this with the DOM parser       
     public static String removeMetadataTag(String xml) {   
-      if (!xml.startsWith("<metadata>")) {//delete records do not have this        
-          return xml;
-      }
-        
        xml = xml.replaceFirst("<metadata>", "");       
        xml = xml.substring(0,xml.length()-12); //End of string always </metadata>
        return xml;       
@@ -214,7 +209,7 @@ public class OaiHarvestClient {
         DOMImplementation impl = document.getImplementation();
         DOMImplementationLS implLS = (DOMImplementationLS) impl.getFeature("LS", "3.0");
         LSSerializer lsSerializer = implLS.createLSSerializer();
-        lsSerializer.getDomConfig().setParameter("format-pretty-print", true); // optional.
+       // lsSerializer.getDomConfig().setParameter("format-pretty-print", true); // 
         LSOutput lsOutput = implLS.createLSOutput();
         lsOutput.setEncoding("UTF-8");  //The reason we do all this stuff.
         Writer stringWriter = new StringWriter();
