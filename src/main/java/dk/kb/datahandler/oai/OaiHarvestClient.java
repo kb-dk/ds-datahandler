@@ -154,6 +154,7 @@ public class OaiHarvestClient {
             Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
             String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);            
             metadataXml = removeMetadataTag(metadataXml.trim());           
+            System.out.println("meta:"+metadataXml);
             oaiRecord.setMetadata(metadataXml);
             }
             
@@ -196,7 +197,7 @@ public class OaiHarvestClient {
     //Dirty string hacking. But can not find a way to do this with the DOM parser       
     public static String removeMetadataTag(String xml) {   
        xml = xml.replaceFirst("<metadata>", "");       
-       xml = xml.substring(0,xml.length()-12); //End of string always </metadata>
+       xml = xml.substring(0,xml.length()-11); //End of string always </metadata>
        return xml;       
     }
        
