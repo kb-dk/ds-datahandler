@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
  * This is an integration test that must be run manually.
  * 
  */
-public class OaiHarvestClientTest {
+public class OaiHarvestClientIntegrationTest {
 
 
     public static  void main(String[] args) throws Exception {
@@ -28,25 +28,25 @@ public class OaiHarvestClientTest {
         String metadataPrefix="XIP_full_schema";               
         String set=null;
         String user = "oai-pmh-devel";
-        String password="XXXX";
-
+        String password="XXXX"; //find it yourself
+        String from ="2021-01-01";
 
         
         
 //       String set="oai:kb.dk:images:billed:2014:jun:hca";
-       OaiHarvestClient client = new OaiHarvestClient(baseUrl, set,metadataPrefix,null, user,password);
+       OaiHarvestClient client = new OaiHarvestClient(baseUrl, set,metadataPrefix,from, user,password);
        
        OaiResponse r1 = client.next();
        System.out.println("records:"+r1.getRecords().size());
        System.out.println("token:"+r1.getResumptionToken());
        
-       
+   /*    
        OaiResponse r2= client.next();
        System.out.println(r2.getRecords().size());
        
        OaiResponse r3= client.next();
        System.out.println(r3.getRecords().size());
-              
+              */
      
         }
    
