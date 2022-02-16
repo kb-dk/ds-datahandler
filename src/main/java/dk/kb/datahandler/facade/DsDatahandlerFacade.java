@@ -17,6 +17,7 @@ import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
+import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 public class DsDatahandlerFacade {
@@ -25,8 +26,9 @@ public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
 
 
+
     public static Integer oaiIngestDelta(String oaiTarget,String date) throws Exception {
-        if (!checkDataFormat(date)) {
+        if (!HarvestTimeUtil.checkDataFormat(date)) {
             log.error("Invalid date format for delta ingest. oaiTarget="+oaiTarget +" date:"+date);
             throw new InvalidArgumentServiceException("Date for delta import must have format yyyy-MM-dd. Value was:"+date);       
         } 
@@ -98,15 +100,5 @@ public class DsDatahandlerFacade {
         return dsAPI;
     }
 
-    public  static boolean checkDataFormat(String date) {            
-        DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault());
-        formatter.setLenient(false);
-        try {
-            Date dateParsed= formatter.parse(date);
-        } catch (ParseException e) {
-            return false;
-        }
-        return true;
-    }
-
+    
 }

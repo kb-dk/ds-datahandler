@@ -1,6 +1,5 @@
 package dk.kb.datahandler.storageclient;
 
-import dk.kb.datahandler.api.v1.DsDatahandlerApi;
 import dk.kb.datahandler.backend.api.v1.DsStorageApi;
 import dk.kb.datahandler.backend.invoker.v1.ApiClient;
 import dk.kb.datahandler.backend.model.v1.RecordBaseDto;
@@ -12,7 +11,7 @@ import java.util.List;
  * This is an integration test that must be run manually.
  *
  */
-public class StorageClientTest{
+public class StorageClientIntegrationTest{
 
     
     public static void main(String[] args) throws Exception {
