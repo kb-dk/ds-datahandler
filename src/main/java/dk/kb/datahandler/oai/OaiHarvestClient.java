@@ -39,7 +39,7 @@ public class OaiHarvestClient {
     private String from;
     private String metadataPrefix;
     private String user;
-    private String password;
+    private String password;    
 
     public OaiHarvestClient (String baseURL,String set, String metadataPrefix, String from, String user, String password){
         this.baseURL=baseURL;
@@ -144,9 +144,12 @@ public class OaiHarvestClient {
             oaiRecords.add(oaiRecord);
             Element record =  (Element)nList.item(i);                                                                    
             String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();                        
+            String datestamp =  record.getElementsByTagName("datestamp").item(0).getTextContent();
             String headerStatus = getHeaderStatus(record);            
-                                              
+                                             
             oaiRecord.setId(identifier);
+            oaiRecord.setDateStamp(datestamp);
+         
             if ("deleted".equals(headerStatus)) {
                 oaiRecord.setDeleted(true);
             }
