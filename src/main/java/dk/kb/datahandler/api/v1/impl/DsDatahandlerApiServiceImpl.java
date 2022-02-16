@@ -111,9 +111,9 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
 
 
 
-    public Integer oaiIngestDelta(String oaiTarget, String date){        
+    public Integer oaiIngestDelta(String oaiTarget){        
         try { 
-            int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget,date);        
+            int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget);        
             return numberIngested;
 
         } catch (Exception e){

@@ -104,6 +104,11 @@ public class ServiceConfig {
         
     }
 
+
+    public static String getOaiTimestampFolder() {
+        return oaiTimestampFolder;
+    }
+
     
     
 }

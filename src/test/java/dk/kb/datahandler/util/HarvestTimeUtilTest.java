@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
@@ -23,8 +22,8 @@ public class HarvestTimeUtilTest {
          
         String oaiTargetFile="testOai.txt";
         // Write the files to target folder.
-        String path = "target/";
-        File file = new File(path);
+
+        File file = new File("target/");
         String targetFolder = file.getAbsolutePath() + "/";
         String persistenceFile=targetFolder+oaiTargetFile;
       
@@ -33,26 +32,26 @@ public class HarvestTimeUtilTest {
         
         
         // Test file does not exist
-        String last = HarvestTimeUtil.loadLastHarvestTime( persistenceFile);
-        assertEquals("1900-01-01",last);
+        String last = HarvestTimeUtil.loadLastHarvestTime( persistenceFile);        
+        assertEquals(HarvestTimeUtil.defaultStartDate,last);
         
         //Test create new file
-        HarvestTimeUtil.deleteFileAndWriteToFile(persistenceFile, "2020-01-02");
+        HarvestTimeUtil.deleteFileAndWriteToFile(persistenceFile, "2020-01-02T12:34:59Z");
         last = HarvestTimeUtil.loadLastHarvestTime( persistenceFile);                       
-        assertEquals("2020-01-02",last);
+        assertEquals("2020-01-02T12:34:59Z",last);
         
         //Write again when file already is created. This time it is deleted before recreated
-        HarvestTimeUtil.deleteFileAndWriteToFile(persistenceFile, "2020-01-03");
+        HarvestTimeUtil.deleteFileAndWriteToFile(persistenceFile, "2020-01-03T00:00:00Z");
         last = HarvestTimeUtil.loadLastHarvestTime( persistenceFile);
-        assertEquals("2020-01-03",last);
-                
-        
+        assertEquals( "2020-01-03T00:00:00Z",last);
         }
         catch(Exception e) {
             e.printStackTrace();
             fail("Error with oai targets file persistence",e);
             
         }
-
     }
+    
+    //TODO validate date format
+    
 }

@@ -57,7 +57,7 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'delta Start ingest of OAI target. Will only retrieve records from the OAI server after a date in format yyyy-MM-dd'
+      summary: 'delta Start ingest of OAI target. Will only retrieve records from the OAI server after a date in format yyyy-MM-dd TODO LAST HARVEST'
       operationId: oaiIngestDelta
       parameters:
         - name: oaiTarget
@@ -66,13 +66,7 @@ paths:
           required: true
           schema:
             type: string     
-        - name: date
-          in: query
-          description: 'Date in format in yyyy-MM-dd'
-          required: true
-          schema:
-            type: string
-                   
+                         
       responses:
         '200':
           description: OK. Returns total number of records ingested.

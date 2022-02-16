@@ -1,10 +1,5 @@
 package dk.kb.datahandler.facade;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +13,7 @@ import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.util.HarvestTimeUtil;
-import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
+
 
 public class DsDatahandlerFacade {
 
@@ -26,35 +21,27 @@ public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
 
 
-
-    public static Integer oaiIngestDelta(String oaiTarget,String date) throws Exception {
-        if (!HarvestTimeUtil.checkDataFormat(date)) {
-            log.error("Invalid date format for delta ingest. oaiTarget="+oaiTarget +" date:"+date);
-            throw new InvalidArgumentServiceException("Date for delta import must have format yyyy-MM-dd. Value was:"+date);       
-        } 
-        return oaiIngest(oaiTarget, date);
+    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
+  
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);        
+        String datestamp = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);        
+        return oaiIngest(oaiTargetDto, datestamp);
     }
 
 
-
-
-    public static Integer oaiIngestFull(String oaiTarget) throws Exception {
-        return oaiIngest(oaiTarget, null);
+    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
+        return oaiIngest(oaiTargetDto , null);
     }
+    
+    
     /*
      * If from is null it will harvest everything.
      * Format for from is yyyy-MM-dd as this is only one supported by COPs/Cumulus.
      * Will be changed later when more OAI targets comes.
      *  
      */
-    public static Integer oaiIngest(String oaiTarget, String from) throws Exception {
-
-
-        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTarget);
-
-        if (oaiTargetDto == null) {            
-            throw new  InvalidArgumentServiceException("No OAI targets defined in YAML file for:"+oaiTarget);
-        }
+    public static Integer oaiIngest(OaiTargetDto oaiTargetDto, String from) throws Exception {
 
         String recordBase=oaiTargetDto.getName(); //FIX
         String baseUrl=oaiTargetDto.getUrl();
@@ -80,10 +67,16 @@ public class DsDatahandlerFacade {
                 dsRecord.setId(storageId);
                 dsRecord.setBase(recordBase);
                 dsRecord.setData(oaiRecord.getMetadata());            
-                dsAPI.createOrUpdateRecordPost(dsRecord);
-              }
+                dsAPI.createOrUpdateRecordPost(dsRecord);                  
+            }
             }
             log.info("Ingesting base:"+recordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
+            
+            //Update timestamp with timestamp from last OAI record.
+             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
+            
+             
+            HarvestTimeUtil.updateDatestampForOaiTarget(oaiTargetDto,lastRecord.getDateStamp());
             response = client.next(); //load next (may be empty)            
         }
 
