@@ -1,6 +1,9 @@
 package dk.kb.datahandler.config;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,7 +22,8 @@ public class ServiceConfig {
     private static final Logger log = LoggerFactory.getLogger(ServiceConfig.class);
     
     private static final HashMap<String, OaiTargetDto> oaiTargets = new HashMap<String, OaiTargetDto>();
-   
+    private static String oaiTimestampFolder=null;
+    
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
      * methods like {@code getInteger("someKey", defaultValue)} and {@code getSubMap("config.sub1.sub2")}.
@@ -36,6 +40,19 @@ public class ServiceConfig {
     public static synchronized void initialize(String configFile) throws IOException {
         serviceConfig = YAML.resolveLayeredConfigs(configFile);
         loadOaiTargets();
+        
+        String oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
+        
+        Path folderPath = Paths.get(oaiTimestampFolder);
+        if (Files.exists(folderPath)) {            
+            log.info("Oai timestamp folder:"+oaiTimestampFolder);
+        }
+        else {
+            log.info("Oai timestamp folder not found. Creating new folder:"+oaiTimestampFolder);
+            Files.createDirectories(Paths.get(oaiTimestampFolder));
+        }
+        
+        
     }
 
   
@@ -74,7 +91,7 @@ public class ServiceConfig {
             oaiTarget.setUrl(url);       
             oaiTarget.setSet(set);
             oaiTarget.setMetadataprefix(metadataPrefix);
-            oaiTarget.setUsername(user); 
+            oaiTarget.setUsername(user);
             oaiTarget.setPassword(password);
             oaiTarget.setRecordBase(recordBase);
             oaiTarget.setDecription(description);            

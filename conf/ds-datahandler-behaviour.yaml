@@ -10,7 +10,7 @@
 #
 config:
   # List of oai targets
-  oai.targets:
+  oai_targets:
     - name: kb.letters.judsam.dsa
       recordBase: kb.letters.judsam.dsa
       url: http://www5.kb.dk/cop/oai/
@@ -108,3 +108,9 @@ config:
       password: XXXXXXXXX
       metadataPrefix: XIP_full_schema
       description: pvica devel 
+      
+                    
+     #Save timestamps of last OAI harvest for each target in this folder. This is used for incremental delta-imports.                
+  timestamps:
+   folder: /home/xxx/oai.timestamps/
+      
