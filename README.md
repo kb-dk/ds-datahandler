@@ -35,7 +35,9 @@ The Swagger UI is available at <http://localhost:8080/ds-datahandler/api/>, prov
 Install Tomcat9 server 
 
 Configure tomcat with the context enviroment file conf/ocp/ds-datastore.xml. Notice it points to the location on the file system where the yaml and logback file are located.
+
 Edit  conf/ds-datastore.logback.xml
+
 Make a ds-datastore.yaml file. (Make a copy of /conf/ds-datastore-environment.yaml rename it, and edit the properties). 
 
  
