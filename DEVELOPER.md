@@ -25,7 +25,15 @@ The default port is 8080 and the default Hello World service can be accessed at
 <http://localhost:8080/ds-datahandler/v1/hello>
 where "ds-datahandler" is your artifactID from above.
 
+
 The Swagger UI is available at <http://localhost:8080/ds-datahandler/api/>, providing access to the `v1` version of the GUI. 
+
+## Deploy to devel server
+
+```
+./deploy2Devel11.sh
+```
+
 
 ## java webapp template structure
 
