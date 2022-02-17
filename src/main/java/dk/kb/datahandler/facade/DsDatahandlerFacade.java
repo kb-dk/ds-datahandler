@@ -22,7 +22,7 @@ public class DsDatahandlerFacade {
 
 
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
-  
+
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);        
         String datestamp = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);        
         return oaiIngest(oaiTargetDto, datestamp);
@@ -33,8 +33,8 @@ public class DsDatahandlerFacade {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
         return oaiIngest(oaiTargetDto , null);
     }
-    
-    
+
+
     /*
      * If from is null it will harvest everything.
      * Format for from is yyyy-MM-dd as this is only one supported by COPs/Cumulus.
@@ -42,6 +42,13 @@ public class DsDatahandlerFacade {
      *  
      */
     public static Integer oaiIngest(OaiTargetDto oaiTargetDto, String from) throws Exception {
+
+        //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)        
+        //But COP only supports the short version. So when this is called use short format
+        //Dirty but quick solution fix.
+        if (oaiTargetDto.getUrl().indexOf("kb.dk/cop/")> 0) {
+            from = from.substring(0,10);               
+        }
 
         String recordBase=oaiTargetDto.getName(); //FIX
         String baseUrl=oaiTargetDto.getUrl();
@@ -55,28 +62,27 @@ public class DsDatahandlerFacade {
         OaiResponse response = client.next();
         int totalRecordLoaded=0;
         while (response.getRecords().size() >0) {
-            
+
             for (OaiRecord  oaiRecord : response.getRecords()) {                
                 totalRecordLoaded++;
                 String storageId=recordBase+":"+oaiRecord.getId();
-            if (oaiRecord.isDeleted()) { //mark for delete
-              dsAPI.markRecordForDelete(storageId);  
-            }
-            else { //Create or update                
-                DsRecordDto dsRecord = new DsRecordDto();
-                dsRecord.setId(storageId);
-                dsRecord.setBase(recordBase);
-                dsRecord.setData(oaiRecord.getMetadata());            
-                dsAPI.createOrUpdateRecordPost(dsRecord);                  
-            }
+                if (oaiRecord.isDeleted()) { //mark for delete
+                    dsAPI.markRecordForDelete(storageId);  
+                }
+                else { //Create or update                
+                    DsRecordDto dsRecord = new DsRecordDto();
+                    dsRecord.setId(storageId);
+                    dsRecord.setBase(recordBase);
+                    dsRecord.setData(oaiRecord.getMetadata());                                          
+                    dsAPI.recordCreateOrUpdateRecordPost(dsRecord);
+                }
             }
             log.info("Ingesting base:"+recordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
-            
+
             //Update timestamp with timestamp from last OAI record.
-             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
-            
-             
+            OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);                        
             HarvestTimeUtil.updateDatestampForOaiTarget(oaiTargetDto,lastRecord.getDateStamp());
+
             response = client.next(); //load next (may be empty)            
         }
 
@@ -93,5 +99,5 @@ public class DsDatahandlerFacade {
         return dsAPI;
     }
 
-    
+
 }

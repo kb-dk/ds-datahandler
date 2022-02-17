@@ -53,12 +53,12 @@ public class HarvestTimeUtil {
     protected static String loadLastHarvestTime(String oaiTargetNameFile ) throws Exception{                        
         Path oaiTargetFilePath = Paths.get( oaiTargetNameFile);
         if (!Files.exists(oaiTargetFilePath)) {            
-            log.info("Target:"+oaiTargetNameFile +" does not have a last harvest time. Using default:"+defaultStartDate);
+            log.info("OAI target: "+oaiTargetNameFile +" does not have a last harvest time. Using default:"+defaultStartDate);
             return defaultStartDate;
         }
         else {                        
             String lastHarvestDate= getFirstLineFromFile(oaiTargetNameFile);
-            log.info("Target:"+oaiTargetNameFile +" has last harvestDate:"+lastHarvestDate);
+            log.info("OAI target: "+oaiTargetNameFile +" has last harvestDate:"+lastHarvestDate);
             return lastHarvestDate;
         }               
     }

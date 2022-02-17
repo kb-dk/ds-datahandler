@@ -41,7 +41,8 @@ public class ServiceConfig {
         serviceConfig = YAML.resolveLayeredConfigs(configFile);
         loadOaiTargets();
         
-        String oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
+        oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
+        
         
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
