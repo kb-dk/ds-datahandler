@@ -16,7 +16,7 @@ servers:
 
 paths:
 
-  /config:
+  /oai/config:
     get:
       tags:
         - '${project.name}'
@@ -31,7 +31,7 @@ paths:
                 $ref: '#/components/schemas/OaiTargetList'
 
 
-  /oai/full:
+  /oai/import/full:
     get:
       tags:
         - '${project.name}'
@@ -53,7 +53,7 @@ paths:
                 type: integer
                 format: int32      
 
-  /oai/delta:
+  /oai/import/delta:
     get:
       tags:
         - '${project.name}'
