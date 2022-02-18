@@ -43,7 +43,7 @@ Besides all the OAI targets it must also definere the property for the folder to
 properties host,port,baseurl to the ds-storage server to submit the records to.
       
 ## More about the OAI-PMH protocol
-See: http://www.openarchives.org/OAI/openarchivesprotocol.html
+See: [link](http://www.openarchives.org/OAI/openarchivesprotocol.html)
     
 
 ## Requirements
