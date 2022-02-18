@@ -82,7 +82,6 @@ Configure tomcat with the context enviroment file conf/ocp/ds-datastore.xml. Not
 Edit  conf/ds-datastore.logback.xml
 
 Make a ds-datastore.yaml file. (Make a copy of /conf/ds-datastore-environment.yaml rename it, and edit the properties). 
-
- 
+To ingest into a local ds-storage tomcat server, you need to have ds-storage  running (just mvn jetty:run and change jetty port pom plugin)
 
 See the file [DEVELOPER.md](DEVELOPER.md) for developer specific details and how to deploy to tomcat.
