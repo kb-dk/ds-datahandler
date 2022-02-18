@@ -21,7 +21,7 @@
     ## OAI harvest 
     Ds-datahandler can harvest OAI from different OAI-PMH targets and ingest the metadata for the records into ds-storage. 
     Having the metadata in ds-storage makes access much easier and faster for other applications. The metadata for each
-    record will be UTF-8 encoded before ingested into ds-storage. 
+    record will be UTF-8 encoded before ingested into ds-storage. Invalid XML encoding characters will be replaced or removed.
       
      
     ## OAI targets configuration
@@ -43,19 +43,22 @@
     
   
     ## Full import and delta import
-     
-     
-    The metadata format is UTF-8 encoded but format can be anything from text,XML,JSON etc. depending on the metadata format for that collection.
-    The basic idea behind ds-storage is a single access point to metadata describing objects belonging to many different collections. Having a simple API to 
-    store and retrieve the records. Instead of integrating to wide range of different APIs located on different servers, the ds-storage offers
-    a unified API for all of them and is optimized for retrieving a specific record very fast.
+    For each OAI target configured you can request a full import or a delta import from the OAI collection. A full import will
+    harvest all records from to OAI target. A delta import will only import records with a datestamp later than the last record
+    recieved in either an earlier full import or delta import. 
+             
+    ## Storing last harvest datestamp 
+    The yaml property file specificed a folder on the filesystem to store the last datestamps for each OAI target.
+    The file will only contain a single with an UTC timestamp identical to the last record successfully send ds-storage from
+    that OAI target. 
+   
+    ## Configure the yaml property file
+    Besides all the OAI targets it must also definere the property for the folder to store the datestamps. Also the
+    properties host,port,baseurl to the ds-storage server to submit the records to.
+      
+    ## More about the OAI-PMH protocol
+    See: http://www.openarchives.org/OAI/openarchivesprotocol.html
     
-    
-    http://www.openarchives.org/OAI/openarchivesprotocol.html
-    invalid characters
-    
-    
-    file persistence
     </description>
 
     <repositories>
