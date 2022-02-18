@@ -2,6 +2,8 @@ package dk.kb.datahandler.oai;
 
 import org.junit.jupiter.api.Test;
 
+import dk.kb.datahandler.model.v1.OaiTargetDto;
+
 
 /*
  * This is an integration test that must be run manually.
@@ -18,12 +20,16 @@ public class OaiHarvestClientIntegrationTest {
         //http://www5.kb.dk/cop/oai/?verb=ListRecords&resumptionToken=KB!1000!mods!0001-01-01!9999-12-31!oai:kb.dk:images:billed:2010:okt:billeder
   
         
-       String baseUrl="http://www5.kb.dk/cop/oai/";
-       String metadataPrefix="mods";               
-       String set="oai:kb.dk:images:billed:2010:okt:billeder";
-       String user = null;
-       String password=null;
-      String from=null;
+        OaiTargetDto oaiTarget = new OaiTargetDto();
+        
+        
+       oaiTarget.setUrl("http://www5.kb.dk/cop/oai/");
+       oaiTarget.setMetadataprefix("mods");               
+       oaiTarget.setSet("oai:kb.dk:images:billed:2010:okt:billeder");
+       oaiTarget.setUsername(null);
+       oaiTarget.setPassword(null);;
+       oaiTarget.setRecordBase("test");
+       String from=null;
        
         /*
         String baseUrl="https://pvica-devel2.statsbiblioteket.dk/OAI-PMH/";
@@ -36,7 +42,7 @@ public class OaiHarvestClientIntegrationTest {
         
         
 //       String set="oai:kb.dk:images:billed:2014:jun:hca";
-       OaiHarvestClient client = new OaiHarvestClient(baseUrl, set,metadataPrefix,from, user,password);
+       OaiHarvestClient client = new OaiHarvestClient(oaiTarget,from);
        
        OaiResponse r1 = client.next();
        System.out.println("records:"+r1.getRecords().size());

@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.xml.XMLEscapeSanitiser;
 
 import org.w3c.dom.ls.*;
@@ -40,14 +41,17 @@ public class OaiHarvestClient {
     private String metadataPrefix;
     private String user;
     private String password;    
-
-    public OaiHarvestClient (String baseURL,String set, String metadataPrefix, String from, String user, String password){
-        this.baseURL=baseURL;
-        this.set=set;
+    private String oaiName;
+    
+    //TODO, use DTO
+    public OaiHarvestClient (OaiTargetDto oaiTarget,String from){
+        this.oaiName = oaiTarget.getName();
+        this.baseURL=oaiTarget.getUrl();
+        this.set=oaiTarget.getSet();        
+        this.metadataPrefix=oaiTarget.getMetadataprefix();
+        this.user=oaiTarget.getUsername();
+        this.password=oaiTarget.getPassword();
         this.from=from;
-        this.metadataPrefix=metadataPrefix;
-        this.user=user;
-        this.password=password;
     }
 
 
@@ -59,7 +63,7 @@ public class OaiHarvestClient {
 
         if (completed) {            
             //The caller should know not to ask for more since last batch had 0 entries.
-            log.info("No more records to load for set:"+set);
+            log.info("No more records to load for oai target:"+oaiName);
             return new OaiResponse();
         }
 
