@@ -15,8 +15,47 @@
     <description>
     # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library. 
     
+    ## Notice
+    OAI-PMH harvest is just the first implementation feature in ds-datahandler. More features will implemented later.
+    
+    ## OAI harvest 
+    Ds-datahandler can harvest OAI from different OAI-PMH targets and ingest the metadata for the records into ds-storage. 
+    Having the metadata in ds-storage makes access much easier and faster for other applications. The metadata for each
+    record will be UTF-8 encoded before ingested into ds-storage. 
+      
+     
+    ## OAI targets configuration
+    The project yaml-file contains the configuration for each OAI-PMH target.
+    
+    **The below table describes the parameters to configure a OAI-PMH target**
+        
+    | Property         | Description                                                                                               |
+    | ---------------- | ----------------------------------------------------------------------------------------------------------|
+    | name             | The name used to specify when starting a new import                                                       |
+    | url              | The base url to OAI-PMH service                                                                           |
+    | set              | Parameter to the OAI-server if the server has multiple collections (optional)                             |
+    | metadataPrefix   | Parameter to the OAI-server to specify the format for the metadata. Options depend on the OAI target.     |
+    | user             | User if the OAI-server require basic authentication (optional)                                            |
+    | password         | Password if the OAI-server require basic authentication (optional)                                        |    
+    | recordBase       | The recordbase when sending records from this OAI target to ds-storage.                                   |  
+    |                  | The recordbase must be configured in DS-storage. ID will be {recordbase}:{id in OAI record}               |
+    | description      | Human text to give further description if needed                                                          |
+    
+  
+    ## Full import and delta import
+     
+     
+    The metadata format is UTF-8 encoded but format can be anything from text,XML,JSON etc. depending on the metadata format for that collection.
+    The basic idea behind ds-storage is a single access point to metadata describing objects belonging to many different collections. Having a simple API to 
+    store and retrieve the records. Instead of integrating to wide range of different APIs located on different servers, the ds-storage offers
+    a unified API for all of them and is optimized for retrieving a specific record very fast.
     
     
+    http://www.openarchives.org/OAI/openarchivesprotocol.html
+    invalid characters
+    
+    
+    file persistence
     </description>
 
     <repositories>

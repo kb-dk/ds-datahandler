@@ -45,8 +45,8 @@ public class DsDatahandlerFacade {
 
         //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)        
         //But COP only supports the short version. So when this is called use short format
-        //Dirty but quick solution fix.
-        if (oaiTargetDto.getUrl().indexOf("kb.dk/cop/")> 0) {
+        //Dirty but quick solution fix. Best would be if COP could fix it
+        if (from != null && oaiTargetDto.getUrl().indexOf("kb.dk/cop/")> 0) {
             from = from.substring(0,10);               
         }
 
@@ -87,9 +87,9 @@ public class DsDatahandlerFacade {
 
     private static DsStorageApi getDsStorageApiClient() {
         ApiClient apiClient = new ApiClient();
-        apiClient.setHost("devel11.statsbiblioteket.dk");
-        apiClient.setPort(10001);
-        apiClient.setBasePath("/ds-storage/v1");
+        apiClient.setHost(ServiceConfig.getDsHost());
+        apiClient.setPort(ServiceConfig.getDsPort());
+        apiClient.setBasePath(ServiceConfig.getDsBasePath());
         DsStorageApi dsAPI = new DsStorageApi(apiClient);
         return dsAPI;
     }

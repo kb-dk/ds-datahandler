@@ -20,11 +20,11 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'Retrieve list of configured record bases with update strategy'
+      summary: 'Retrieve list of configured OAI-PMH targets'
       operationId: getOaiTargetsConfiguration
       responses:
         '200':
-          description: 'A list of configured record bases with update strategy'
+          description: 'The full list of configured OAI-PMH targets will all parameters. The name is the key used when starting a new import.'
           content:
             application/json:
               schema:
@@ -35,12 +35,12 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'Start full ingest of OAI target into DS-storage'
+      summary: 'Start full ingest of a OAI target into DS-storage. From time will be 1900-01-01'
       operationId: oaiIngestFull
       parameters:
         - name: oaiTarget
           in: query
-          description: 'Name of the oai target'
+          description: 'Name of the oai target to start full import'
           required: true
           schema:
             type: string
@@ -57,12 +57,12 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'delta Start ingest of OAI target. Will only retrieve records from the OAI server after a date in format yyyy-MM-dd TODO LAST HARVEST'
+      summary: 'Start delta import of a OAI-target. From time will be the datestamp of the last record imported for that OAI target. When the import has finished it will update the datestamp.'
       operationId: oaiIngestDelta
       parameters:
         - name: oaiTarget
           in: query
-          description: 'Name of the oai target'
+          description: 'Name of the oai target to start delta import'
           required: true
           schema:
             type: string     
@@ -103,13 +103,13 @@ components:
           description: 'Specify for the dataformat. Some OAI servers can return data in different formats.'                
         username:
           type: string
-          description: 'User name if the OAI server require authentication'                
+          description: 'User name if the OAI server require basic authentication'                
         password:
           type: string
-          description: 'Password if the OAI server require authentication'                
+          description: 'Password if the OAI server require basic authentication'                
         recordBase:
           type: string
-          description: 'Name of the recordBase when ingesting into DS-storage.'
+          description: 'Name of the recordbase when ingesting into DS-storage. The recordbase must be configured in ds-storage'
         decription:
           type: string
           description: 'Human readable name for the collection'                
