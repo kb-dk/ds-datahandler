@@ -44,7 +44,7 @@ public class ServiceConfig {
         serviceConfig = YAML.resolveLayeredConfigs(configFile);
         loadOaiTargets();
         
-        oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
+        XoaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
         dsHost = serviceConfig.getString("config.dsstorage.host");
         dsPort = serviceConfig.getInteger("config.dsstorage.port");
         dsBasePath = serviceConfig.getString("config.dsstorage.basepath");
