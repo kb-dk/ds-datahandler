@@ -62,7 +62,7 @@ This project can be started with
 
 which will expose a webserver with the implemented service at port 8080. To change that port to something else like 8181, run 
 
-`jetty:run -Djetty.http.port=8181`
+`mvn jetty:run -Djetty.http.port=8181`
 
 If it is started in debug mode from an IDE (normally IntelliJ IDEA), breakpoints and all the usual debug functionality
 will be available.
