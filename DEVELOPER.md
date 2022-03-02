@@ -56,7 +56,14 @@ repositories. To guard against this, `conf/ds-datahandler-environment.yaml` is a
 
 Jetty is a servlet container (like Tomcat) that is often used for testing during development.
 
-This project can be started with `mvn jetty:run`, which will expose a webserver with the implemented service at port 8080.
+This project can be started with
+
+`mvn jetty:run`,
+
+which will expose a webserver with the implemented service at port 8080. To change that port to something else like 8181, run 
+
+`jetty:run -Djetty.http.port=8181`
+
 If it is started in debug mode from an IDE (normally IntelliJ IDEA), breakpoints and all the usual debug functionality
 will be available.
 
