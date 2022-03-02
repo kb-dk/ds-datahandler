@@ -99,8 +99,12 @@
         <!--Specify the licenses here, so they can be picked up by openAPI-->
         <license.name>Apache License, Version 2.0</license.name>
         <license.url>https://www.apache.org/licenses/LICENSE-2.0.txt</license.url>
-
         <project.package>dk.kb.datahandler</project.package>
+
+        <!-- for use, usually, while developing -->
+        <!-- jetty.http.port>8181</jetty.http.port -->
+        <!-- you can set this using mvn jetty:run -Djetty.http.port=8181 -->
+        
     </properties>
 
     <dependencies>
