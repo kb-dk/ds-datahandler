@@ -69,7 +69,7 @@ public class DsDatahandlerFacade {
                     dsRecord.setId(storageId);
                     dsRecord.setBase(recordBase);
                     dsRecord.setData(oaiRecord.getMetadata());                                          
-                    dsAPI.recordCreateOrUpdateRecordPost(dsRecord);
+                    dsAPI.recordPost(dsRecord);
                 }
             }
             log.info("Ingesting base:"+recordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
