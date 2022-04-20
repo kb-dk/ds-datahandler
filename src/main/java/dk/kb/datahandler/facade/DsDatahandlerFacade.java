@@ -50,7 +50,7 @@ public class DsDatahandlerFacade {
             from = from.substring(0,10);               
         }
 
-        String recordBase=oaiTargetDto.getName(); //FIX
+        String recordBase=oaiTargetDto.getRecordBase();
 
         DsStorageApi dsAPI = getDsStorageApiClient();        
         OaiHarvestClient client = new OaiHarvestClient(oaiTargetDto,from);
