@@ -33,24 +33,13 @@ public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
-    private String baseURL;
-    private String set;
+    private OaiTargetDto oaiTarget = null;
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
-    private String metadataPrefix;
-    private String user;
-    private String password;    
-    private String oaiName;
     
-    //TODO, use DTO
     public OaiHarvestClient (OaiTargetDto oaiTarget,String from){
-        this.oaiName = oaiTarget.getName();
-        this.baseURL=oaiTarget.getUrl();
-        this.set=oaiTarget.getSet();        
-        this.metadataPrefix=oaiTarget.getMetadataprefix();
-        this.user=oaiTarget.getUsername();
-        this.password=oaiTarget.getPassword();
+        this.oaiTarget=oaiTarget;
         this.from=from;
     }
 
@@ -59,14 +48,19 @@ public class OaiHarvestClient {
         OaiResponse oaiResponse = new OaiResponse();
         ArrayList<OaiRecord> oaiRecords = new  ArrayList<OaiRecord> ();
         oaiResponse.setRecords(oaiRecords);
+        
+        String baseURL=oaiTarget.getUrl();
         String uri= baseURL+"?verb=ListRecords";
 
         if (completed) {            
             //The caller should know not to ask for more since last batch had 0 entries.
-            log.info("No more records to load for oai target:"+oaiName);
+            log.info("No more records to load for oai target:"+oaiTarget.getName());
             return new OaiResponse();
         }
 
+        String set= oaiTarget.getSet();
+        String metadataPrefix= oaiTarget.getMetadataprefix();
+        
         //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
         if (resumptionToken==null && set != null) { //COPS fails if set is still used with resumptiontoken
             uri += "&set="+set;                        
@@ -85,9 +79,9 @@ public class OaiHarvestClient {
         
         //TODO user
                
-        //uri = uri +"&from=2031-01-01"; //TODO DELETE. Just testing no records situation (error-tag)   
+        //uri = uri +"&from=2031-01-01";    
         //log.info("resumption token at:"+resumptionToken);
-        String response=getHttpResponse(uri,user,password); //TODO USER PASSWORD
+        String response=getHttpResponse(uri,oaiTarget.getUsername(),oaiTarget.getPassword()); 
 
         //System.out.println("response:"+response);
         //Important to remove invalid XML encodings since they will be present in metadata. 
@@ -102,7 +96,7 @@ public class OaiHarvestClient {
         
         
         //If the OAI does not return valid XML, then we can not parse it.
-        // All records in this dokument is lost and also those after because we have no resumption token
+        // All records in this document is lost and also those after because we have no resumption token
         Document document = null;
         try {
         document = builder.parse(new InputSource(new StringReader(responseSanitized)));
@@ -171,7 +165,7 @@ public class OaiHarvestClient {
     }
     
     
-    public static String getHttpResponse(String uri, String user, String password) throws Exception {
+    protected static String getHttpResponse(String uri, String user, String password) throws Exception {
         
         HttpClient client = HttpClient.newBuilder()
                 .authenticator(new Authenticator() {
@@ -202,7 +196,7 @@ public class OaiHarvestClient {
     }
   
     //Dirty string hacking. But can not find a way to do this with the DOM parser       
-    public static String removeMetadataTag(String xml) {   
+   protected static String removeMetadataTag(String xml) {   
        xml = xml.replaceFirst("<metadata>", "");       
        xml = xml.substring(0,xml.length()-11); //End of string always </metadata>
        return xml;       
@@ -213,7 +207,7 @@ public class OaiHarvestClient {
      * Get the raw XML text from a node. Also make sure encoding is UTF-8.  
      * 
      */
-    public String serializeXmlElementToStringUTF8(Document document , Element element) { 
+    private String serializeXmlElementToStringUTF8(Document document , Element element) { 
         DOMImplementation impl = document.getImplementation();
         DOMImplementationLS implLS = (DOMImplementationLS) impl.getFeature("LS", "3.0");
         LSSerializer lsSerializer = implLS.createLSSerializer();
@@ -226,7 +220,7 @@ public class OaiHarvestClient {
         return stringWriter.toString();
       }
 
-    public String getHeaderStatus(Element record) {
+    private String getHeaderStatus(Element record) {
         try {
             Element header =  (Element) record.getElementsByTagName("header").item(0);
             String status = header.getAttribute("status");
@@ -239,7 +233,7 @@ public class OaiHarvestClient {
     }
     
     
-    public String getResumptionToken( Document document) {
+    private String getResumptionToken( Document document) {
         try {
             String  resumptionToken=  document.getElementsByTagName("resumptionToken").item(0).getTextContent();
             return resumptionToken;                    
@@ -254,7 +248,7 @@ public class OaiHarvestClient {
      * Not required by OAI standard. Cumulus returns it. Pvica does not
      * 
      */
-    public String getResumptionTotalSize( Document document) {
+    private String getResumptionTotalSize( Document document) {
         try {
             String totalListSize =  document.getElementsByTagName("resumptionToken").item(0).getAttributes().getNamedItem("completeListSize").getNodeValue();
              return totalListSize;                    
