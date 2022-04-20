@@ -91,16 +91,16 @@ components:
       properties:
         name:
           type: string
-          description: 'Name of the OAI target'
+          description: 'Name of the OAI target. Example: kb.images.billed.hca'
         url:
           type: string
-          description: 'Base YRL to the OAI server'                
+          description: 'Base YRL to the OAI server. Example: http://www5.kb.dk/cop/oai/'                
         set:
           type: string
-          description: 'Optional OAI parameter to specify which collection to harvest'                
+          description: 'Optional OAI parameter to specify which collection to harvest. Example: oai:kb.dk:images:billed:2014:jun:hca'                
         metadataprefix:
           type: string
-          description: 'Specify for the dataformat. Some OAI servers can return data in different formats.'                
+          description: 'Specify for the dataformat. Some OAI servers can return data in different formats. Example: mods'                
         username:
           type: string
           description: 'User name if the OAI server require basic authentication'                
@@ -109,10 +109,10 @@ components:
           description: 'Password if the OAI server require basic authentication'                
         recordBase:
           type: string
-          description: 'Name of the recordbase when ingesting into DS-storage. The recordbase must be configured in ds-storage'
+          description: 'Name of the recordbase when ingesting into DS-storage. The recordbase must be configured in ds-storage. Example: kb.images.billed.hca'
         decription:
           type: string
-          description: 'Human readable name for the collection'                
+          description: 'Human readable name for the collection. Example: H.C. Andersen'                
 
     Error:
       type: object

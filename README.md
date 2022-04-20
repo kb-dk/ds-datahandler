@@ -35,7 +35,7 @@ recieved in either an earlier full import or delta import.
              
 ## Storing last harvest datestamp 
 The yaml property file specificed a folder on the filesystem to store the last datestamps for each OAI target.
-The file will only contain a single with an UTC timestamp identical to the last record successfully send ds-storage from
+The file will only contain a single line with an UTC timestamp identical to the last record successfully send ds-storage from
 that OAI target. 
    
 ## Configure the yaml property file
@@ -71,7 +71,7 @@ Test the webservice with
 mvn jetty:run
 ```
 ## Swagger UI
-The Swagger UI is available at <http://localhost:8080/ds-datahandler/api/>, providing access to both the `v1` and the  `devel` versions of the GUI. 
+The Swagger UI is available at <http://localhost:8080/ds-datahandler/api/>, providing access to both the `v1` version of the GUI. 
 
 
 ## Deployment to a server (development/stage/production).
