@@ -34,6 +34,7 @@ public class OaiHarvestClient {
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
     private OaiTargetDto oaiTarget = null;
+
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
@@ -103,24 +104,20 @@ public class OaiHarvestClient {
         document.getDocumentElement().normalize();
         }
         catch(Exception e) {                       
-            log.error("Invalid XML from OAI harvest. ",e);            
-            log.error("The invalid XML was retrived from this url:"+uri);                        
+            log.error("Invalid XML from OAI harvest from this URI:"+uri,e);                                                
             completed=true;
             return oaiResponse;  
         }
-        
-        
+                
         try {
         String error = document.getElementsByTagName("error").item(0).getTextContent();        
           log.info("No records returned from OAI server when harvesting set:"+set +" message:"+error);
         return oaiResponse;// will have no records
         }
         catch(Exception e) {
-           //Ignore, no error tag was found 
-           
+           //Ignore, no error tag was found            
         }
-        
-        
+                
         String  resumptionToken=  getResumptionToken(document);
         oaiResponse.setTotalRecords(getResumptionTotalSize(document));        
         
