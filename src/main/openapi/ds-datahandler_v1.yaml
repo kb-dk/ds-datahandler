@@ -35,12 +35,12 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'Start full ingest of a OAI target into DS-storage. From time will be 1900-01-01'
+      summary: 'Start full ingest of a OAI target into DS-storage. From time will be 1900-01-01. When called the job will finished if no errors are encountered even if the socket is closed from the client triggering the call.'
       operationId: oaiIngestFull
       parameters:
         - name: oaiTarget
           in: query
-          description: 'Name of the oai target to start full import'
+          description: 'Name of the oai target to start full import. '
           required: true
           schema:
             type: string
@@ -57,7 +57,7 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'Start delta import of a OAI-target. From time will be the datestamp of the last record imported for that OAI target. When the import has finished it will update the datestamp.'
+      summary: 'Start delta import of a OAI-target. From time will be the datestamp of the last record imported for that OAI target. When the import has finished it will update the datestamp. When called the job will finished if no errors are encountered even if the socket is closed from the client triggering the call.'
       operationId: oaiIngestDelta
       parameters:
         - name: oaiTarget
