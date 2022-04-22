@@ -33,14 +33,15 @@ public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
+    private OaiTargetJob oaiTargetJob = null;
     private OaiTargetDto oaiTarget = null;
-
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
     
-    public OaiHarvestClient (OaiTargetDto oaiTarget,String from){
-        this.oaiTarget=oaiTarget;
+    public OaiHarvestClient (OaiTargetJob oaiTargetJob,String from){
+        this.oaiTargetJob=oaiTargetJob;
+        this.oaiTarget=oaiTargetJob.getDto();
         this.from=from;
     }
 
@@ -105,14 +106,15 @@ public class OaiHarvestClient {
         }
         catch(Exception e) {                       
             log.error("Invalid XML from OAI harvest from this URI:"+uri,e);                                                
-            completed=true;
-            return oaiResponse;  
+            throw new Exception("invalid xml",e);            
+              
         }
                 
         try {
         String error = document.getElementsByTagName("error").item(0).getTextContent();        
-          log.info("No records returned from OAI server when harvesting set:"+set +" message:"+error);
-        return oaiResponse;// will have no records
+          log.info("No records returned from OAI server when harvesting set:"+set +" message:"+error);                    
+          oaiTargetJob.setCompletedTime(System.currentTimeMillis());            
+          return oaiResponse;// will have no records
         }
         catch(Exception e) {
            //Ignore, no error tag was found            

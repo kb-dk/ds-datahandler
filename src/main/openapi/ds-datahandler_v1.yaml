@@ -16,6 +16,20 @@ servers:
 
 paths:
 
+  /monitor/status:
+    get:
+      tags:
+        - '${project.name}'
+      summary: 'Retrieve list of configured OAI-PMH targets'
+      operationId: getJobsList
+      responses:
+        '200':
+          description: 'List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OaiJobList'
+
   /oai/config:
     get:
       tags:
@@ -114,6 +128,39 @@ components:
           type: string
           description: 'Human readable name for the collection. Example: H.C. Andersen'                
 
+    OaiJob:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'Name of the OAI target.'
+        status:
+          type: string
+          description: 'RUNNING or COMPLETED. Status COMPLETED can have failed and will be marked with error.'          
+        id:
+          type: integer
+          format: int64
+          description: 'System time in millis when job was started'
+        startedTime:
+          type: string
+          description: 'Format YYYY-MM-DD HH:MM:SS'                   
+        completedTime:
+          type: string
+          description: 'Format YYYY-MM-DD HH:MM:SS. Empty if job has not finished'
+        numberOfRecords:
+          type: integer
+          format: int32
+          description: 'number of records harvested by job'
+        error:
+          type: boolean
+          description: 'If true the job did not complete and not all record was harvested'
+                       
+    OaiJobList:
+      type: array
+      items: 
+        $ref: '#/components/schemas/OaiJob'
+                       
+                              
     Error:
       type: object
       required:

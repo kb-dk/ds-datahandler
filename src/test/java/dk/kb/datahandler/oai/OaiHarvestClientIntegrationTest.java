@@ -2,6 +2,7 @@ package dk.kb.datahandler.oai;
 
 import org.junit.jupiter.api.Test;
 
+import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 
 
@@ -42,7 +43,9 @@ public class OaiHarvestClientIntegrationTest {
         
         
 //       String set="oai:kb.dk:images:billed:2014:jun:hca";
-       OaiHarvestClient client = new OaiHarvestClient(oaiTarget,from);
+       OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);        
+       
+       OaiHarvestClient client = new OaiHarvestClient(job,from);
        
        OaiResponse r1 = client.next();
        System.out.println("records:"+r1.getRecords().size());

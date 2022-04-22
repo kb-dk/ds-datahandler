@@ -3,8 +3,12 @@ package dk.kb.datahandler.api.v1.impl;
 import dk.kb.datahandler.api.v1.*;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.ErrorDto;
+import dk.kb.datahandler.model.v1.OaiJobDto;
+
 import java.io.File;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.oai.OaiJobCache;
+import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.webservice.exception.InternalServiceException;
 import dk.kb.datahandler.webservice.exception.ServiceException;
 
@@ -141,6 +145,17 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
     }
 
 
+    @Override
+    public List<OaiJobDto>  getJobsList(){
+        try {
+            return DsDatahandlerFacade.getJobs();    
+
+        } catch (Exception e){
+            throw handleException(e);
+        }        
+    }
+
+
     /**
      * This method simply converts any Exception into a Service exception
      * @param e: Any kind of exception
@@ -155,10 +170,6 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
             return new InternalServiceException(e.getMessage());
         }
     }
-
-
-
-
 
 
 }
