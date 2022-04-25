@@ -118,7 +118,7 @@ public class DsDatahandlerFacade {
                     dsAPI.recordPost(dsRecord);
                 }
             }
-            log.info("Ingesting base:"+recordBase + " process:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
+            log.info("Ingesting base:"+recordBase + " records:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
 
             //Update timestamp with timestamp from last OAI record.
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);                        
@@ -127,7 +127,7 @@ public class DsDatahandlerFacade {
             response = client.next(); //load next (may be empty)            
         }
 
-        log.info("Completed full Ingesting base:"+recordBase+ " process:"+totalRecordLoaded);        
+        log.info("Completed ingesting base:"+recordBase+ " records:"+totalRecordLoaded);        
         return totalRecordLoaded;
 
 

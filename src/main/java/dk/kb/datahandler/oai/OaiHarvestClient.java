@@ -61,8 +61,8 @@ public class OaiHarvestClient {
         String set= oaiTarget.getSet();
         String metadataPrefix= oaiTarget.getMetadataprefix();
 
-        addQueryParamsToUri(uri, set, resumptionToken,metadataPrefix,from);
-
+        uri=addQueryParamsToUri(uri, set, resumptionToken,metadataPrefix,from);
+         log.info("calling uri:"+uri);
         //log.info("resumption token at:"+resumptionToken);
         String xmlResponse=getHttpResponse(uri,oaiTarget.getUsername(),oaiTarget.getPassword()); 
 
@@ -104,7 +104,7 @@ public class OaiHarvestClient {
     /* Will construct the uri for next http request. Resumption token will be set if not null.
      * Also special coding since  Cumulus/Cups API is not OAI-PMH compliant. 
      */
-    private void addQueryParamsToUri(String uri,String set, String resumptionToken, String metadataPrefix, String from) {
+    private String addQueryParamsToUri(String uri,String set, String resumptionToken, String metadataPrefix, String from) {
 
         //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
         if (resumptionToken==null && set != null) { //COPS fails if set is still used with resumptiontoken
@@ -121,6 +121,7 @@ public class OaiHarvestClient {
         if (metadataPrefix != null && resumptionToken == null) {
             uri +="&metadataPrefix="+metadataPrefix;            
         }
+        return uri;
     }
 
     private ArrayList<OaiRecord> extractRecordsFromXml( Document document ) {
