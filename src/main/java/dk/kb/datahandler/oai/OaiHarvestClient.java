@@ -38,7 +38,7 @@ public class OaiHarvestClient {
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
-    
+
     public OaiHarvestClient (OaiTargetJob oaiTargetJob,String from){
         this.oaiTargetJob=oaiTargetJob;
         this.oaiTarget=oaiTargetJob.getDto();
@@ -48,9 +48,7 @@ public class OaiHarvestClient {
 
     public OaiResponse next() throws Exception{
         OaiResponse oaiResponse = new OaiResponse();
-        ArrayList<OaiRecord> oaiRecords = new  ArrayList<OaiRecord> ();
-        oaiResponse.setRecords(oaiRecords);
-        
+
         String baseURL=oaiTarget.getUrl();
         String uri= baseURL+"?verb=ListRecords";
 
@@ -62,67 +60,30 @@ public class OaiHarvestClient {
 
         String set= oaiTarget.getSet();
         String metadataPrefix= oaiTarget.getMetadataprefix();
-        
-        //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
-        if (resumptionToken==null && set != null) { //COPS fails if set is still used with resumptiontoken
-            uri += "&set="+set;                        
-        }
-        else {
-            if (resumptionToken != null) {             
-               uri +="&resumptionToken="+resumptionToken;
-            }
-        }      
-        if (from != null && resumptionToken == null) {
-            uri += "&from="+from;            
-        }
-        if (metadataPrefix != null && resumptionToken == null) {
-            uri +="&metadataPrefix="+metadataPrefix;            
-        }
-        
-        //TODO user
-               
-        //uri = uri +"&from=2031-01-01";    
+
+        addQueryParamsToUri(uri, set, resumptionToken,metadataPrefix,from);
+
         //log.info("resumption token at:"+resumptionToken);
-        String response=getHttpResponse(uri,oaiTarget.getUsername(),oaiTarget.getPassword()); 
+        String xmlResponse=getHttpResponse(uri,oaiTarget.getUsername(),oaiTarget.getPassword()); 
 
-        //System.out.println("response:"+response);
-        //Important to remove invalid XML encodings since they will be present in metadata. 
-        //If they are not replaced, the DOM parse will fail completely to read anything.
-        XMLEscapeSanitiser sanitiser = new XMLEscapeSanitiser(""); //Do not replace with anything
-        String responseSanitized  =  sanitiser.apply(response);
-        
-        //System.out.println(response);
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
 
-        
-        
-        //If the OAI does not return valid XML, then we can not parse it.
-        // All records in this document is lost and also those after because we have no resumption token
-        Document document = null;
+        Document document =sanitizeXml(xmlResponse,uri);
+
         try {
-        document = builder.parse(new InputSource(new StringReader(responseSanitized)));
-        document.getDocumentElement().normalize();
-        }
-        catch(Exception e) {                       
-            log.error("Invalid XML from OAI harvest from this URI:"+uri,e);                                                
-            throw new Exception("invalid xml",e);            
-              
-        }
-                
-        try {
-        String error = document.getElementsByTagName("error").item(0).getTextContent();        
-          log.info("No records returned from OAI server when harvesting set:"+set +" message:"+error);                    
-          oaiTargetJob.setCompletedTime(System.currentTimeMillis());            
-          return oaiResponse;// will have no records
+            String error = document.getElementsByTagName("error").item(0).getTextContent();        
+            log.info("No records returned from OAI server when harvesting set:"+set +" message:"+error);                    
+            oaiTargetJob.setCompletedTime(System.currentTimeMillis());            
+            return oaiResponse;// will have no records
         }
         catch(Exception e) {
-           //Ignore, no error tag was found            
+            //Ignore, no error tag was found            
         }
-                
+
+
+        //More records or completed.
         String  resumptionToken=  getResumptionToken(document);
         oaiResponse.setTotalRecords(getResumptionTotalSize(document));        
-        
+
         if (resumptionToken != null) {
             this.resumptionToken = resumptionToken;  
             oaiResponse.setResumptionToken(resumptionToken);
@@ -132,40 +93,101 @@ public class OaiHarvestClient {
             completed=true;
             log.info("No more records to load for set="+set);   
         }
-         
-        NodeList nList = document.getElementsByTagName("record");         
 
+        ArrayList<OaiRecord> records=extractRecordsFromXml(document);
+
+        oaiResponse.setRecords(records);
+        return oaiResponse;
+    }
+
+
+    /* Will construct the uri for next http request. Resumption token will be set if not null.
+     * Also special coding since  Cumulus/Cups API is not OAI-PMH compliant. 
+     */
+    private void addQueryParamsToUri(String uri,String set, String resumptionToken, String metadataPrefix, String from) {
+
+        //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
+        if (resumptionToken==null && set != null) { //COPS fails if set is still used with resumptiontoken
+            uri += "&set="+set;                        
+        }
+        else {
+            if (resumptionToken != null) {             
+                uri +="&resumptionToken="+resumptionToken;
+            }
+        }      
+        if (from != null && resumptionToken == null) {
+            uri += "&from="+from;            
+        }
+        if (metadataPrefix != null && resumptionToken == null) {
+            uri +="&metadataPrefix="+metadataPrefix;            
+        }
+    }
+
+    private ArrayList<OaiRecord> extractRecordsFromXml( Document document ) {
+        NodeList nList = document.getElementsByTagName("record"); 
+
+        ArrayList<OaiRecord> records= new ArrayList<OaiRecord>();
         for (int i =0;i<nList.getLength();i++) {                                         
-           
+
             OaiRecord oaiRecord = new OaiRecord();
-            oaiRecords.add(oaiRecord);
+            records.add(oaiRecord);
             Element record =  (Element)nList.item(i);                                                                    
             String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();                        
             String datestamp =  record.getElementsByTagName("datestamp").item(0).getTextContent();
             String headerStatus = getHeaderStatus(record);            
-                                             
+
             oaiRecord.setId(identifier);
             oaiRecord.setDateStamp(datestamp);
-         
+
             if ("deleted".equals(headerStatus)) {
                 oaiRecord.setDeleted(true);
             }
             else {// Get raw XML within the record tag                                    
-            Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
-            String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);            
-            metadataXml = removeMetadataTag(metadataXml.trim());           
-            //System.out.println("meta:"+metadataXml);
-            oaiRecord.setMetadata(metadataXml);
+                Element metadataElement=  (Element) record.getElementsByTagName("metadata").item(0);                            
+                String metadataXml = serializeXmlElementToStringUTF8(document, metadataElement);            
+                metadataXml = removeMetadataTag(metadataXml.trim());           
+                //System.out.println("meta:"+metadataXml);
+                oaiRecord.setMetadata(metadataXml);
             }
-            
+
+        }
+        return records;
+    }
+
+
+    //If the OAI does not return valid XML, then we can not parse it.
+    // All records in this document is lost and also those after because we have no resumption token
+
+    //Important to remove invalid XML encodings since they will be present in metadata. 
+    //If they are not replaced, the DOM parse will fail completely to read anything.
+
+
+    protected static Document sanitizeXml(String xmlResponse, String uri) throws Exception{ //uri only for log        
+
+        //System.out.println(response);
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+
+        XMLEscapeSanitiser sanitiser = new XMLEscapeSanitiser(""); //Do not replace with anything
+        String responseSanitized  =  sanitiser.apply(xmlResponse);
+
+        Document document = null;
+        try {
+            document = builder.parse(new InputSource(new StringReader(responseSanitized)));
+            document.getDocumentElement().normalize();
+        }
+        catch(Exception e) {                       
+            log.error("Invalid XML from OAI harvest from this URI:"+uri,e);                                                
+            throw new Exception("invalid xml",e);            
+
         }
 
-        return oaiResponse;
+        return document;
+
     }
-    
-    
+
     protected static String getHttpResponse(String uri, String user, String password) throws Exception {
-        
+
         HttpClient client = HttpClient.newBuilder()
                 .authenticator(new Authenticator() {
                     @Override
@@ -176,32 +198,32 @@ public class OaiHarvestClient {
                     }
 
                 }).build();
-        
-        
-        
+
+
+
         HttpRequest request = HttpRequest.newBuilder()                          
                 .uri(URI.create(uri))              
                 .setHeader("User-Agent", "Java 11 HttpClient Bot")            
                 .build();
-        
+
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
         if (200 != response.statusCode()) {
             log.error("Not status code 200:" + response.statusCode());
-            
+
         }       
-         //System.out.println(response.headers());
-         
+        //System.out.println(response.headers());
+
         return response.body();
     }
-  
+
     //Dirty string hacking. But can not find a way to do this with the DOM parser       
-   protected static String removeMetadataTag(String xml) {   
-       xml = xml.replaceFirst("<metadata>", "");       
-       xml = xml.substring(0,xml.length()-11); //End of string always </metadata>
-       return xml;       
+    protected static String removeMetadataTag(String xml) {   
+        xml = xml.replaceFirst("<metadata>", "");       
+        xml = xml.substring(0,xml.length()-11); //End of string always </metadata>
+        return xml;       
     }
-       
-    
+
+
     /*
      * Get the raw XML text from a node. Also make sure encoding is UTF-8.  
      * 
@@ -210,39 +232,39 @@ public class OaiHarvestClient {
         DOMImplementation impl = document.getImplementation();
         DOMImplementationLS implLS = (DOMImplementationLS) impl.getFeature("LS", "3.0");
         LSSerializer lsSerializer = implLS.createLSSerializer();
-       // lsSerializer.getDomConfig().setParameter("format-pretty-print", true); // 
+        // lsSerializer.getDomConfig().setParameter("format-pretty-print", true); // 
         LSOutput lsOutput = implLS.createLSOutput();
         lsOutput.setEncoding("UTF-8");  //The reason we do all this stuff.
         Writer stringWriter = new StringWriter();
         lsOutput.setCharacterStream(stringWriter);
         lsSerializer.write(element, lsOutput);
         return stringWriter.toString();
-      }
+    }
 
     private String getHeaderStatus(Element record) {
         try {
             Element header =  (Element) record.getElementsByTagName("header").item(0);
             String status = header.getAttribute("status");
-              return status;           
-            }
-            catch(Exception e)
-            {
-             return null;
-            }        
+            return status;           
+        }
+        catch(Exception e)
+        {
+            return null;
+        }        
     }
-    
-    
+
+
     private String getResumptionToken( Document document) {
         try {
             String  resumptionToken=  document.getElementsByTagName("resumptionToken").item(0).getTextContent();
             return resumptionToken;                    
         }
         catch(NullPointerException e) { //no more records
-         return null;
-                     
+            return null;
+
         }
     }
-    
+
     /*
      * Not required by OAI standard. Cumulus returns it. Pvica does not
      * 
@@ -250,13 +272,13 @@ public class OaiHarvestClient {
     private String getResumptionTotalSize( Document document) {
         try {
             String totalListSize =  document.getElementsByTagName("resumptionToken").item(0).getAttributes().getNamedItem("completeListSize").getNodeValue();
-             return totalListSize;                    
+            return totalListSize;                    
         }
         catch(NullPointerException e) { //no more records
-         return "?";                    
+            return "?";                    
         }
     }
-    
-    
-    
+
+
+
 }
