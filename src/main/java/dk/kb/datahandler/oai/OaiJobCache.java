@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ import dk.kb.datahandler.oai.OaiTargetJob.STATUS;
 public class OaiJobCache {
 
     private static HashMap<Long, OaiTargetJob> runningJobsMap = new HashMap<Long, OaiTargetJob>();
-    private static HashMap<Long, OaiTargetJob> completedJobsMap = new HashMap<Long, OaiTargetJob>();
+    private static TreeMap<Long, OaiTargetJob> completedJobsMap = new TreeMap<Long, OaiTargetJob>(); //ordered
     private static Logger log = LoggerFactory.getLogger(OaiJobCache.class);
     private OaiJobCache() { // No need for constructor       
     }
@@ -43,7 +44,14 @@ public class OaiJobCache {
         job.setRecordsHarvested(numberOfRecords);
         job.setCompletedTime(System.currentTimeMillis());        
         log.info("Setting completed for job:"+job.getDto().getName() +" time:"+job.getCompletedTime());
-        completedJobsMap.put(job.getId(), job);                
+    
+        //We do not want more than 1000 completed jobs 
+        if (completedJobsMap.size() > 1000) {
+            completedJobsMap.remove(completedJobsMap.firstKey()); //Remove oldest
+        }
+        
+        completedJobsMap.put(job.getId(), job);        
+        
     }
 
     public static List<OaiJobDto> getRunningJobsMostRecentFirst(){    
