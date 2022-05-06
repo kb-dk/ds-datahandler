@@ -69,15 +69,12 @@ public class OaiHarvestClient {
 
         Document document =sanitizeXml(xmlResponse,uri);
 
-        try {
-            String error = document.getElementsByTagName("error").item(0).getTextContent();        
-            log.info("No records returned from OAI server when harvesting set:"+set +" message:"+error);                    
+        String errorMessage=getErrorMessage(document);
+         if (errorMessage != null) {                       
+            log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
             oaiTargetJob.setCompletedTime(System.currentTimeMillis());            
             return oaiResponse;// will have no records
-        }
-        catch(Exception e) {
-            //Ignore, no error tag was found            
-        }
+         }
 
 
         //More records or completed.
@@ -156,6 +153,22 @@ public class OaiHarvestClient {
     }
 
 
+    /*
+     * Will return the error message if response contains an error
+     * Return null if no error message
+     * 
+     */
+    private String getErrorMessage(Document document) {        
+        try {
+            String error = document.getElementsByTagName("error").item(0).getTextContent();                               
+            return error;
+        }
+        catch(Exception e) {
+            //Ignore, no error tag was found            
+        }
+       return null;        
+    }
+    
     //If the OAI does not return valid XML, then we can not parse it.
     // All records in this document is lost and also those after because we have no resumption token
 
