@@ -21,12 +21,12 @@ Start a Jetty web server with the application:
 mvn jetty:run
 ```
 
-The default port is 8080 and the default Hello World service can be accessed at
-<http://localhost:8080/ds-datahandler/v1/hello>
+The default port is 9071 and the default Hello World service can be accessed at
+<http://localhost:9071/ds-datahandler/v1/hello>
 where "ds-datahandler" is your artifactID from above.
 
 
-The Swagger UI is available at <http://localhost:8080/ds-datahandler/api/>, providing access to the `v1` version of the GUI. 
+The Swagger UI is available at <http://localhost:9071/ds-datahandler/api/>, providing access to the `v1` version of the GUI. 
 
 ## Deploy to devel server
 
@@ -56,7 +56,7 @@ repositories. To guard against this, `conf/ds-datahandler-environment.yaml` is a
 
 Jetty is a servlet container (like Tomcat) that is often used for testing during development.
 
-This project can be started with `mvn jetty:run`, which will expose a webserver with the implemented service at port 8080.
+This project can be started with `mvn jetty:run`, which will expose a webserver with the implemented service at port 9071.
 If it is started in debug mode from an IDE (normally IntelliJ IDEA), breakpoints and all the usual debug functionality
 will be available.
 
@@ -89,7 +89,7 @@ and also uploaded to nexus as part of the release procedure. The tar-ball contai
 
 For smaller projects or standalone web applications, it can be useful to bundle the user interface with the API 
 implementation: Files and folders added to the `src/main/webapp/` folder are served under 
-[http://localhost:8080/<application-ID>/](http://localhost:8080/<application-ID>/).
+[http://localhost:9071/<application-ID>/](http://localhost:9071/<application-ID>/).
 
 While it is possible to use [JSP](https://en.wikipedia.org/wiki/Jakarta_Server_Pages), as the sample 
 [index.jsp](./src/main/webapp/index.jsp) shows, this is considered legacy technology.
@@ -158,7 +158,7 @@ should
     `*ServiceImpl` import)
   * Add a new `servlet` and a new `servlet-mapping` for the new `Application` in `src/main/webapp/WEB-INF/web.xml`  
   * Add the path to the new OpenAPI YAML to `urls` in `webapp/api/index.html`. The first entry in the array is the
-    default when visiting the main API-page at <http://localhost:8080/ds-datahandler/api/>  
+    default when visiting the main API-page at <http://localhost:9071/ds-datahandler/api/>  
 
 After a `mvn package`, a skeleton implementation for the new version of the API class will be created in the source
 tree. The standard action is to copy the implementation for the previous version to the new one and adjust from there.  
