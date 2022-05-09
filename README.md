@@ -71,7 +71,7 @@ Test the webservice with
 mvn jetty:run
 ```
 ## Swagger UI
-The Swagger UI is available at <http://localhost:8080/ds-datahandler/api/>, providing access to both the `v1` version of the GUI. 
+The Swagger UI is available at <http://localhost:9071/ds-datahandler/api/>, providing access to both the `v1` version of the GUI. 
 
 
 ## Deployment to a server (development/stage/production).
