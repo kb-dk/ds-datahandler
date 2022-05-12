@@ -6,8 +6,9 @@ public class OaiResponse {
 
     
     private ArrayList<OaiRecord> records = new  ArrayList<OaiRecord> (); 
-    private String resumptionToken = null;
+    private String resumptionToken = null;    
     private String totalRecords="0";// can be "?" if unknown
+    private boolean error=false;
     
     public ArrayList<OaiRecord> getRecords() {
         return records;
@@ -26,6 +27,12 @@ public class OaiResponse {
     }
     public void setTotalRecords(String totalRecords) {
         this.totalRecords = totalRecords;
+    }
+    public boolean isError() {
+        return error;
+    }
+    public void setError(boolean error) {
+        this.error = error;
     }
     
     

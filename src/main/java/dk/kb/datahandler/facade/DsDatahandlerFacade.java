@@ -19,6 +19,7 @@ import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
+
 import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 
@@ -35,13 +36,15 @@ public class DsDatahandlerFacade {
     * @return Number of harvested records.
     */    
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
-        //Test no job is running before starting new
+       if (oaiTargetDto== null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
+        }  
+       //Test no job is running before starting new for same target
         validateNotAlreadyRunning(oaiTargetName);        
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
-        OaiTargetJob job = createNewJob(oaiTargetDto);     //Will throw exception if job already running   
-        //Test no job is running before starting new
 
-        
+        OaiTargetJob job = createNewJob(oaiTargetDto);        
+
         //register job
         OaiJobCache.addNewJob(job);
 
@@ -68,13 +71,17 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records.
      */    
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
-
-        //Test no job is running before starting new
+       if (oaiTargetDto== null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
+        }
+      
+        //Test no job is running before starting new for same target
         validateNotAlreadyRunning(oaiTargetName);
         
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
-        OaiTargetJob job = createNewJob(oaiTargetDto);  //Will throw exception if job already running
 
+       
+        OaiTargetJob job = createNewJob(oaiTargetDto);
        
         
         //register job
@@ -161,7 +168,11 @@ public class DsDatahandlerFacade {
             response = client.next(); //load next (may be empty)            
         }
 
-        log.info("Completed ingesting base:"+recordBase+ " records:"+totalRecordLoaded);        
+        if (response.isError()) {
+            throw new InternalServiceException("Error during harvest for target:"+job.getDto().getName() +" after harvesting "+totalRecordLoaded +" records");            
+        }
+        
+        log.info("Completed ingesting base successfully:"+recordBase+ " records:"+totalRecordLoaded);        
         return totalRecordLoaded;
 
 
