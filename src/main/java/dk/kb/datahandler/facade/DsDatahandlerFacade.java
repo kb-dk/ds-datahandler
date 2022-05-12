@@ -20,6 +20,7 @@ import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.webservice.exception.InternalServiceException;
+import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 
 public class DsDatahandlerFacade {
@@ -29,6 +30,9 @@ public class DsDatahandlerFacade {
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
 
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
+        if (oaiTargetDto== null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
+        }
         OaiTargetJob job = createNewJob(oaiTargetDto);        
         //register job
         OaiJobCache.addNewJob(job);
@@ -50,6 +54,9 @@ public class DsDatahandlerFacade {
 
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
+        if (oaiTargetDto== null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
+        }
         OaiTargetJob job = createNewJob(oaiTargetDto);
 
         //register job
