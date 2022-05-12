@@ -73,6 +73,7 @@ public class OaiHarvestClient {
          if (errorMessage != null) {                       
             log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
             oaiTargetJob.setCompletedTime(System.currentTimeMillis());            
+            oaiResponse.setError(true);
             return oaiResponse;// will have no records
          }
 
