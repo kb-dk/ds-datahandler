@@ -36,13 +36,14 @@ public class DsDatahandlerFacade {
     * @return Number of harvested records.
     */    
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
-       if (oaiTargetDto== null) {
-            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
-        }  
+  
        //Test no job is running before starting new for same target
         validateNotAlreadyRunning(oaiTargetName);        
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
-
+        if (oaiTargetDto== null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
+        }
+        
         OaiTargetJob job = createNewJob(oaiTargetDto);        
 
         //register job
@@ -71,15 +72,15 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records.
      */    
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
-       if (oaiTargetDto== null) {
-            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
-        }
+       
       
         //Test no job is running before starting new for same target
         validateNotAlreadyRunning(oaiTargetName);
         
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
-
+        if (oaiTargetDto== null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
+        }
        
         OaiTargetJob job = createNewJob(oaiTargetDto);
        
