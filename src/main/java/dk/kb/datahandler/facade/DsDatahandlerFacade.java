@@ -19,6 +19,7 @@ import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
+import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 
 public class DsDatahandlerFacade {
@@ -28,7 +29,10 @@ public class DsDatahandlerFacade {
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
 
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
-        OaiTargetJob job = createNewJob(oaiTargetDto);        
+        OaiTargetJob job = createNewJob(oaiTargetDto);     //Will throw exception if job already running   
+        //Test no job is running before starting new
+        validateNotAlreadyRunning(oaiTargetName);
+        
         //register job
         OaiJobCache.addNewJob(job);
 
@@ -47,10 +51,15 @@ public class DsDatahandlerFacade {
     }
 
 
+
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
-        OaiTargetJob job = createNewJob(oaiTargetDto);
+        OaiTargetJob job = createNewJob(oaiTargetDto);  //Will throw exception if job already running
 
+        //Test no job is running before starting new
+        validateNotAlreadyRunning(oaiTargetName);
+       
+        
         //register job
         OaiJobCache.addNewJob(job);            
 
@@ -84,7 +93,7 @@ public class DsDatahandlerFacade {
      * Will be changed later when more OAI targets comes.
      *  
      */
-    public static Integer oaiIngest(OaiTargetJob job, String from) throws Exception {
+    protected static Integer oaiIngest(OaiTargetJob job, String from) throws Exception {
 
         //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)        
         //But COP only supports the short version. So when this is called use short format
@@ -134,8 +143,13 @@ public class DsDatahandlerFacade {
 
 
     }
-
-    public static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) throws Exception{          
+   /*
+   * Start a new job, but only if no job is already running for the target.
+   * 
+   */
+    public static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) throws Exception{                  
+        //Make sure there is no running job for same target before starting a new        
+        
         long id = System.currentTimeMillis();
         Thread.sleep(1); // So next ID is different.
         OaiTargetJob  job = new OaiTargetJob(id, dto);                
@@ -151,5 +165,11 @@ public class DsDatahandlerFacade {
         return dsAPI;
     }
 
+    private static void validateNotAlreadyRunning(String oaiTargetName) {
+        boolean alreadyRunning= OaiJobCache.isJobRunningForTarget(oaiTargetName);        
+        if (alreadyRunning) {
+            throw new InvalidArgumentServiceException("There is already a job running for target:"+oaiTargetName);
+        }
+    }
 
 }

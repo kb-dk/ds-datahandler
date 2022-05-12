@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -96,6 +97,15 @@ public class OaiJobCache {
 
     }
 
+    public static boolean isJobRunningForTarget(String targetName) {
+        Collection<OaiTargetJob> running = runningJobsMap.values();
+        for (OaiTargetJob job : running) {            
+            if (job.getDto().getName().equals(targetName)) {
+              return true;
+            }               
+        }        
+        return false;
+    }
 
     private static String formatSystemMillis(long millis) {        
         LocalDateTime myDateObj=Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime();                 
