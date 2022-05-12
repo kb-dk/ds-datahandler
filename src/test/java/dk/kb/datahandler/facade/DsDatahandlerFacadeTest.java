@@ -14,16 +14,15 @@ public class DsDatahandlerFacadeTest {
 
     @Test
     void testOnly1JobWithSameName() throws Exception {
-
-        OaiTargetDto oaiTarget = new OaiTargetDto();
-        oaiTarget.setUrl("http://www5.kb.dk/cop/oai/");
-        oaiTarget.setMetadataprefix("mods");
-        oaiTarget.setSet("oai:kb.dk:images:billed:2010:okt:billeder");
-        oaiTarget.setUsername(null);
-        oaiTarget.setPassword(null);       
-        oaiTarget.setRecordBase("test");
-        oaiTarget.setName("THERE_CAN_ONLY_BE_ONE");
-
+        
+        OaiTargetDto oaiTarget = new OaiTargetDto()
+                .url("http://www5.kb.dk/cop/oai/")
+                .metadataprefix("mods")
+                .set("oai:kb.dk:images:billed:2010:okt:billeder")
+                .username(null).password(null)
+                .recordBase("test")
+                .name("THERE_CAN_ONLY_BE_ONE");
+        
         // OK
         OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);
         OaiJobCache.addNewJob(job);

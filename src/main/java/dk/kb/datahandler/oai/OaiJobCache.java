@@ -27,7 +27,7 @@ public class OaiJobCache {
     private OaiJobCache() { // No need for constructor       
     }
 
-    public static void addNewJob(OaiTargetJob job) {     
+    public static synchronized void addNewJob(OaiTargetJob job) {     
         job.setStatus(STATUS.RUNNING);
         runningJobsMap.put(job.getId(), job);                
     }
@@ -35,7 +35,7 @@ public class OaiJobCache {
     /*
      * Change status and move from running map to completed map
      */
-    public static void finishJob(OaiTargetJob job, int numberOfRecords, boolean error) {
+    public static synchronized void finishJob(OaiTargetJob job, int numberOfRecords, boolean error) {
 
         runningJobsMap.remove(job.getId());        
         if (error) {
@@ -97,7 +97,7 @@ public class OaiJobCache {
 
     }
 
-    public static boolean isJobRunningForTarget(String targetName) {
+    public static synchronized boolean isJobRunningForTarget(String targetName) {
         Collection<OaiTargetJob> running = runningJobsMap.values();
         for (OaiTargetJob job : running) {            
             if (job.getDto().getName().equals(targetName)) {
