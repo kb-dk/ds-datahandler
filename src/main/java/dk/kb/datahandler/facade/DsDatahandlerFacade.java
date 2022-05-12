@@ -112,7 +112,7 @@ public class DsDatahandlerFacade {
     }
 
 
-    /*
+    /**
      * If from is null it will harvest everything.
      * Format for from is yyyy-MM-dd as this is only one supported by COPs/Cumulus.
      * Will be changed later when more OAI targets comes.
@@ -168,11 +168,14 @@ public class DsDatahandlerFacade {
 
 
     }
-   /*
-   * Caller of this method must validate there is not already a job running 
-   * 
-   */
-    protected static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) {                  
+   /**
+    * Generates a OaiRargetJob from an OaiTargetDto.
+    * 
+    * The job will have a unique timestamp used as ID.  
+    *   
+    * @param  dto 
+    */
+    public static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) {                  
                 
         long id = System.currentTimeMillis();
         try {
