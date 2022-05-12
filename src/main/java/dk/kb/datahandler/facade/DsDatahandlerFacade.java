@@ -19,6 +19,7 @@ import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
+import dk.kb.datahandler.webservice.exception.InternalServiceException;
 
 
 public class DsDatahandlerFacade {
@@ -127,7 +128,11 @@ public class DsDatahandlerFacade {
             response = client.next(); //load next (may be empty)            
         }
 
-        log.info("Completed ingesting base:"+recordBase+ " records:"+totalRecordLoaded);        
+        if (response.isError()) {
+            throw new InternalServiceException("Error during harvest for target:"+job.getDto().getName() +" after harvesting "+totalRecordLoaded +" records");            
+        }
+        
+        log.info("Completed ingesting base successfully:"+recordBase+ " records:"+totalRecordLoaded);        
         return totalRecordLoaded;
 
 
