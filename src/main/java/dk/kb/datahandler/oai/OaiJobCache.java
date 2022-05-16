@@ -19,6 +19,11 @@ import org.slf4j.LoggerFactory;
 import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.oai.OaiTargetJob.STATUS;
 
+
+/*
+ * Access to all methods working with the maps needs to be syncronized to prevent concurrent modification error. 
+ * 
+ */
 public class OaiJobCache {
 
     private static HashMap<Long, OaiTargetJob> runningJobsMap = new HashMap<Long, OaiTargetJob>();
@@ -55,7 +60,7 @@ public class OaiJobCache {
         
     }
 
-    public static List<OaiJobDto> getRunningJobsMostRecentFirst(){    
+    public static synchronized List<OaiJobDto> getRunningJobsMostRecentFirst(){    
         ArrayList<OaiTargetJob>  runningJobs =new  ArrayList<OaiTargetJob>(runningJobsMap.values());        
         List<OaiTargetJob> sorted =runningJobs.stream()
                 .sorted(Comparator.comparing(OaiTargetJob::getId).reversed())
@@ -64,7 +69,7 @@ public class OaiJobCache {
         return convertToDto(sorted);        
     }
 
-    public static List<OaiJobDto> getCompletedJobsMostRecentFirst(){    
+    public static synchronized List<OaiJobDto> getCompletedJobsMostRecentFirst(){    
         ArrayList<OaiTargetJob>  completedJobs =new  ArrayList<OaiTargetJob>(completedJobsMap.values());      
         List<OaiTargetJob> sorted =completedJobs.stream()
                 .sorted(Comparator.comparing(OaiTargetJob::getId).reversed())
