@@ -27,13 +27,25 @@ public class DsDatahandlerFacade {
     
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
 
+    /**
+    * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
+    * saved on the file system for that target.
+    * The job will harvest records from the OAI server and ingest them into DS-storage  
+    *  
+    * @param  oaiTargetName the location of the image, relative to the url argument
+    * @return Number of harvested records.
+    */    
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
-
+  
+       //Test no job is running before starting new for same target
+        validateNotAlreadyRunning(oaiTargetName);        
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
         if (oaiTargetDto== null) {
             throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
         }
+        
         OaiTargetJob job = createNewJob(oaiTargetDto);        
+
         //register job
         OaiJobCache.addNewJob(job);
 
@@ -52,13 +64,27 @@ public class DsDatahandlerFacade {
     }
 
 
+    /**
+     * Starts a full OAI harvest job for the target.
+     * The job will harvest records from the OAI server and ingest them into DS-storage  
+     *  
+     * @param  oaiTargetName the location of the image, relative to the url argument
+     * @return Number of harvested records.
+     */    
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
+       
+      
+        //Test no job is running before starting new for same target
+        validateNotAlreadyRunning(oaiTargetName);
+        
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
         if (oaiTargetDto== null) {
             throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
         }
+       
         OaiTargetJob job = createNewJob(oaiTargetDto);
-
+       
+        
         //register job
         OaiJobCache.addNewJob(job);            
 
@@ -75,7 +101,15 @@ public class DsDatahandlerFacade {
             throw new Exception(e);
         }
     }
+    
+    
 
+    /**
+    *  Gives a ist of both completed and running jobs with status. Jobs still running will be first.
+    *  The completed jobs will only contain last 1000 completed jobs
+    *  
+    * @return List of jobs with status
+    */    
     public static List<OaiJobDto> getJobs() throws Exception {    
         List<OaiJobDto> running=OaiJobCache.getRunningJobsMostRecentFirst();
         List<OaiJobDto> completed=OaiJobCache.getCompletedJobsMostRecentFirst();
@@ -86,13 +120,13 @@ public class DsDatahandlerFacade {
     }
 
 
-    /*
+    /**
      * If from is null it will harvest everything.
      * Format for from is yyyy-MM-dd as this is only one supported by COPs/Cumulus.
      * Will be changed later when more OAI targets comes.
      *  
      */
-    public static Integer oaiIngest(OaiTargetJob job, String from) throws Exception {
+    protected static Integer oaiIngest(OaiTargetJob job, String from) throws Exception {
 
         //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)        
         //But COP only supports the short version. So when this is called use short format
@@ -146,10 +180,23 @@ public class DsDatahandlerFacade {
 
 
     }
-
-    public static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) throws Exception{          
+   /**
+    * Generates a OaiRargetJob from an OaiTargetDto.
+    * 
+    * The job will have a unique timestamp used as ID.  
+    *   
+    * @param  dto 
+    */
+    public static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) {                  
+                
         long id = System.currentTimeMillis();
+        try {
         Thread.sleep(1); // So next ID is different.
+        }
+        catch(Exception e) {
+          //can not happen, noone will interrupt.            
+        }
+        
         OaiTargetJob  job = new OaiTargetJob(id, dto);                
         return job;                
     }
@@ -163,5 +210,11 @@ public class DsDatahandlerFacade {
         return dsAPI;
     }
 
+    private static synchronized void validateNotAlreadyRunning(String oaiTargetName) {
+        boolean alreadyRunning= OaiJobCache.isJobRunningForTarget(oaiTargetName);        
+        if (alreadyRunning) {
+            throw new InvalidArgumentServiceException("There is already a job running for target:"+oaiTargetName);
+        }
+    }
 
 }

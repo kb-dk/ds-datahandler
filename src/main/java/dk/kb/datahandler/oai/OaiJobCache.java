@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,11 @@ import org.slf4j.LoggerFactory;
 import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.oai.OaiTargetJob.STATUS;
 
+
+/*
+ * Access to all methods working with the maps needs to be syncronized to prevent concurrent modification error. 
+ * 
+ */
 public class OaiJobCache {
 
     private static HashMap<Long, OaiTargetJob> runningJobsMap = new HashMap<Long, OaiTargetJob>();
@@ -26,7 +32,7 @@ public class OaiJobCache {
     private OaiJobCache() { // No need for constructor       
     }
 
-    public static void addNewJob(OaiTargetJob job) {     
+    public static synchronized void addNewJob(OaiTargetJob job) {     
         job.setStatus(STATUS.RUNNING);
         runningJobsMap.put(job.getId(), job);                
     }
@@ -34,7 +40,7 @@ public class OaiJobCache {
     /*
      * Change status and move from running map to completed map
      */
-    public static void finishJob(OaiTargetJob job, int numberOfRecords, boolean error) {
+    public static synchronized void finishJob(OaiTargetJob job, int numberOfRecords, boolean error) {
 
         runningJobsMap.remove(job.getId());        
         if (error) {
@@ -54,7 +60,7 @@ public class OaiJobCache {
         
     }
 
-    public static List<OaiJobDto> getRunningJobsMostRecentFirst(){    
+    public static synchronized List<OaiJobDto> getRunningJobsMostRecentFirst(){    
         ArrayList<OaiTargetJob>  runningJobs =new  ArrayList<OaiTargetJob>(runningJobsMap.values());        
         List<OaiTargetJob> sorted =runningJobs.stream()
                 .sorted(Comparator.comparing(OaiTargetJob::getId).reversed())
@@ -63,7 +69,7 @@ public class OaiJobCache {
         return convertToDto(sorted);        
     }
 
-    public static List<OaiJobDto> getCompletedJobsMostRecentFirst(){    
+    public static synchronized List<OaiJobDto> getCompletedJobsMostRecentFirst(){    
         ArrayList<OaiTargetJob>  completedJobs =new  ArrayList<OaiTargetJob>(completedJobsMap.values());      
         List<OaiTargetJob> sorted =completedJobs.stream()
                 .sorted(Comparator.comparing(OaiTargetJob::getId).reversed())
@@ -96,6 +102,15 @@ public class OaiJobCache {
 
     }
 
+    public static synchronized boolean isJobRunningForTarget(String targetName) {
+        Collection<OaiTargetJob> running = runningJobsMap.values();
+        for (OaiTargetJob job : running) {            
+            if (job.getDto().getName().equals(targetName)) {
+              return true;
+            }               
+        }        
+        return false;
+    }
 
     private static String formatSystemMillis(long millis) {        
         LocalDateTime myDateObj=Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime();                 
