@@ -155,6 +155,19 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
         }        
     }
 
+    
+    @Override
+    public Integer importFromZip(String recordBase, Attachment fileNameDetail) {
+      
+      try {   
+         InputStream is = fileNameDetail.getDataHandler().getInputStream();
+         return DsDatahandlerFacade.ingestFromZipfile(recordBase,is);    
+      }  catch (Exception e){
+         throw handleException(e);
+       }
+    }
+
+    
 
     /**
      * This method simply converts any Exception into a Service exception
@@ -170,6 +183,9 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
             return new InternalServiceException(e.getMessage());
         }
     }
+
+
+
 
 
 }

@@ -1,11 +1,18 @@
 package dk.kb.datahandler.facade;
 
-
+import java.io.BufferedInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 import dk.kb.datahandler.backend.api.v1.DsStorageApi;
 import dk.kb.datahandler.backend.invoker.v1.ApiClient;
@@ -24,26 +31,72 @@ import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 
 public class DsDatahandlerFacade {
-    
+
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
 
     /**
-    * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
-    * saved on the file system for that target.
-    * The job will harvest records from the OAI server and ingest them into DS-storage  
-    *  
-    * @param  oaiTargetName the location of the image, relative to the url argument
-    * @return Number of harvested records.
-    */    
+     * Ingest records directly into ds-storage from a zip-file containing multiple files that each is an xml-file with a single record
+     *  
+     * @param  recordBase The recordBase for collection documents. The recordBase must be defined in ds-storage. 
+     * @param is Inputstream. Must be a zip-file containing single files that each is an XML record.
+     * @return Number of successfully ingested records.
+     */    
+    public static Integer ingestFromZipfile(String recordBase, InputStream is) throws Exception {
+        ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
+
+        DsStorageApi dsAPI = getDsStorageApiClient();
+        int recordsIngested=0;
+
+        ZipEntry entry = null;
+
+        while ((entry = zis.getNextEntry()) != null) {
+
+            String fileName=entry.getName();
+
+            try {                
+                String record_string = IOUtils.toString(zis, StandardCharsets.UTF_8);           
+                Document record = OaiHarvestClient.sanitizeXml(record_string, null);
+
+                //There are several 'mods:identifier' identifier tags, but the first is the URI always.
+                Node item = record.getElementsByTagName("mods:identifier").item(0);            
+                String identifier =  item.getTextContent();                               
+
+                String recordId= recordBase+":"+identifier;
+                log.info("Ingesting record filename from zip:"+fileName +" id:"+identifier);
+                DsRecordDto dsRecord = new DsRecordDto();
+                dsRecord.setId(recordId); //use recordId?
+                dsRecord.setBase(recordBase);
+                dsRecord.setData(record_string);                                                 
+                dsAPI.recordPost(dsRecord);  
+                recordsIngested++;                                                
+            }
+            catch(Exception e) {
+                log.error("Error parsing xml record for file:"+fileName, e);              
+            }
+        }
+
+        IOUtils.closeQuietly(zis);        
+        return recordsIngested;         
+    }
+
+
+    /**
+     * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
+     * saved on the file system for that target.
+     * The job will harvest records from the OAI server and ingest them into DS-storage  
+     *  
+     * @param  oaiTargetName the location of the image, relative to the url argument
+     * @return Number of harvested records.
+     */    
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
-  
-       //Test no job is running before starting new for same target
+
+        //Test no job is running before starting new for same target
         validateNotAlreadyRunning(oaiTargetName);        
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
         if (oaiTargetDto== null) {
             throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
         }
-        
+
         OaiTargetJob job = createNewJob(oaiTargetDto);        
 
         //register job
@@ -72,19 +125,19 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records.
      */    
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
-       
-      
+
+
         //Test no job is running before starting new for same target
         validateNotAlreadyRunning(oaiTargetName);
-        
+
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
         if (oaiTargetDto== null) {
             throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
         }
-       
+
         OaiTargetJob job = createNewJob(oaiTargetDto);
-       
-        
+
+
         //register job
         OaiJobCache.addNewJob(job);            
 
@@ -101,15 +154,15 @@ public class DsDatahandlerFacade {
             throw new Exception(e);
         }
     }
-    
-    
+
+
 
     /**
-    *  Gives a ist of both completed and running jobs with status. Jobs still running will be first.
-    *  The completed jobs will only contain last 1000 completed jobs
-    *  
-    * @return List of jobs with status
-    */    
+     *  Gives a ist of both completed and running jobs with status. Jobs still running will be first.
+     *  The completed jobs will only contain last 1000 completed jobs
+     *  
+     * @return List of jobs with status
+     */    
     public static List<OaiJobDto> getJobs() throws Exception {    
         List<OaiJobDto> running=OaiJobCache.getRunningJobsMostRecentFirst();
         List<OaiJobDto> completed=OaiJobCache.getCompletedJobsMostRecentFirst();
@@ -172,7 +225,7 @@ public class DsDatahandlerFacade {
         if (response.isError()) {
             throw new InternalServiceException("Error during harvest for target:"+job.getDto().getName() +" after harvesting "+totalRecordLoaded +" records");            
         }
-        
+
         log.info("Completed ingesting base successfully:"+recordBase+ " records:"+totalRecordLoaded);        
         return totalRecordLoaded;
 
@@ -180,23 +233,23 @@ public class DsDatahandlerFacade {
 
 
     }
-   /**
-    * Generates a OaiRargetJob from an OaiTargetDto.
-    * 
-    * The job will have a unique timestamp used as ID.  
-    *   
-    * @param  dto 
-    */
+    /**
+     * Generates a OaiRargetJob from an OaiTargetDto.
+     * 
+     * The job will have a unique timestamp used as ID.  
+     *   
+     * @param  dto 
+     */
     public static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) {                  
-                
+
         long id = System.currentTimeMillis();
         try {
-        Thread.sleep(1); // So next ID is different.
+            Thread.sleep(1); // So next ID is different.
         }
         catch(Exception e) {
-          //can not happen, noone will interrupt.            
+            //can not happen, noone will interrupt.            
         }
-        
+
         OaiTargetJob  job = new OaiTargetJob(id, dto);                
         return job;                
     }
