@@ -177,7 +177,7 @@ public class OaiHarvestClient {
     //If they are not replaced, the DOM parse will fail completely to read anything.
 
 
-    protected static Document sanitizeXml(String xmlResponse, String uri) throws Exception{ //uri only for log        
+    public static Document sanitizeXml(String xmlResponse, String uri) throws Exception{ //uri only for log        
 
         //System.out.println(response);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

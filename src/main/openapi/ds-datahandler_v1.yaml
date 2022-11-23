@@ -30,6 +30,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/OaiJobList'
 
+  /import/zip:
+    post:
+       tags:
+        - '${project.name}'
+       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records'
+       operationId: importFromZip
+       requestBody:
+         content:
+           multipart/form-data:
+             schema:
+              type: object
+              properties:               
+                recordBase:
+                  type: string
+                fileName:
+                  type: string
+                  format: binary
+       
+       responses:
+        '200':
+          description: OK. Returns total number of records ingested.
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int32      
+
+
   /oai/config:
     get:
       tags:
