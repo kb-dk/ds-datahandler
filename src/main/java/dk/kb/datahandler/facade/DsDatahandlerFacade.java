@@ -61,6 +61,9 @@ public class DsDatahandlerFacade {
                 Node item = record.getElementsByTagName("mods:identifier").item(0);            
                 String identifier =  item.getTextContent();                               
 
+                //Example: urn:uuid:096c9090-717f-11e0-82d7-002185371280
+                identifier=identifier.replaceFirst("urn:uuid:", ""); // Clear this first part from the ID
+                
                 String recordId= recordBase+":"+identifier;
                 log.info("Ingesting record filename from zip:"+fileName +" id:"+identifier);
                 DsRecordDto dsRecord = new DsRecordDto();
