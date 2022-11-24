@@ -67,7 +67,7 @@ public class DsDatahandlerFacade {
                 String recordId= recordBase+":"+identifier;
                 log.info("Ingesting record filename from zip:"+fileName +" id:"+identifier);
                 DsRecordDto dsRecord = new DsRecordDto();
-                dsRecord.setId(recordId); //use recordId?
+                dsRecord.setId(recordId); 
                 dsRecord.setBase(recordBase);
                 dsRecord.setData(record_string);                                                 
                 dsAPI.recordPost(dsRecord);  
