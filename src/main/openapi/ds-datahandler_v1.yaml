@@ -50,7 +50,7 @@ paths:
        
        responses:
         '200':
-          description: OK. Returns total number of records ingested.
+          description: Returns a list of filenames of records that failed.
           content:
             application/json:
               schema:           
