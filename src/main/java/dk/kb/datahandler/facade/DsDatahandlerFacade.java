@@ -39,7 +39,7 @@ public class DsDatahandlerFacade {
      *  
      * @param  recordBase The recordBase for collection documents. The recordBase must be defined in ds-storage. 
      * @param is Inputstream. Must be a zip-file containing single files that each is an XML record.
-     * @return Number of successfully ingested records.
+     * @return List of strings containing the records that failed parsing.
      */    
     public static ArrayList<String> ingestFromZipfile(String recordBase, InputStream is) throws Exception {
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
