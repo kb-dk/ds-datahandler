@@ -34,7 +34,8 @@ paths:
     post:
        tags:
         - '${project.name}'
-       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records. Record format METS with mods. Record ID is <mods:identifier>'
+       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records. Record format METS with mods. Record  ID from the record is <mods:identifier>. Record ID in storage will be recordBase:uuid-extracted-from<mods:identifier>' 
+       
        operationId: importFromZip
        requestBody:
          content:
