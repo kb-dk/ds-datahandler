@@ -157,7 +157,7 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
 
     
     @Override
-    public Integer importFromZip(String recordBase, Attachment fileNameDetail) {
+    public ArrayList<String> importFromZip(String recordBase, Attachment fileNameDetail) {
       
       try {   
          InputStream is = fileNameDetail.getDataHandler().getInputStream();

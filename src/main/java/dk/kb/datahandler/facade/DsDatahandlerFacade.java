@@ -41,11 +41,11 @@ public class DsDatahandlerFacade {
      * @param is Inputstream. Must be a zip-file containing single files that each is an XML record.
      * @return Number of successfully ingested records.
      */    
-    public static Integer ingestFromZipfile(String recordBase, InputStream is) throws Exception {
+    public static ArrayList<String> ingestFromZipfile(String recordBase, InputStream is) throws Exception {
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
 
         DsStorageApi dsAPI = getDsStorageApiClient();
-        int recordsIngested=0;
+        ArrayList<String> errorRecords= new ArrayList<String>(); 
 
         ZipEntry entry = null;
 
@@ -71,15 +71,16 @@ public class DsDatahandlerFacade {
                 dsRecord.setBase(recordBase);
                 dsRecord.setData(record_string);                                                 
                 dsAPI.recordPost(dsRecord);  
-                recordsIngested++;                                                
+                                                                
             }
             catch(Exception e) {
+                errorRecords.add(fileName);
                 log.error("Error parsing xml record for file:"+fileName, e);              
             }
         }
 
         IOUtils.closeQuietly(zis);        
-        return recordsIngested;         
+        return errorRecords;         
     }
 
 

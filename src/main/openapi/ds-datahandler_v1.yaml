@@ -34,7 +34,7 @@ paths:
     post:
        tags:
         - '${project.name}'
-       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records'
+       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records. Record format METS with mods. Record ID is <mods:identifier>'
        operationId: importFromZip
        requestBody:
          content:
@@ -53,9 +53,10 @@ paths:
           description: OK. Returns total number of records ingested.
           content:
             application/json:
-              schema:
-                type: integer
-                format: int32      
+              schema:           
+                type: array
+                items:
+                 type: string      
 
 
   /oai/config:
