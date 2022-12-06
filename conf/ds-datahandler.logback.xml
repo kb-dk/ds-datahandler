@@ -1,7 +1,7 @@
 <included>
     <contextName>ds-datahandler</contextName>
 
-    <property name="LOGFILE" value="${catalina.home}/logs/template-app.log" />
+    <property name="LOGFILE" value="${catalina.home}/logs/ds-datahandler.log" />
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGFILE}</file>
@@ -20,7 +20,7 @@
     </appender>
 
     <root level="INFO">
-      <appender-ref ref="STDOUT" />
+      <appender-ref ref="FILE" />
     </root>
     <logger name="dk.kb" level="DEBUG" />
  
