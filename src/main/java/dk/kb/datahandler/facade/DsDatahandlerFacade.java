@@ -65,7 +65,7 @@ public class DsDatahandlerFacade {
                 identifier=identifier.replaceFirst("urn:uuid:", ""); // Clear this first part from the ID
                 
                 String recordId= recordBase+":"+identifier;
-                log.info("Ingesting record filename from zip:"+fileName +" id:"+identifier);
+                log.info("Ingesting record filename from zip:"+fileName +" id:"+recordId);
                 DsRecordDto dsRecord = new DsRecordDto();
                 dsRecord.setId(recordId); 
                 dsRecord.setBase(recordBase);
