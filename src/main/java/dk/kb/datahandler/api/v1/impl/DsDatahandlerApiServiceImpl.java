@@ -1,37 +1,16 @@
 package dk.kb.datahandler.api.v1.impl;
 
-import dk.kb.datahandler.api.v1.*;
+import dk.kb.datahandler.api.v1.DsDatahandlerApi;
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.ErrorDto;
+import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.OaiJobDto;
-
-import java.io.File;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.OaiJobCache;
-import dk.kb.datahandler.oai.OaiTargetJob;
-import dk.kb.datahandler.webservice.exception.InternalServiceException;
-import dk.kb.datahandler.webservice.exception.ServiceException;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import dk.kb.util.webservice.ImplBase;
+import org.apache.cxf.jaxrs.ext.MessageContext;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import dk.kb.datahandler.facade.DsDatahandlerFacade;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.io.File;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -39,18 +18,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ContextResolver;
 import javax.ws.rs.ext.Providers;
-import javax.ws.rs.core.MediaType;
-import org.apache.cxf.jaxrs.model.wadl.Description;
-import org.apache.cxf.jaxrs.model.wadl.DocTarget;
-import org.apache.cxf.jaxrs.ext.MessageContext;
-import org.apache.cxf.jaxrs.ext.multipart.*;
-
-import io.swagger.annotations.Api;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * ds-datahandler
@@ -58,9 +32,8 @@ import io.swagger.annotations.Api;
  * <p>ds-datahandler by the Royal Danish Library 
  *
  */
-public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
+public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApi {
     private Logger log = LoggerFactory.getLogger(this.toString());
-
 
 
     /* How to access the various web contexts. See https://cxf.apache.org/docs/jax-rs-basics.html#JAX-RSBasics-Contextannotations */
@@ -102,8 +75,8 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
 
     @Override
     public Integer oaiIngestFull(String oaiTarget){
-
-        try { 
+        log.debug("oaiIngestFull(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
+        try {
             int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);        
             return numberIngested;
 
@@ -116,7 +89,8 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
 
 
     public Integer oaiIngestDelta(String oaiTarget){        
-        try { 
+        log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
+        try {
             int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget);        
             return numberIngested;
 
@@ -128,9 +102,9 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
     }
 
     @Override
-    public List<OaiTargetDto> getOaiTargetsConfiguration() {        
+    public List<OaiTargetDto> getOaiTargetsConfiguration() {
         try {            
-
+            log.debug("getOaiTargetsConfiguration() called with call details: {}", getCallDetails());
             //return as list. Internal they are saved in HashMap since they are retrieved by name when harvesting.
             List<OaiTargetDto> targets = new ArrayList<OaiTargetDto>();
             HashMap<String, OaiTargetDto> oaiTargets = ServiceConfig.getOaiTargets();            
@@ -147,8 +121,10 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
 
     @Override
     public List<OaiJobDto>  getJobsList(){
+        log.debug("getJobsList() called with call details: {}", getCallDetails());
         try {
-            return DsDatahandlerFacade.getJobs();    
+            log.debug("getJobsList() called with call details: {}", getCallDetails());
+            return DsDatahandlerFacade.getJobs();
 
         } catch (Exception e){
             throw handleException(e);
@@ -158,34 +134,13 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
     
     @Override
     public ArrayList<String> importFromZip(String recordBase, Attachment fileNameDetail) {
-      
-      try {   
-         InputStream is = fileNameDetail.getDataHandler().getInputStream();
-         return DsDatahandlerFacade.ingestFromZipfile(recordBase,is);    
-      }  catch (Exception e){
-         throw handleException(e);
-       }
-    }
-
-    
-
-    /**
-     * This method simply converts any Exception into a Service exception
-     * @param e: Any kind of exception
-     * @return A ServiceException
-     * @see dk.kb.datahandler.webservice.ServiceExceptionMapper
-     */
-    private ServiceException handleException(Exception e) {
-        if (e instanceof ServiceException) {
-            return (ServiceException) e; // Do nothing - this is a declared ServiceException from within module.
-        } else {// Unforseen exception (should not happen). Wrap in internal service exception
-            log.error("ServiceException(HTTP 500):", e); //You probably want to log this.
-            return new InternalServiceException(e.getMessage());
+        log.debug("importFromZip(recordBase='{}', ...) called with call details: {}", recordBase, getCallDetails());
+        try {
+            InputStream is = fileNameDetail.getDataHandler().getInputStream();
+            return DsDatahandlerFacade.ingestFromZipfile(recordBase,is);
+        }  catch (Exception e){
+            throw handleException(e);
         }
     }
-
-
-
-
 
 }

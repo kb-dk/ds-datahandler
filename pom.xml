@@ -107,7 +107,7 @@
         <dependency>
             <groupId>dk.kb.util</groupId>
             <artifactId>kb-util</artifactId>
-            <version>1.4.6</version>
+            <version>1.4.12</version>
             <exclusions>
                 <exclusion>
                     <!-- kb-util has 2.3.3, but transitive resolving has 2.4.0 somewhere-->
@@ -649,10 +649,12 @@
                 <version>10.0.12</version>
                 <configuration>
                     <useTestScope>true</useTestScope>
+                    <!-- https://www.eclipse.org/jetty/documentation/jetty-10/programming-guide/index.html#jetty-run-goal -->
+                    <!-- https://stackoverflow.com/questions/12493798/jetty-maven-plugin-using-scan -->
                     <scan>2</scan>
                     <webApp>
                         <contextPath>/${project.artifactId}/</contextPath>
-                        <descriptor>${project.build.finalName}/WEB-INF/web.xml</descriptor>
+                        <descriptor>${project.basedir}/target/${project.build.finalName}/WEB-INF/web.xml</descriptor>
                         <jettyEnvXml>${project.basedir}/target/jetty-res/jetty-env.xml</jettyEnvXml>
                     </webApp>
                     <httpConnector>
