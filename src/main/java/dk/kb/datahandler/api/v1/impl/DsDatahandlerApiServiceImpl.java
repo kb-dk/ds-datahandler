@@ -1,6 +1,7 @@
 package dk.kb.datahandler.api.v1.impl;
 
 import dk.kb.datahandler.api.v1.*;
+import dk.kb.datahandler.api.v1.DsDatahandlerApi;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.ErrorDto;
 import dk.kb.datahandler.model.v1.OaiJobDto;
@@ -113,9 +114,17 @@ public class DsDatahandlerApiServiceImpl implements DsDatahandlerApi {
 
     }
 
+    /**
+     * Method to check that service is reachable
+     * @return string "pong" if server is reachable
+     */
+    @Override
+    public String ping() {
+        return "Pong";
+    }
 
 
-    public Integer oaiIngestDelta(String oaiTarget){        
+    public Integer oaiIngestDelta(String oaiTarget){
         try { 
             int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget);        
             return numberIngested;
