@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import dk.kb.util.webservice.exception.InternalServiceException;
+import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +28,6 @@ import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
-import dk.kb.datahandler.webservice.exception.InternalServiceException;
-import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 
 public class DsDatahandlerFacade {
@@ -98,7 +98,7 @@ public class DsDatahandlerFacade {
         validateNotAlreadyRunning(oaiTargetName);        
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
         if (oaiTargetDto== null) {
-            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName + "' . See the config method for list of configured targets.");
         }
 
         OaiTargetJob job = createNewJob(oaiTargetDto);        
@@ -227,7 +227,7 @@ public class DsDatahandlerFacade {
         }
 
         if (response.isError()) {
-            throw new InternalServiceException("Error during harvest for target:"+job.getDto().getName() +" after harvesting "+totalRecordLoaded +" records");            
+            throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() + " after harvesting " + totalRecordLoaded + " records");
         }
 
         log.info("Completed ingesting base successfully:"+recordBase+ " records:"+totalRecordLoaded);        

@@ -4,8 +4,8 @@ import {{package}}.*;
 {{#imports}}import {{import}};
 {{/imports}}
 
-import {{packageName}}.webservice.exception.ServiceException;
-import {{packageName}}.webservice.exception.InternalServiceException;
+import dk.kb.util.webservice.exception.ServiceException;
+import dk.kb.util.webservice.exception.InternalServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +14,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 {{#generateOperationBody}}
 import java.io.File;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -23,6 +25,7 @@ import org.openapitools.codegen.utils.JsonCache;
 import org.openapitools.codegen.utils.JsonCache.CacheException;
 {{/loadTestDataFromFile}}
 {{/generateOperationBody}}
+import dk.kb.util.webservice.ImplBase;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.servlet.ServletConfig;
@@ -63,7 +66,7 @@ import org.springframework.stereotype.Service;
  *
  */
 {{/appName}}
-public class {{classname}}ServiceImpl implements {{classname}} {
+public class {{classname}}ServiceImpl extends ImplBase implements {{classname}} {
     private Logger log = LoggerFactory.getLogger(this.toString());
 
 {{#generateOperationBody}}
@@ -82,43 +85,6 @@ public class {{classname}}ServiceImpl implements {{classname}} {
 
 {{/loadTestDataFromFile}}
 {{/generateOperationBody}}
-
-
-    /* How to access the various web contexts. See https://cxf.apache.org/docs/jax-rs-basics.html#JAX-RSBasics-Contextannotations */
-
-    @Context
-    private transient UriInfo uriInfo;
-
-    @Context
-    private transient SecurityContext securityContext;
-
-    @Context
-    private transient HttpHeaders httpHeaders;
-
-    @Context
-    private transient Providers providers;
-
-    @Context
-    private transient Request request;
-
-    // Disabled as it is always null? TODO: Investigate when it can be not-null, then re-enable with type
-    //@Context
-    //private transient ContextResolver contextResolver;
-
-    @Context
-    private transient HttpServletRequest httpServletRequest;
-
-    @Context
-    private transient HttpServletResponse httpServletResponse;
-
-    @Context
-    private transient ServletContext servletContext;
-
-    @Context
-    private transient ServletConfig servletConfig;
-
-    @Context
-    private transient MessageContext messageContext;
 
 
 {{#operations}}
@@ -169,17 +135,8 @@ non-void response:
 pre-populated operation body:
                     }}{{#generateOperationBody}}
         try { {{#vendorExtensions.x-streamingOutput}}
-            String filename = "somefile";
             // Show download link in Swagger UI, inline when opened directly in browser
-            // https://github.com/swagger-api/swagger-ui/issues/3832
-            httpServletResponse.setHeader("Content-Disposition", "inline; swaggerDownload=\"attachment\"; filename=\"" + filename + "\"");
-
-            // Show inline in Swagger UI, inline when opened directly in browser
-            // httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
-
-            // Show download link in Swagger UI, download dialog when opened directly in browser
-            // httpServletResponse.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
-
+            setFilename("somefile", true, false);
             return output -> output.write("Magic".getBytes(java.nio.charset.StandardCharsets.UTF_8));{{!
         }}{{/vendorExtensions.x-streamingOutput}}{{!
         }}{{^vendorExtensions.x-streamingOutput}}
@@ -197,21 +154,6 @@ pre-populated operation body:
     }
 
 {{/operation}}
-
-    /**
-    * This method simply converts any Exception into a Service exception
-    * @param e: Any kind of exception
-    * @return A ServiceException
-    * @see dk.kb.datahandler.webservice.ServiceExceptionMapper
-    */
-    private ServiceException handleException(Exception e) {
-        if (e instanceof ServiceException) {
-            return (ServiceException) e; // Do nothing - this is a declared ServiceException from within module.
-        } else {// Unforseen exception (should not happen). Wrap in internal service exception
-            log.error("ServiceException(HTTP 500):", e); //You probably want to log this.
-            return new InternalServiceException(e.getMessage());
-        }
-    }
 
 }
 {{/operations}}

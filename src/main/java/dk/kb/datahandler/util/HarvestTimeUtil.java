@@ -11,12 +11,12 @@ import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.webservice.exception.InvalidArgumentServiceException;
 
 /*
  * All access to this class is syncronized since we are using filesystem as persistence.
@@ -41,7 +41,7 @@ public class HarvestTimeUtil {
         
         if (!validateDataFormat(datestamp)) {
             log.error("Datestamp not valid format:"+datestamp +" for Oai target:"+oaiTarget.getName());
-            throw new InvalidArgumentServiceException("Datastamp not valid format:"+datestamp);                        
+            throw new InvalidArgumentServiceException("Datastamp not valid format:" + datestamp);
         }
         
         
