@@ -86,12 +86,20 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
     }
 
+    /**
+     * Method to check that service is reachable
+     * @return string "pong" if server is reachable
+     */
+    @Override
+    public String ping() {
+        return "Pong";
+    }
 
 
-    public Integer oaiIngestDelta(String oaiTarget){        
+    public Integer oaiIngestDelta(String oaiTarget){
         log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget);        
+            int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget);
             return numberIngested;
 
         } catch (Exception e){
