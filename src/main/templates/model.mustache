@@ -29,9 +29,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.dataformat.xml.annotation.*;
 {{/withXml}}
 {{/jackson}}
+import io.swagger.annotations.ApiModelProperty;
 {{#withXml}}
 import javax.xml.bind.annotation.*;
-import io.swagger.annotations.ApiModelProperty;
 {{/withXml}}
 {{#parcelableModel}}
 import android.os.Parcelable;
