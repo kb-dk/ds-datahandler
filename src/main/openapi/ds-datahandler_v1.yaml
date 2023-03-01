@@ -16,49 +16,6 @@ servers:
 
 paths:
 
-  /monitor/status:
-    get:
-      tags:
-        - '${project.name}'
-      summary: 'Retrieve list of configured OAI-PMH targets'
-      operationId: getJobsList
-      responses:
-        '200':
-          description: 'List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OaiJobList'
-
-  /monitor/ping:
-    get:
-      tags:
-        - "${project.name}"
-      summary: Ping the server to check if the server is reachable.
-      operationId: ping
-
-      x-useGenericResponse: false # If enabled the method will return Response
-      x-streamingOutput: false # If enabled the method will return StreamingOutput.
-      responses:
-        '200':
-          description: OK
-          content:
-            text/plain:
-              schema:
-                type: string
-        '406':
-          description: 'Not Acceptable'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: 'Internal Error'
-          content:
-            text/plain:
-              schema:
-                type: string
-
   /import/zip:
     post:
        tags:
@@ -149,9 +106,92 @@ paths:
                 type: integer
                 format: int32      
 
+  # The ping service should be in all projects, should not do any advanced processing
+  # and should respond quickly with a simple message, e.g. "pong".
+  #
+  # Note that it is placed under /monitor. The top namespace /monitor is intended for
+  # proxying to monitoring software or manual health checks. All endpoints under that
+  # namespace should be safe to expose: No changes to state, no confidential information!
+  #
+  # Note that the more detailed /monitor/status is defined below.
+  /monitor/ping:
+    get:
+      tags:
+        - Service
+      summary: 'Ping the server to check if the server is reachable.'
+      operationId: ping
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  # Note that status is placed under /monitor. The top namespace /monitor is intended for
+  # proxying to monitoring software or manual health checks. All endpoints under that
+  # namespace should be safe to expose: No changes to state, no confidential information!
+  /monitor/status:
+    get:
+      tags:
+        - Service
+      summary: 'Health check + list of running and past jobs'
+      operationId: status
+      responses:
+        '200':
+          description: 'Health check + List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        '500':
+          description: 'Internal Error'
+          content:
+            text/plain:
+              schema:
+                type: string
 
 components:
   schemas:
+
+    # Basic status response component.
+    Status:
+      type: object
+      required:
+        - application
+        - version
+      properties:
+        application:
+          type: string
+          description: 'The name of the application'
+          example: 'MyService'
+        version:
+          type: string
+          description: 'The version of the application'
+          example: '1.2.3'
+        build:
+          type: string
+          description: 'When the application was build'
+          example: '2022-04-21T13:37:16Z'
+        java:
+          type: string
+          description: 'The Java version that runs the container'
+          example: '11.0.11'
+        heap:
+          type: integer
+          format: int64
+          description: 'The maximum number of bytes available to the container in megabytes'
+          example: '4096'
+        server:
+          type: string
+          description: 'The hostname for the server'
+          example: 'miaplacidus'
+        health:
+          type: string
+          description: 'Self diagnosed health'
+          example: 'ok'
+        jobs:
+          $ref: '#/components/schemas/OaiJobList'
 
     OaiTargetList:
       type: array
