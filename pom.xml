@@ -516,8 +516,8 @@
                         </goals>
                         <configuration>
                             <!-- Loaded from dependency above-->
-                            <inputSpec>openapi_ds-storage_v1.yaml</inputSpec>
-
+                            <inputSpec>ds-storage-openapi_v1.yaml</inputSpec>
+                                       
                             <generatorName>java</generatorName>
                             <library>native</library>
 
