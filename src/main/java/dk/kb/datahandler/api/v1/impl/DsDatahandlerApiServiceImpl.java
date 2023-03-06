@@ -86,16 +86,6 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
     }
 
-    /**
-     * Method to check that service is reachable
-     * @return string "pong" if server is reachable
-     */
-    @Override
-    public String ping() {
-        return "Pong";
-    }
-
-
     public Integer oaiIngestDelta(String oaiTarget){
         log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
@@ -126,20 +116,6 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }
     }
 
-
-    @Override
-    public List<OaiJobDto>  getJobsList(){
-        log.debug("getJobsList() called with call details: {}", getCallDetails());
-        try {
-            log.debug("getJobsList() called with call details: {}", getCallDetails());
-            return DsDatahandlerFacade.getJobs();
-
-        } catch (Exception e){
-            throw handleException(e);
-        }        
-    }
-
-    
     @Override
     public ArrayList<String> importFromZip(String recordBase, Attachment fileNameDetail) {
         log.debug("importFromZip(recordBase='{}', ...) called with call details: {}", recordBase, getCallDetails());
