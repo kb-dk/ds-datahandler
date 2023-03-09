@@ -116,6 +116,23 @@
                 </exclusion>
             </exclusions>
         </dependency>
+              
+     <!-- Client for ds-storage This will also require the org.openapitools dependency-->
+      <dependency>
+        <groupId>dk.kb.storage</groupId>
+        <artifactId>ds-storage</artifactId>
+          <version>1.2-SNAPSHOT</version>
+          <type>jar</type>
+          <classifier>classes</classifier>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+        </exclusions>
+      </dependency>
+        
+        
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -362,7 +379,6 @@
 
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider -->
 
-
     </dependencies>
 
     <build>
@@ -388,45 +404,7 @@
 
         <plugins>
 
-            <!-- The generated classes for the OpenAPI client are problematic. Disable checking of those for now.
-     This setup, minus the excludes-section, was copied from sbforge-parent 22-->
-            <plugin>
-                <groupId>de.thetaphi</groupId>
-                <artifactId>forbiddenapis</artifactId>
-                <version>2.7</version>
-                <configuration>
-                    <!--
-                    if the used Java version is too new,
-                    don't fail, just do nothing:
-                  -->
-                    <failOnUnsupportedJava>true</failOnUnsupportedJava>
-                    <bundledSignatures>
-                        <!--
-                      This will automatically choose the right
-                      signatures based on 'maven.compiler.target':
-                    -->
-                        <bundledSignature>jdk-unsafe</bundledSignature>
-                        <bundledSignature>jdk-deprecated</bundledSignature>
-                        <!-- disallow undocumented classes like sun.misc.Unsafe: -->
-                        <bundledSignature>jdk-non-portable</bundledSignature>
-                        <!-- don't allow unsafe reflective access: -->
-                        <bundledSignature>jdk-reflection</bundledSignature>
-                    </bundledSignatures>
-                    <excludes>
-                        <exclude>**/*Api.class</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>${api.check.phase}</phase>
-                        <goals>
-                            <goal>check</goal>
-                            <goal>testCheck</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
+    
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.1.0</version>
@@ -496,65 +474,7 @@
                     <packageName>${project.package}</packageName>
                 </configuration>
 
-                <dependencies>
-                    <dependency>
-                        <!-- This is a dependency here, as we need the openapi_ds-storage_v1.yaml on build time and no more-->
-                        <groupId>dk.kb.storage</groupId>
-                        <artifactId>ds-storage</artifactId>
-                        <version>1.2-SNAPSHOT</version>
-                        <type>jar</type>
-                        <classifier>classes</classifier>
-                        <exclusions>
-                            <!-- We really just need the openapi_ds-storage_v1.yaml.yaml...-->
-                            <exclusion>
-                                <groupId>*</groupId>
-                                <artifactId>*</artifactId>
-                            </exclusion>
-                        </exclusions>
-                    </dependency>
-                </dependencies>
-
                 <executions>
-
-                    <!-- Client for the backend -->
-                    <execution>
-                        <id>Generate client for the backend</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Loaded from dependency above-->
-                            <inputSpec>ds-storage-openapi_v1.yaml</inputSpec>
-                                       
-                            <generatorName>java</generatorName>
-                            <library>native</library>
-
-                            <!-- Do not generate doc or tests for this client, we will handle this ourselves-->
-                            <generateApiTests>false</generateApiTests>
-                            <generateApiDocumentation>false</generateApiDocumentation>
-                            <generateModelTests>false</generateModelTests>
-                            <generateModelDocumentation>false</generateModelDocumentation>
-
-                            <!-- Ensure ONLY the ApiClient and supporting classes are created, not the gradle mess-->
-                            <generateSupportingFiles>true</generateSupportingFiles>
-                            <supportingFilesToGenerate>ApiClient.java,ApiException.java,Configuration.java,Pair.java
-                            </supportingFilesToGenerate>
-
-                            <!-- Do NOT use the customised templates as they are only for the webservice part, not the client-->
-                            <!-- Hacked by Asger by setting to an existing folder without templates -->
-                            <templateDirectory>src/main/</templateDirectory>
-                            <packageName>${project.package}.backend</packageName>
-                            <configOptions>
-                                <apiPackage>${project.package}.backend.api.v1</apiPackage>
-                                <modelPackage>${project.package}.backend.model.v1</modelPackage>
-                                <invokerPackage>${project.package}.backend.invoker.v1</invokerPackage>
-
-                                <sourceFolder>target/generated-sources</sourceFolder>
-                                <implFolder>target/generated-sources</implFolder>
-
-                            </configOptions>
-                        </configuration>
-                    </execution>
 
                     <!-- Version 1 -->
                     <!-- When a new version is needed, make a copy of two v1-related executions below, then change
