@@ -23,9 +23,7 @@ public class ServiceConfig {
     
     private static final HashMap<String, OaiTargetDto> oaiTargets = new HashMap<String, OaiTargetDto>();
     private static String oaiTimestampFolder=null;
-    private static String dsHost = null;
-    private static int dsPort= -1;
-    private static String dsBasePath= null;
+    private static String dsStorageUrl = null;
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -45,9 +43,8 @@ public class ServiceConfig {
         loadOaiTargets();
         
         oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
-        dsHost = serviceConfig.getString("config.dsstorage.host");
-        dsPort = serviceConfig.getInteger("config.dsstorage.port");
-        dsBasePath = serviceConfig.getString("config.dsstorage.basepath");
+        dsStorageUrl = serviceConfig.getString("config.storage.url");
+     
         
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
@@ -75,16 +72,8 @@ public class ServiceConfig {
         return serviceConfig;
     }
 
-    public static String getDsHost() {
-        return dsHost;
-    }
-
-    public static int getDsPort() {
-        return dsPort;
-    }
-
-    public static String getDsBasePath() {
-        return dsBasePath;
+    public static String getDsStorageUrl() {
+        return dsStorageUrl;
     }
 
     public static String getOaiTimestampFolder() {

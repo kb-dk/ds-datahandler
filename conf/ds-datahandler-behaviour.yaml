@@ -116,8 +116,6 @@ config:
  
   # The ds-storage server to ingest data into 
   dsstorage:
-    host: localhost
-    port: 9072
-    basepath: /ds-storage/v1
+    url: http://localhost:9072/ds-storage/v1    
     
       

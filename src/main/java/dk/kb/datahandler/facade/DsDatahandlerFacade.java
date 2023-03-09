@@ -16,9 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import dk.kb.datahandler.backend.api.v1.DsStorageApi;
-import dk.kb.datahandler.backend.invoker.v1.ApiClient;
-import dk.kb.datahandler.backend.model.v1.DsRecordDto;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
@@ -28,11 +25,16 @@ import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
+import dk.kb.storage.client.v1.DsStorageApi;
+import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.util.DsStorageClient;
 
 
 public class DsDatahandlerFacade {
 
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
+    
+    private static DsStorageApi storageClient;  
 
     /**
      * Ingest records directly into ds-storage from a zip-file containing multiple files that each is an xml-file with a single record
@@ -258,14 +260,17 @@ public class DsDatahandlerFacade {
         return job;                
     }
 
-    private static DsStorageApi getDsStorageApiClient() {
-        ApiClient apiClient = new ApiClient();
-        apiClient.setHost(ServiceConfig.getDsHost());
-        apiClient.setPort(ServiceConfig.getDsPort());
-        apiClient.setBasePath(ServiceConfig.getDsBasePath());
-        DsStorageApi dsAPI = new DsStorageApi(apiClient);
-        return dsAPI;
-    }
+    private static DsStorageApi getDsStorageApiClient() {       
+        if (storageClient!= null) {
+          return storageClient;
+        }
+          
+        String dsLicenseUrl = ServiceConfig.getDsStorageUrl();                                
+        storageClient = new DsStorageClient(dsLicenseUrl);               
+        return storageClient;
+      }
+    
+  
 
     private static synchronized void validateNotAlreadyRunning(String oaiTargetName) {
         boolean alreadyRunning= OaiJobCache.isJobRunningForTarget(oaiTargetName);        
