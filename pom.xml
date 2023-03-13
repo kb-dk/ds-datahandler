@@ -206,11 +206,27 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable
+             Used for OpenAPI client generation -->
         <!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable -->
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
             <version>0.2.2</version>
+        </dependency>
+        <!-- To get client generation to work -->
+        <!-- https://mvnrepository.com/artifact/org.openapitools/openapi-generator -->
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>openapi-generator</artifactId>
+            <version>5.3.0</version>
+            <exclusions>
+                <exclusion>
+                    <!-- The slf4j-simple logs to stderr and stdout, ignoring logback.xml -->
+                    <artifactId>slf4j-simple</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -535,8 +551,58 @@
                         </configuration>
                     </execution>
 
+                    <!-- Client for the backend -->
+                    <execution>
+                        <id>Generate client for JAR package and use by other services</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.build.outputDirectory}/ds-datahandler-openapi_v1.yaml</inputSpec>
+                            <ignoreFileOverride>${project.basedir}/.openapi-codegen-ignore-api</ignoreFileOverride>
+                            <generatorName>java</generatorName>
+                            <library>native</library>
+
+                            <!-- Do not generate doc or tests for this client, we will handle this ourselves-->
+                            <generateApis>true</generateApis>
+                            <generateApiTests>false</generateApiTests>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateModels>false</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+
+                            <!-- Ensure ONLY the ApiClient and supporting classes are created, not the gradle mess-->
+                            <generateSupportingFiles>true</generateSupportingFiles>
+                            <supportingFilesToGenerate>ApiClient.java,ApiException.java,Configuration.java,Pair.java</supportingFilesToGenerate>
+
+                            <!-- Do NOT use the customised templates as they are only for the webservice part, not the client-->
+                            <!-- Hacked by Asger by setting to an existing folder without templates -->
+                            <templateDirectory>src/main/</templateDirectory>
+
+                            <configOptions>
+                                <apiPackage>${project.package}.client.v1</apiPackage>
+                                <modelPackage>${project.package}.model.v1</modelPackage>
+                                <invokerPackage>${project.package}.invoker.v1</invokerPackage>
+                                <sourceFolder>target/generated-sources</sourceFolder>
+                                <implFolder>target/generated-sources</implFolder>
+                            </configOptions>
+                        </configuration>
+                    </execution>
 
                 </executions>
+            </plugin>
+
+            <!-- The generated classes for the OpenAPI client are problematic. Disable checking of those for now -->
+            <plugin>
+                <groupId>de.thetaphi</groupId>
+                <artifactId>forbiddenapis</artifactId>
+                <!-- No version or configuration here as it inherits from parent pom -->
+                <configuration>
+                    <excludes>
+                        <exclude>**/DsDatahandlerApi.class</exclude>
+                        <exclude>**/ServiceApi.class</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
 
             <plugin>
