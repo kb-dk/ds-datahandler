@@ -115,7 +115,7 @@ config:
    folder: /home/xxx/oai.timestamps/
  
   # The ds-storage server to ingest data into 
-  dsstorage:
+  storage:
     url: http://localhost:9072/ds-storage/v1    
     
       

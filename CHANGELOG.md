@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Jetty port set explicitly to 9071 instead of default 8080 to avoid collisions
   with projects using default tomcat/jetty setup.
+- Client generation
 
 
 ## [1.0.0] - YYYY-MM-DD
