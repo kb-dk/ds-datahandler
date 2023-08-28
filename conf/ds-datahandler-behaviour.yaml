@@ -100,11 +100,12 @@ config:
       url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:manus:vmanus:2011:dec:ha
       metadataPrefix: mods
-      description: Vesterlandske håndskrifter            
+      description: Vesterlandske håndskrifter
     - name: pvica.devel
+      # Internal information for pvica.devel is provided by internal config files
       recordBase: pvica
-      url: https://pvica-devel2.statsbiblioteket.dk/OAI-PMH/
-      user: oai-pmh-devel
+      url: https://XXXXXXXXX.statsbiblioteket.dk/OAI-PMH/
+      user: XXXXXXXXX
       password: XXXXXXXXX
       metadataPrefix: XIP_full_schema
       description: pvica devel 
