@@ -101,14 +101,14 @@ config:
       set: oai:kb.dk:manus:vmanus:2011:dec:ha
       metadataPrefix: mods
       description: Vesterlandske håndskrifter
-    - name: pvica.devel
+    - name: ds.radiotv
       # Internal information for pvica.devel is provided by internal config files
-      recordBase: pvica
+      recordBase: ds.radiotv
       url: https://XXXXXXXXX.statsbiblioteket.dk/OAI-PMH/
       user: XXXXXXXXX
       password: XXXXXXXXX
       metadataPrefix: XIP_full_schema
-      description: pvica devel 
+      description: Radio- og TV-udsendelser
       
                     
   # Save timestamps of last OAI harvest for each target in this folder. This is used for incremental delta-imports.                
