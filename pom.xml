@@ -107,7 +107,7 @@
         <dependency>
             <groupId>dk.kb.util</groupId>
             <artifactId>kb-util</artifactId>
-            <version>1.4.12</version>
+            <version>1.4.14</version>
             <exclusions>
                 <exclusion>
                     <!-- kb-util has 2.3.3, but transitive resolving has 2.4.0 somewhere-->
@@ -463,8 +463,7 @@
                      which seems to be an unresolved issue: https://github.com/OpenAPITools/openapi-generator/issues/9008 -->
                 <configuration>
                     <generatorName>jaxrs-cxf-extended</generatorName>
-                    <inputSpec>${project.build.outputDirectory}/openapi.yaml
-                    </inputSpec><!-- Will always be overridden -->
+                    <inputSpec>${project.build.outputDirectory}/openapi.yaml</inputSpec><!-- Will always be overridden -->
                     <modelNameSuffix>Dto</modelNameSuffix>
                     <generateSupportingFiles>false</generateSupportingFiles>
                     <generateApiTests>false</generateApiTests>
@@ -513,7 +512,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.build.outputDirectory}/ds-datahandler_v1.yaml</inputSpec>
+                            <inputSpec>${project.build.outputDirectory}/ds-datahandler-openapi_v1.yaml</inputSpec>
                             <ignoreFileOverride>
                                 ${project.basedir}/.openapi-codegen-ignore-api
                             </ignoreFileOverride>
@@ -537,7 +536,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.build.outputDirectory}/ds-datahandler_v1.yaml</inputSpec>
+                            <inputSpec>${project.build.outputDirectory}/ds-datahandler-openapi_v1.yaml</inputSpec>
                             <ignoreFileOverride>
                                 ${project.basedir}/.openapi-codegen-ignore-impl
                             </ignoreFileOverride>
@@ -616,7 +615,7 @@
                         </manifest>
                     </archive>
 
-                    <!--This is really just to get an artifact containing openapi_ds-datahandler_v1.yaml-->
+                    <!--This is really just to get an artifact containing ds-datahandler-openapi_v1.yaml-->
                     <attachClasses>true</attachClasses>
 
                     <!--Enable maven filtering for the web.xml-->
@@ -634,8 +633,8 @@
                             <directory>${project.build.outputDirectory}</directory>
                             <targetPath>.</targetPath>
                             <includes>
-                                <include>ds-datatahandler_v1.json</include>
-                                <include>ds-datatahandler_v1.yaml</include>
+                                <include>ds-datahandler-openapi_v1.json</include>
+                                <include>ds-datahandler-openapi_v1.yaml</include>
                             </includes>
                         </resource>
                     </webResources>
