@@ -78,7 +78,7 @@ config:
       metadataPrefix: mods
       description: David Simonsens Håndskrifter
     - name: kb.books.ortsam.ostryk
-       url: http://www5.kb.dk/cop/oai/
+      url: http://www5.kb.dk/cop/oai/
       set: oai:kb.dk:books:ortsam:2011:mar:ostryk
       metadataPrefix: mods
       description: Tidlige tryk i Orientalsk Samling
