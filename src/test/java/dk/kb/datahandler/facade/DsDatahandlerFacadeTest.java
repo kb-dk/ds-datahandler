@@ -20,7 +20,7 @@ public class DsDatahandlerFacadeTest {
                 .metadataprefix("mods")
                 .set("oai:kb.dk:images:billed:2010:okt:billeder")
                 .username(null).password(null)
-                .recordBase("test")
+                .origin("test")
                 .name("THERE_CAN_ONLY_BE_ONE");
         
         // OK

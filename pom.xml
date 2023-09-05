@@ -10,7 +10,7 @@
 
     <groupId>dk.kb.datahandler</groupId>
     <artifactId>ds-datahandler</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.3-SNAPSHOT</version>
     <packaging>war</packaging>
     <description>
     # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library. 
@@ -121,7 +121,7 @@
       <dependency>
         <groupId>dk.kb.storage</groupId>
         <artifactId>ds-storage</artifactId>
-          <version>1.2-SNAPSHOT</version>
+          <version>1.3-SNAPSHOT</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>

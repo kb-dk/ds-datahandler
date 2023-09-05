@@ -20,7 +20,7 @@ paths:
     post:
        tags:
         - '${project.name}'
-       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records. Record format METS with mods. Record  ID from the record is <mods:identifier>. Record ID in storage will be recordBase:uuid-extracted-from<mods:identifier>' 
+       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records. Record format METS with mods. Record  ID from the record is <mods:identifier>. Record ID in storage will be origin:uuid-extracted-from<mods:identifier>' 
        
        operationId: importFromZip
        requestBody:
@@ -29,7 +29,7 @@ paths:
              schema:
               type: object
               properties:               
-                recordBase:
+                origin:
                   type: string
                 fileName:
                   type: string
@@ -208,7 +208,7 @@ components:
           example: 'kb.images.billed.hca'
         url:
           type: string
-          description: 'Base YRL to the OAI server.'                
+          description: 'Base URL to the OAI server.'                
           example: 'http://www5.kb.dk/cop/oai/'
         set:
           type: string
@@ -224,9 +224,9 @@ components:
         password:
           type: string
           description: 'Password if the OAI server require basic authentication'                
-        recordBase:
+        origin:
           type: string
-          description: 'Name of the recordbase when ingesting into DS-storage. The recordbase must be configured in ds-storage.'
+          description: 'Name of the origin when ingesting into DS-storage. The origin must be configured in ds-storage.'
           example: 'kb.images.billed.hca'
         decription:
           type: string

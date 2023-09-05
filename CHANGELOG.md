@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 
+
+## [1.3.0] - 2023-09-05
+### Added
+
 - Jetty port set explicitly to 9071 instead of default 8080 to avoid collisions
   with projects using default tomcat/jetty setup.
 - Client generation
-
+- Upgrade to ds-storage API v 1.3
 
 ## [1.0.0] - YYYY-MM-DD
 ### Added

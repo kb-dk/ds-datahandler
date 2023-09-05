@@ -29,7 +29,7 @@ public class OaiHarvestClientIntegrationTest {
        oaiTarget.setSet("oai:kb.dk:images:billed:2010:okt:billeder");
        oaiTarget.setUsername(null);
        oaiTarget.setPassword(null);;
-       oaiTarget.setRecordBase("test");
+       oaiTarget.setOrigin("test");
        String from=null;
        
         /*

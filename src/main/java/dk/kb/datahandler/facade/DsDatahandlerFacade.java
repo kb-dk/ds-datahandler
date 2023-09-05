@@ -39,11 +39,11 @@ public class DsDatahandlerFacade {
     /**
      * Ingest records directly into ds-storage from a zip-file containing multiple files that each is an xml-file with a single record
      *  
-     * @param  recordBase The recordBase for collection documents. The recordBase must be defined in ds-storage. 
+     * @param  origin The origin for collection documents. The origin must be defined in ds-storage. 
      * @param is Inputstream. Must be a zip-file containing single files that each is an XML record.
      * @return List of strings containing the records that failed parsing.
      */    
-    public static ArrayList<String> ingestFromZipfile(String recordBase, InputStream is) throws Exception {
+    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) throws Exception {
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
 
         DsStorageApi dsAPI = getDsStorageApiClient();
@@ -66,11 +66,11 @@ public class DsDatahandlerFacade {
                 //Example: urn:uuid:096c9090-717f-11e0-82d7-002185371280
                 identifier=identifier.replaceFirst("urn:uuid:", ""); // Clear this first part from the ID
                 
-                String recordId= recordBase+":"+identifier;
+                String recordId= origin+":"+identifier;
                 log.info("Ingesting record filename from zip:"+fileName +" id:"+recordId);
                 DsRecordDto dsRecord = new DsRecordDto();
                 dsRecord.setId(recordId); 
-                dsRecord.setBase(recordBase);
+                dsRecord.setOrigin(origin);
                 dsRecord.setData(record_string);                                                 
                 dsAPI.recordPost(dsRecord);  
                                                                 
@@ -197,7 +197,7 @@ public class DsDatahandlerFacade {
             from = from.substring(0,10);               
         }
 
-        String recordBase=oaiTargetDto.getRecordBase();
+        String origin=oaiTargetDto.getOrigin();
 
         DsStorageApi dsAPI = getDsStorageApiClient();        
         OaiHarvestClient client = new OaiHarvestClient(job,from);
@@ -207,19 +207,19 @@ public class DsDatahandlerFacade {
 
             for (OaiRecord  oaiRecord : response.getRecords()) {                
                 totalRecordLoaded++;
-                String storageId=recordBase+":"+oaiRecord.getId();
+                String storageId=origin+":"+oaiRecord.getId();
                 if (oaiRecord.isDeleted()) { //mark for delete
                     dsAPI.markRecordForDelete(storageId);  
                 }
                 else { //Create or update                
                     DsRecordDto dsRecord = new DsRecordDto();
                     dsRecord.setId(storageId);
-                    dsRecord.setBase(recordBase);
+                    dsRecord.setOrigin(origin);
                     dsRecord.setData(oaiRecord.getMetadata());                                          
                     dsAPI.recordPost(dsRecord);
                 }
             }
-            log.info("Ingesting base:"+recordBase + " records:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
+            log.info("Ingesting origin:"+origin + " records:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
 
             //Update timestamp with timestamp from last OAI record.
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);                        
@@ -232,7 +232,7 @@ public class DsDatahandlerFacade {
             throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() + " after harvesting " + totalRecordLoaded + " records");
         }
 
-        log.info("Completed ingesting base successfully:"+recordBase+ " records:"+totalRecordLoaded);        
+        log.info("Completed ingesting origin successfully:"+origin+ " records:"+totalRecordLoaded);        
         return totalRecordLoaded;
 
 

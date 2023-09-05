@@ -247,13 +247,19 @@ public class OaiHarvestClient {
         DOMImplementation impl = document.getImplementation();
         DOMImplementationLS implLS = (DOMImplementationLS) impl.getFeature("LS", "3.0");
         LSSerializer lsSerializer = implLS.createLSSerializer();
-        // lsSerializer.getDomConfig().setParameter("format-pretty-print", true); // 
+        // lsSerializer.getDomConfig().setParameter("format-pretty-print", true); //         
         LSOutput lsOutput = implLS.createLSOutput();
         lsOutput.setEncoding("UTF-8");  //The reason we do all this stuff.
         Writer stringWriter = new StringWriter();
         lsOutput.setCharacterStream(stringWriter);
         lsSerializer.write(element, lsOutput);
-        return stringWriter.toString();
+        String xml_utf8= stringWriter.toString();
+        
+        //UGLY fuckly hacks. Because names spaces are not defined within records, but in top of the OAI resultset document
+        xml_utf8=xml_utf8.replaceFirst("<xip:DeliverableUnit","<xip:DeliverableUnit xmlns=\"http://www.tessella.com/XIP/v4\"");        
+        xml_utf8=xml_utf8.replaceFirst("xmlns:PBCoreDescriptionDocument=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xsi:schemaLocation=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">",  "xmlns:PBCoreDescriptionDocument=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xsi:schemaLocation=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xmlns:xsi=\"http://example.com/\">");        
+        
+        return xml_utf8;
     }
 
     private String getHeaderStatus(Element record) {
