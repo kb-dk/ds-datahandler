@@ -142,10 +142,10 @@
 
 
        <dependency>
-         <groupId>dk.statsbiblioteket.kaltura</groupId>
-         <artifactId>kaltura-api-sb</artifactId>
-         <version>5.2</version>
-       </dependency>
+            <groupId>com.kaltura</groupId>
+            <artifactId>KalturaClient</artifactId>
+            <version>3.3.1</version>
+        </dependency>
 
         <!-- Apache CXF and servlet stuff -->
         <dependency>

@@ -14,7 +14,7 @@ public class TestKaltura2 {
 
     
     public static void main(String[] args) throws Exception{
-        String adminSecret = "XXXXXXXXXXXXXXXXXXXXXXXXx";
+        String adminSecret = "f171b1cc0e06b9f565c0f362e5a23aed";
         Integer partnerId = 380;
         String filePath = "/media/teg/1200GB_SSD/workspace/KalturaUploadClient/05052581-fb20-43a4-82c7-d5596d575aaf.mp4";
         String uploadUserId = "teg@kb.dk";
@@ -28,10 +28,10 @@ public class TestKaltura2 {
 
         // add the media entry
         KalturaMediaEntry mediaEntry = new KalturaMediaEntry();
-        mediaEntry.name = "TEG test4 MP4";
+        mediaEntry.name = "TEG test5 MP4";
         mediaEntry.mediaType = KalturaMediaType.VIDEO;
-        mediaEntry.description="This is a description for test4";
-        
+        mediaEntry.description="This is a description for test5 with referenceID";
+        mediaEntry.referenceId="05052581-fb20-43a4-82c7-d5596d575aaf";
         
         mediaEntry = client.getMediaService().add(mediaEntry);
         
