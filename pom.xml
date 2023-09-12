@@ -141,6 +141,12 @@
         </dependency>
 
 
+       <dependency>
+         <groupId>dk.statsbiblioteket.kaltura</groupId>
+         <artifactId>kaltura-api-sb</artifactId>
+         <version>5.2</version>
+       </dependency>
+
         <!-- Apache CXF and servlet stuff -->
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
