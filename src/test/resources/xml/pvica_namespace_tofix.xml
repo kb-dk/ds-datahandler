@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+                <xip:DeliverableUnit status="changed">
+    <DeliverableUnitRef>187f3a90-4248-48f3-8af9-555f1dbe3df2</DeliverableUnitRef>
+    <CollectionRef>460d799f-96ba-4b9e-8c94-ee922b6c359a</CollectionRef>
+    <AccessionRef>049b6875-cdf3-410b-b669-cb8ed3ba214c</AccessionRef>
+    <AccumulationRef>69bdae13-4698-4dcf-8952-664b913d0d2d</AccumulationRef>
+    <DigitalSurrogate>false</DigitalSurrogate>
+    <CatalogueReference>tv2c_2006-12-01-16.25-16.50</CatalogueReference>
+    <ScopeAndContent>tv2c_2006-12-01-16.25-16.50</ScopeAndContent>
+    <CoverageFrom>2006-12-01T15:25:00Z</CoverageFrom>
+    <CoverageTo>2006-12-01T15:50:00Z</CoverageTo>
+    <Title>tv2c_2006-12-01-16.25-16.50</Title>
+    <TypeRef>1</TypeRef>
+    <SecurityTag>pligtafleveringRadioTvOpenProgram</SecurityTag>
+    <Metadata schemaURI="http://www.pbcore.org/PBCore/PBCoreNamespace.html">
+        
+        <PBCoreDescriptionDocument:PBCoreDescriptionDocument xmlns:PBCoreDescriptionDocument="http://www.pbcore.org/PBCore/PBCoreNamespace.html" xsi:schemaLocation="http://www.pbcore.org/PBCore/PBCoreNamespace.html">;       
+            <pbcoreIdentifier>
+                <identifier>187f3a90-4248-48f3-8af9-555f1dbe3df2</identifier>
+                <identifierSource>kuanaId</identifierSource>
+    </pbcoreIdentifier>
+            <pbcoreTitle>
+                <title>Titel</title>
+                <titleType>titel</titleType>
+    </pbcoreTitle>
+            <pbcoreTitle>
+                <title>Orig. titel</title>
+                <titleType>originaltitel</titleType>
+    </pbcoreTitle>
+            <pbcoreTitle>
+                <title/>
+                <titleType>episodetitel</titleType>
+    </pbcoreTitle>
+            <pbcoreDescription>
+                <description/>
+                <descriptionType>kortomtale</descriptionType>
+    </pbcoreDescription>
+            <pbcoreDescription>
+                <description/>
+                <descriptionType>langomtale1</descriptionType>
+    </pbcoreDescription>
+            <pbcorePublisher>
+                <publisher>tv2c</publisher>
+                <publisherRole>channel_name</publisherRole>
+    </pbcorePublisher>
+            <pbcorePublisher>
+                <publisher>tv2</publisher>
+                <publisherRole>kanalnavn</publisherRole>
+    </pbcorePublisher>
+            <pbcoreInstantiation>
+                <formatLocation>Det Kgl. Bibliotek; Radio/TV-Samlingen</formatLocation>
+                <formatMediaType>Moving Image</formatMediaType>
+                <formatDuration>1500000</formatDuration>
+                <pbcoreDateAvailable>
+                    <dateAvailableStart>2006-12-01T15:25:00Z</dateAvailableStart>
+                    <dateAvailableEnd>2006-12-01T15:50:00Z</dateAvailableEnd>
+        </pbcoreDateAvailable>
+                <pbcoreAnnotation>
+                    <annotation/>
+        </pbcoreAnnotation>
+    </pbcoreInstantiation>
+            <pbcoreExtension>
+                <extension>antalepisoder:</extension>
+    </pbcoreExtension>
+            <pbcoreExtension>
+                <extension>episodenr:</extension>
+    </pbcoreExtension>
+</PBCoreDescriptionDocument:PBCoreDescriptionDocument>
+    </Metadata>
+    <Metadata schemaURI="http://doms.statsbiblioteket.dk/types/checksumObject/0/1/#">
+        <initialChecksumInfo:initialChecksumInfo xmlns:initialChecksumInfo="http://doms.statsbiblioteket.dk/types/checksumObject/0/1/#">
+            <checksum>3FF7AA27FBFA9F02E871CACA5112E23B</checksum>
+</initialChecksumInfo:initialChecksumInfo>
+    </Metadata>
+    <Metadata schemaURI="http://kuana.kb.dk/types/padding/0/1/#">
+        <padding:padding xmlns:padding="http://kuana.kb.dk/types/padding/0/1/#">
+            <paddingSeconds>0</paddingSeconds>
+</padding:padding>
+    </Metadata>
+    <Metadata schemaURI="http://doms.statsbiblioteket.dk/types/access/0/1/#">
+        <access:access xmlns:access="http://doms.statsbiblioteket.dk/types/access/0/1/#">
+            <klausuleret>Nej</klausuleret>
+            <defekt>Nej</defekt>
+            <kommentarer/>
+</access:access>
+    </Metadata>
+    <Metadata schemaURI="http://kuana.kb.dk/types/radiotv_transcoding_status/0/1/#">
+        <radiotvTranscodingStatus:radiotvTranscodingStatus xmlns:radiotvTranscodingStatus="http://kuana.kb.dk/types/radiotv_transcoding_status/0/1/#">
+            <transcodingStatus>pending</transcodingStatus>
+            <doNotCut>true</doNotCut>
+</radiotvTranscodingStatus:radiotvTranscodingStatus>
+    </Metadata>
+    <Metadata schemaURI="http://kuana.kb.dk/types/pidhandle/0/1/#">
+        <pidhandle:pidhandle xmlns:pidhandle="http://kuana.kb.dk/types/pidhandle/0/1/#">
+            <handle>hdl:109.1.4/187f3a90-4248-48f3-8af9-555f1dbe3df2</handle>
+</pidhandle:pidhandle>
+    </Metadata>
+    <BaseVersion>e64c9474-66be-4330-b230-f65421f6f587</BaseVersion>
+    <CurrentVersion>5159a811-3f09-427c-b63e-6fd19660eebf</CurrentVersion>
+</xip:DeliverableUnit>
+            
