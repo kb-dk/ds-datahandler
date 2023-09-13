@@ -262,7 +262,7 @@ public class OaiHarvestClient {
     //Unit tested
     public static String nameFixPvica(String xml_utf8) {
       //UGLY fuckly hack. Because names spaces are not defined within records, but in top of the OAI resultset document
-        xml_utf8=xml_utf8.replaceFirst("<xip:DeliverableUnit","<xip:DeliverableUnit xmlns=\"http://www.tessella.com/XIP/v4\"");        
+        xml_utf8=xml_utf8.replaceFirst("<xip:DeliverableUnit","<xip:DeliverableUnit xmlns:xip=\"http://www.tessella.com/XIP/v4\"");        
         xml_utf8=xml_utf8.replaceFirst("xmlns:PBCoreDescriptionDocument=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xsi:schemaLocation=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">",  "xmlns:PBCoreDescriptionDocument=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xsi:schemaLocation=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance/\">");        
                                         
         return xml_utf8;
