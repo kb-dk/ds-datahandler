@@ -15,11 +15,11 @@ public class PvicaNameSpaceFixTest {
         String xmlFile = "xml/pvica_namespace_tofix.xml";        
         String xml = Resolver.resolveUTF8String(xmlFile);        
 
-        String xmlFixed= OaiHarvestClient.nameFixPvica(xml);        
-        
-        assertTrue(xmlFixed.indexOf("<xip:DeliverableUnit xmlns=\"http://www.tessella.com/XIP/v4\"") > 0);               
-        assertTrue(xmlFixed.indexOf("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance/\"") > 0);            
+        String xmlFixed= OaiHarvestClient.nameFixPvica(xml);          
+        assertTrue(xmlFixed.indexOf("<xip:DeliverableUnit xmlns:xip=\"http://www.tessella.com/XIP/v4\"") > 0);               
+        assertTrue(xmlFixed.indexOf("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"") > 0);            
     }
     
     
+
 }
