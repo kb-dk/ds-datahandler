@@ -51,7 +51,7 @@ public class ServiceConfig {
             log.info("Oai timestamp folder:"+oaiTimestampFolder);
         }
         else {
-            log.info("Oai timestamp folder not found. Creating new folder:"+oaiTimestampFolder);
+            log.info("Oai timestamp folder not found:"+oaiTimestampFolder +" .Creating new folder:"+oaiTimestampFolder);
             Files.createDirectories(Paths.get(oaiTimestampFolder));
         }
         
