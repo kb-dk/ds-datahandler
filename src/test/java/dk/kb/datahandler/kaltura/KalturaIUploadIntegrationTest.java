@@ -7,6 +7,9 @@ public class KalturaIUploadIntegrationTest {
     /**
      * This will upload a file to kaltura. 
      * Do not check in code with an adminsecret to kaltura!
+     * It can take up to 10 minutes before the upload has been transcoded and can be streamed.
+     * 
+     * To stream the uploaded file change the reference id in this html-file: src/test/resources/kaltura_test_play.html
      * 
      */
     public static void main(String[] args)  {
