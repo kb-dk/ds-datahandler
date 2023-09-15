@@ -208,10 +208,13 @@ public class DsDatahandlerFacade {
             for (OaiRecord  oaiRecord : response.getRecords()) {                
                 totalRecordLoaded++;
                 String storageId=origin+":"+oaiRecord.getId();
-                if (oaiRecord.isDeleted()) { //mark for delete
+                if (oaiRecord.getMetadata().contains("<xip:Collection")){
+                    // XIP:Collections do not provide any needed metadata. Therefore, they are not added to ds-storage.
+                    log.info("Oai Record '{}' is a xip:Collection and should therefore not be added to DS-storage. " +
+                             "Continuing to next record.", oaiRecord.getId());
+                } else if (oaiRecord.isDeleted()) { //mark for delete
                     dsAPI.markRecordForDelete(storageId);  
-                }
-                else { //Create or update                
+                } else { //Create or update
                     DsRecordDto dsRecord = new DsRecordDto();
                     dsRecord.setId(storageId);
                     dsRecord.setOrigin(origin);

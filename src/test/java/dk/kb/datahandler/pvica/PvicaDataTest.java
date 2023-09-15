@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.util.Resolver;
 
-public class PvicaNameSpaceFixTest {
+import java.io.IOException;
+
+public class PvicaDataTest {
     
     @Test
     public void testNameSpaceFix() throws Exception{
@@ -19,7 +21,16 @@ public class PvicaNameSpaceFixTest {
         assertTrue(xmlFixed.indexOf("<xip:DeliverableUnit xmlns:xip=\"http://www.tessella.com/XIP/v4\"") > 0);               
         assertTrue(xmlFixed.indexOf("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"") > 0);            
     }
-    
-    
+
+    @Test
+    public void testRemovalOfCollections() throws IOException {
+        String xipCollection = Resolver.resolveUTF8String("xml/testCollection.xml");
+
+        boolean answer = xipCollection.contains("<xip:Collection");
+        assertTrue(answer);
+    }
+
+
+
 
 }
