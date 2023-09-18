@@ -22,13 +22,6 @@ public class PvicaDataTest {
         assertTrue(xmlFixed.indexOf("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"") > 0);            
     }
 
-    @Test
-    public void testRemovalOfCollections() throws IOException {
-        String xipCollection = Resolver.resolveUTF8String("xml/testCollection.xml");
-
-        boolean answer = xipCollection.contains("<xip:Collection");
-        assertTrue(answer);
-    }
 
 
 

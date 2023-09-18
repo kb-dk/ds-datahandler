@@ -203,6 +203,7 @@ public class DsDatahandlerFacade {
         OaiHarvestClient client = new OaiHarvestClient(job,from);
         OaiResponse response = client.next();
         int totalRecordLoaded=0;
+        int xipCollections = 0;
         while (response.getRecords().size() >0) {
 
             for (OaiRecord  oaiRecord : response.getRecords()) {                
@@ -210,8 +211,7 @@ public class DsDatahandlerFacade {
                 String storageId=origin+":"+oaiRecord.getId();
                 if (oaiRecord.getMetadata().contains("<xip:Collection")){
                     // XIP:Collections do not provide any needed metadata. Therefore, they are not added to ds-storage.
-                    log.info("Oai Record '{}' is a xip:Collection and should therefore not be added to DS-storage. " +
-                             "Continuing to next record.", oaiRecord.getId());
+                    xipCollections ++;
                 } else if (oaiRecord.isDeleted()) { //mark for delete
                     dsAPI.markRecordForDelete(storageId);  
                 } else { //Create or update
@@ -222,7 +222,9 @@ public class DsDatahandlerFacade {
                     dsAPI.recordPost(dsRecord);
                 }
             }
-            log.info("Ingesting origin:"+origin + " records:"+totalRecordLoaded +" out of a total of "+response.getTotalRecords());            
+            log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
+                     "'{}' xip:Collections have been skipped",
+                    totalRecordLoaded, origin, response.getTotalRecords(), xipCollections);
 
             //Update timestamp with timestamp from last OAI record.
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);                        
