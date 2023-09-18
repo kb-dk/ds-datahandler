@@ -7,6 +7,8 @@ import dk.kb.storage.model.v1.DsRecordDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class OaiResponseFiltering {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
 
@@ -18,11 +20,11 @@ public class OaiResponseFiltering {
      * @param origin    where the harvested OAI-PMH record is extracted from.
      * @return          the number of records loaded in total.
      */
-    public static int addToStorageWithoutFiltering(OaiResponse response, DsStorageApi dsAPI,
-                                                    String origin, int totalRecordsLoaded) throws ApiException {
+    public static void addToStorageWithoutFiltering(OaiResponse response, DsStorageApi dsAPI,
+                                                    String origin, AtomicInteger totalRecordsLoaded) throws ApiException {
 
         for (OaiRecord  oaiRecord : response.getRecords()) {
-            totalRecordsLoaded++;
+            totalRecordsLoaded.getAndAdd(1);
             String storageId=origin+":"+oaiRecord.getId();
             if (oaiRecord.isDeleted()) { //mark for delete
                 dsAPI.markRecordForDelete(storageId);
@@ -30,9 +32,6 @@ public class OaiResponseFiltering {
                 addOrUpdateRecord(oaiRecord, storageId, origin, dsAPI);
             }
         }
-        log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
-                totalRecordsLoaded, origin, response.getTotalRecords());
-        return totalRecordsLoaded;
     }
 
     /**
@@ -42,15 +41,15 @@ public class OaiResponseFiltering {
      * @param dsAPI     api for storage.
      * @param origin    where the harvested OAI-PMH record is extracted from.
      */
-    public static int addToStorageWithPvicaFiltering(OaiResponse response, DsStorageApi dsAPI,
-                                                      String origin, int totalRecordsLoaded) throws ApiException {
-        int xipCollections = 0;
+    public static void addToStorageWithPvicaFiltering(OaiResponse response, DsStorageApi dsAPI,
+                                                      String origin, AtomicInteger totalRecordsLoaded,
+                                                     AtomicInteger xipCollections) throws ApiException {
         for (OaiRecord  oaiRecord : response.getRecords()) {
-            totalRecordsLoaded++;
+            totalRecordsLoaded.getAndAdd(1);
             String storageId=origin+":"+oaiRecord.getId();
             if (oaiRecord.getMetadata().contains("<xip:Collection")){
                 // XIP:Collections do not provide any needed metadata. Therefore, they are not added to ds-storage.
-                xipCollections ++;
+                xipCollections.getAndAdd(1);
             } else if (oaiRecord.isDeleted()) { //mark for delete
                 dsAPI.markRecordForDelete(storageId);
             } else { //Create or update
@@ -60,7 +59,6 @@ public class OaiResponseFiltering {
         log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
                         "'{}' xip:Collections have been skipped",
                 totalRecordsLoaded, origin, response.getTotalRecords(), xipCollections);
-        return totalRecordsLoaded;
     }
 
     /**

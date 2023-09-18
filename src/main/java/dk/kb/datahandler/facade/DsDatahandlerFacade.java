@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -205,16 +206,26 @@ public class DsDatahandlerFacade {
         OaiHarvestClient client = new OaiHarvestClient(job,from);
         OaiResponse response = client.next();
 
-        int totalRecordsLoaded = 0;
+        AtomicInteger totalRecordsLoaded = new AtomicInteger(0);
+        AtomicInteger xipCollections = new AtomicInteger(0);
 
         while (response.getRecords().size() >0) {
 
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
 
             if (targetName.startsWith("pvica")){
-                totalRecordsLoaded = OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsLoaded);
+                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsLoaded, xipCollections);
             } else {
-                totalRecordsLoaded = OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsLoaded);
+                OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsLoaded);
+            }
+
+            if (xipCollections.intValue() > 0){
+                log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
+                            "'{}' xip:Collections have been skipped",
+                        totalRecordsLoaded, origin, response.getTotalRecords(), xipCollections);
+            } else {
+                log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
+                        totalRecordsLoaded, origin, response.getTotalRecords());
             }
 
             //Update timestamp with timestamp from last OAI record.
@@ -228,7 +239,7 @@ public class DsDatahandlerFacade {
         }
 
         log.info("Completed ingesting origin successfully:"+origin+ " records:"+totalRecordsLoaded);
-        return totalRecordsLoaded;
+        return totalRecordsLoaded.intValue();
     }
 
     /**
