@@ -55,10 +55,7 @@ public class OaiResponseFiltering {
             } else { //Create or update
                 addOrUpdateRecord(oaiRecord, storageId, origin, dsAPI);
             }
-        }
-        log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
-                        "'{}' xip:Collections have been skipped",
-                totalRecordsLoaded, origin, response.getTotalRecords(), xipCollections);
+        }        
     }
 
     /**
