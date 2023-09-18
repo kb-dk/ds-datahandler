@@ -13,6 +13,8 @@ import com.kaltura.client.types.KalturaMediaEntry;
 import com.kaltura.client.types.KalturaUploadToken;
 import com.kaltura.client.types.KalturaUploadedFileTokenResource;
 
+import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
+
 
 public class KalturaUploadClient {
 
@@ -46,13 +48,26 @@ public class KalturaUploadClient {
     }
 
     /**
+     * Upload a video or audio file to Kaltura. The upload will automatic be given the tag 'DS-KALTURA'. There is no backup for this tag and all uploads can be deleted easy.
+     * 
      * @param filePath File path to the media file to upload. 
+     * @param mediaType enum type. KalturaMediaType.AUDIO or KalturaMediaType.VIDEO
+     * @param name Name/titel for the resource in Kaltura
+     * @param description , optional description 
+     * 
      * @param referenceId. Use our internal ID's there. The referenceId that later be used to a pointer to the play component to show the file
      * @return Status message from Kaltura. The message will return the internal id.    
      */
 
     public String uploadFile(String filePath, KalturaMediaType mediaType, String name, String description, String referenceId) throws Exception {
-
+        if (referenceId== null) {
+            throw new InvalidArgumentServiceException("referenceId must be defined");            
+        }
+        if ( mediaType == null) {
+            throw new InvalidArgumentServiceException("Kaltura mediaType must be defined");            
+        }
+        
+        
         log.info("Upload started for file "+filePath + " with referenceId"+referenceId);     
         try {     
             // add the media entry
@@ -61,9 +76,9 @@ public class KalturaUploadClient {
             mediaEntry.mediaType = mediaType;
             mediaEntry.description=description;
             mediaEntry.referenceId=referenceId;
-
+            mediaEntry.tags="DS-KALTURA"; // hardcoded for ds project. No backup for this tag and can be deleted easy
             mediaEntry = client.getMediaService().add(mediaEntry);
-
+            
             // add the upload token
             KalturaUploadToken uploadToken = new KalturaUploadToken();
             uploadToken = client.getUploadTokenService().add(uploadToken);
