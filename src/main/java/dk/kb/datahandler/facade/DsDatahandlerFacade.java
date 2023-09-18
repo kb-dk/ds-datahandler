@@ -5,9 +5,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import dk.kb.datahandler.oai.OaiResponseFiltering;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.apache.commons.io.IOUtils;
@@ -198,52 +200,48 @@ public class DsDatahandlerFacade {
         }
 
         String origin=oaiTargetDto.getOrigin();
+        String targetName = oaiTargetDto.getName();
 
         DsStorageApi dsAPI = getDsStorageApiClient();        
         OaiHarvestClient client = new OaiHarvestClient(job,from);
         OaiResponse response = client.next();
-        int totalRecordLoaded=0;
-        int xipCollections = 0;
+
+        AtomicInteger totalRecordsLoaded = new AtomicInteger(0);
+        AtomicInteger xipCollections = new AtomicInteger(0);
+
         while (response.getRecords().size() >0) {
 
-            for (OaiRecord  oaiRecord : response.getRecords()) {                
-                totalRecordLoaded++;
-                String storageId=origin+":"+oaiRecord.getId();
-                if (oaiRecord.getMetadata().contains("<xip:Collection")){
-                    // XIP:Collections do not provide any needed metadata. Therefore, they are not added to ds-storage.
-                    xipCollections ++;
-                } else if (oaiRecord.isDeleted()) { //mark for delete
-                    dsAPI.markRecordForDelete(storageId);  
-                } else { //Create or update
-                    DsRecordDto dsRecord = new DsRecordDto();
-                    dsRecord.setId(storageId);
-                    dsRecord.setOrigin(origin);
-                    dsRecord.setData(oaiRecord.getMetadata());                                          
-                    dsAPI.recordPost(dsRecord);
-                }
+            OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
+
+            if (targetName.startsWith("pvica")){
+                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsLoaded, xipCollections);
+            } else {
+                OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsLoaded);
             }
-            log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
-                     "'{}' xip:Collections have been skipped",
-                    totalRecordLoaded, origin, response.getTotalRecords(), xipCollections);
+
+            if (xipCollections.intValue() > 0){
+                log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
+                            "'{}' xip:Collections have been skipped",
+                        totalRecordsLoaded, origin, response.getTotalRecords(), xipCollections);
+            } else {
+                log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
+                        totalRecordsLoaded, origin, response.getTotalRecords());
+            }
 
             //Update timestamp with timestamp from last OAI record.
-            OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);                        
             HarvestTimeUtil.updateDatestampForOaiTarget(oaiTargetDto,lastRecord.getDateStamp());
 
             response = client.next(); //load next (may be empty)            
         }
 
         if (response.isError()) {
-            throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() + " after harvesting " + totalRecordLoaded + " records");
+            throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() + " after harvesting " + totalRecordsLoaded + " records");
         }
 
-        log.info("Completed ingesting origin successfully:"+origin+ " records:"+totalRecordLoaded);        
-        return totalRecordLoaded;
-
-
-
-
+        log.info("Completed ingesting origin successfully:"+origin+ " records:"+totalRecordsLoaded);
+        return totalRecordsLoaded.intValue();
     }
+
     /**
      * Generates a OaiRargetJob from an OaiTargetDto.
      * 

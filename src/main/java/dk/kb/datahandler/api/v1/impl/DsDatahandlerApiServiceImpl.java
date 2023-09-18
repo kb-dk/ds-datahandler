@@ -117,11 +117,11 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     @Override
-    public ArrayList<String> importFromZip(String recordBase, Attachment fileNameDetail) {
-        log.debug("importFromZip(recordBase='{}', ...) called with call details: {}", recordBase, getCallDetails());
+    public ArrayList<String> importFromZip(String origin, Attachment fileNameDetail) {
+        log.debug("importFromZip(origin='{}', ...) called with call details: {}", origin, getCallDetails());
         try {
             InputStream is = fileNameDetail.getDataHandler().getInputStream();
-            return DsDatahandlerFacade.ingestFromZipfile(recordBase,is);
+            return DsDatahandlerFacade.ingestFromZipfile(origin,is);
         }  catch (Exception e){
             throw handleException(e);
         }

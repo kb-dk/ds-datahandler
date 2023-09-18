@@ -201,6 +201,12 @@ components:
 
     OaiTarget:
       type: object
+      required:
+        - name
+        - url
+        - set
+        - metadataprefix
+        - origin
       properties:
         name:
           type: string
