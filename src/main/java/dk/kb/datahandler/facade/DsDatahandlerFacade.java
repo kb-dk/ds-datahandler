@@ -209,6 +209,8 @@ public class DsDatahandlerFacade {
 
         while (response.getRecords().size() >0) {
 
+            OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
+
             if (targetName.startsWith("pvica")){
                 totalRecordsLoaded = OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsLoaded);
             } else {
@@ -216,7 +218,6 @@ public class DsDatahandlerFacade {
             }
 
             //Update timestamp with timestamp from last OAI record.
-            OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);                        
             HarvestTimeUtil.updateDatestampForOaiTarget(oaiTargetDto,lastRecord.getDateStamp());
 
             response = client.next(); //load next (may be empty)            
