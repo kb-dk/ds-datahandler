@@ -15,17 +15,17 @@ The project yaml-file contains the configuration for each OAI-PMH target.
     
    **The below table describes the parameters to configure a OAI-PMH target**
         
-   | Property         | Description                                                                                               |
-   | ---------------- | ----------------------------------------------------------------------------------------------------------|
-   | name             | The name used to specify when starting a new import                                                       |
-   | url              | The base url to OAI-PMH service                                                                           |
-   | set              | Parameter to the OAI-server if the server has multiple collections (optional)                             |
-   | metadataPrefix   | Parameter to the OAI-server to specify the format for the metadata. Options depend on the OAI target.     |
-   | user             | User if the OAI-server require basic authentication (optional)                                            |
-   | password         | Password if the OAI-server require basic authentication (optional)                                        |    
-   | recordBase       | The recordbase when sending records from this OAI target to ds-storage.                                   |  
-   |                  | The recordbase must be configured in DS-storage. ID will be {recordbase}:{id in OAI record}               |
-   | description      | Human text to give further description if needed                                                          |
+   | Property       | Description                                                                                           |
+   |----------------|-------------------------------------------------------------------------------------------------------|
+   | name           | The name used to specify when starting a new import                                                   |
+   | url            | The base url to OAI-PMH service                                                                       |
+   | set            | Parameter to the OAI-server if the server has multiple collections (optional)                         |
+   | metadataPrefix | Parameter to the OAI-server to specify the format for the metadata. Options depend on the OAI target. |
+   | user           | User if the OAI-server require basic authentication (optional)                                        |
+   | password       | Password if the OAI-server require basic authentication (optional)                                    |    
+   | origin         | The origin when sending records from this OAI target to ds-storage.                                   |  
+   |                | The origin must be configured in DS-storage. ID will be {origin}:{id in OAI record}                   |
+   | description    | Human text to give further description if needed                                                      |
     
   
 ## Full import and delta import
