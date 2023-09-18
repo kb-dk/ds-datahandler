@@ -209,7 +209,7 @@ public class DsDatahandlerFacade {
 
         while (response.getRecords().size() >0) {
 
-            if (targetName.contains("pvica")){
+            if (targetName.startsWith("pvica")){
                 totalRecordsLoaded = OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsLoaded);
             } else {
                 totalRecordsLoaded = OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsLoaded);
