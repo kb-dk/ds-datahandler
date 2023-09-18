@@ -17,7 +17,6 @@ public class OaiResponseFiltering {
      * @param dsAPI     api for storage.
      * @param origin    where the harvested OAI-PMH record is extracted from.
      * @return          the number of records loaded in total.
-     * @throws ApiException
      */
     public static int addToStorageWithoutFiltering(OaiResponse response, DsStorageApi dsAPI,
                                                     String origin, int totalRecordsLoaded) throws ApiException {
@@ -71,7 +70,7 @@ public class OaiResponseFiltering {
      * @param origin    The origin, which the OAI record is extracted from,
      * @param dsAPI     The ds storage API, which the oaiRecord is added to.
      */
-    public static void addOrUpdateRecord(OaiRecord oaiRecord, String storageId, String origin,
+    private static void addOrUpdateRecord(OaiRecord oaiRecord, String storageId, String origin,
                                          DsStorageApi dsAPI) throws ApiException {
         DsRecordDto dsRecord = new DsRecordDto();
         dsRecord.setId(storageId);
