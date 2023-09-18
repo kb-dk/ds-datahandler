@@ -56,6 +56,9 @@ See: [link](http://www.openarchives.org/OAI/openarchivesprotocol.html)
 
 ## Build & run
 
+Due to license, the following  jar pm-dependency file must be copied to a local repository or .m2-folder.
+https://mvnrepository.com/artifact/com.kaltura/KalturaClient/3.3.1
+
 Build with
 ``` 
 mvn package
