@@ -57,10 +57,7 @@ public class OaiResponseFiltering {
             else if (oaiRecord.isDeleted()) { //mark for delete
                 dsAPI.markRecordForDelete(storageId);
             } else { //Create or update
-                String parent=getPvicaParent(oaiRecord.getMetadata());
-                if (parent != null) {
-                    parent=origin+":"+parent;
-                }                
+                String parent=getPvicaParent(oaiRecord.getMetadata(), origin);                                                               
                 addOrUpdateRecord(oaiRecord, storageId, parent, origin, dsAPI);
             }
         }        
@@ -101,8 +98,7 @@ public class OaiResponseFiltering {
     }
     
     //If xip:Manifestation record, return value of field  <ManifestationRef>.
-    // The parent value must be prefixed with origin.
-    public static String getPvicaParent(String xml) {
+    public static String getPvicaParent(String xml, String origin) {
         String start="<ManifestationRef>";                    
         String end="</ManifestationRef>";
         int indexStart=xml.indexOf(start);
@@ -111,8 +107,9 @@ public class OaiResponseFiltering {
             String parent=xml.substring(indexStart+start.length() , indexEnd);                   
           if (parent.length() < 30 || parent.length() > 40){
               log.warn("ParentID does not seem to have correct format:+parent");
-          }            
-           return parent;
+          }                      
+          return parent=origin+":"+parent;
+          
         }
         return null;
         
