@@ -9,28 +9,34 @@ import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiResponseFiltering;
 import dk.kb.util.Resolver;
 
-import java.io.IOException;
-
 public class PvicaDataTest {
     
     @Test
-    public void testNameSpaceFix() throws Exception{
-        String xmlFile = "xml/pvica_namespace_tofix.xml";        
+    public void testDeliverableUnitNameSpaceFix() throws Exception{
+        String xmlFile = "xml/pvica_deliverableunit_namespace_tofix.xml";
         String xml = Resolver.resolveUTF8String(xmlFile);        
 
-        String xmlFixed= OaiHarvestClient.nameFixPvica(xml);          
-        assertTrue(xmlFixed.indexOf("<xip:DeliverableUnit xmlns:xip=\"http://www.tessella.com/XIP/v4\"") > 0);               
+        String xmlFixed= OaiHarvestClient.nameFixPvica(xml);
+        assertTrue(xmlFixed.indexOf("<xip:DeliverableUnit xmlns:xip=\"http://www.tessella.com/XIP/v4\"") > 0);
         assertTrue(xmlFixed.indexOf("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"") > 0);            
     }
 
 
-    @Test
     public void testFindPvicaParent() throws Exception{
         String xmlFile = "xml/pvica_parent_test.xml";        
         String xml = Resolver.resolveUTF8String(xmlFile);        
         String parent = OaiResponseFiltering.getPvicaParent(xml);
         assertEquals("6a8d279b-0276-4856-b2ba-77b0162f5d63", parent);        
     }
+
+    public void testManifestationNameSpaceFix() throws Exception{
+        String xmlFile = "xml/pvica_manifestation_namespace_to_fix.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+
+        String xmlFixed= OaiHarvestClient.nameFixPvica(xml);
+        assertTrue(xmlFixed.indexOf("<xip:Manifestation xmlns:xip=\"http://www.tessella.com/XIP/v4\"") > 0);
+    }
+
 
     @Test
     public void testSkipPvicaRelRef() throws Exception{

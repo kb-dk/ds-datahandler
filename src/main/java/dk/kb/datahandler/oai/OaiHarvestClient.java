@@ -259,14 +259,19 @@ public class OaiHarvestClient {
         return xml_utf8;
     }
 
-    //Unit tested
+    /**
+     * Replaces malformed namespaces with correctly defined namespaces.
+     * Records with the preservica namespace XIP are delivered without the namespace correctly defined.
+     * The OAI-PMH resultset contains the namespace at the top of the set and is then inherited by records.
+     * @param xml_utf8  XML file containing a single XIP record,
+     *                  which is either a xip:Manifestation or xip:DeliverableUnit.
+     * @return          the xip XML record, with the namespace updated.
+     */
     public static String nameFixPvica(String xml_utf8) {
-      //UGLY fuckly hack. Because names spaces are not defined within records, but in top of the OAI resultset document
-        xml_utf8=xml_utf8.replaceFirst("<xip:DeliverableUnit","<xip:DeliverableUnit xmlns:xip=\"http://www.tessella.com/XIP/v4\"");        
+        xml_utf8=xml_utf8.replaceFirst("<xip:(DeliverableUnit|Manifestation)","<xip:$1 xmlns:xip=\"http://www.tessella.com/XIP/v4\"");
         xml_utf8=xml_utf8.replaceFirst("xmlns:PBCoreDescriptionDocument=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xsi:schemaLocation=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">",  "xmlns:PBCoreDescriptionDocument=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xsi:schemaLocation=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
                                         
         return xml_utf8;
-        
     }
     
     private String getHeaderStatus(Element record) {
