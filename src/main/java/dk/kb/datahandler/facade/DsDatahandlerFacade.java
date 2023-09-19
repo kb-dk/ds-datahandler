@@ -206,26 +206,27 @@ public class DsDatahandlerFacade {
         OaiHarvestClient client = new OaiHarvestClient(job,from);
         OaiResponse response = client.next();
 
-        AtomicInteger totalRecordsLoaded = new AtomicInteger(0);
-        AtomicInteger xipCollections = new AtomicInteger(0);
+        AtomicInteger totalRecordsCount = new AtomicInteger(0);
+        AtomicInteger xipCollectionsCount = new AtomicInteger(0);
+        AtomicInteger manRelRefNot2Count = new AtomicInteger(0);
 
         while (response.getRecords().size() >0) {
 
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
 
             if (targetName.startsWith("pvica")){
-                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsLoaded, xipCollections);
+                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsCount, xipCollectionsCount, manRelRefNot2Count);
             } else {
-                OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsLoaded);
+                OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
             }
 
-            if (xipCollections.intValue() > 0){
+            if (xipCollectionsCount.intValue() > 0  || manRelRefNot2Count.intValue() > 0){
                 log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
-                            "'{}' xip:Collections have been skipped",
-                        totalRecordsLoaded, origin, response.getTotalRecords(), xipCollections);
+                            "'{}' xip:Collections have been skipped. '{}' ManifestationRelRef != 2 have been skipped. ",
+                        totalRecordsCount, origin, response.getTotalRecords(), xipCollectionsCount, manRelRefNot2Count);
             } else {
                 log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
-                        totalRecordsLoaded, origin, response.getTotalRecords());
+                        totalRecordsCount, origin, response.getTotalRecords());
             }
 
             //Update timestamp with timestamp from last OAI record.
@@ -235,11 +236,11 @@ public class DsDatahandlerFacade {
         }
 
         if (response.isError()) {
-            throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() + " after harvesting " + totalRecordsLoaded + " records");
+            throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() + " after harvesting " + totalRecordsCount + " records");
         }
 
-        log.info("Completed ingesting origin successfully:"+origin+ " records:"+totalRecordsLoaded);
-        return totalRecordsLoaded.intValue();
+        log.info("Completed ingesting origin successfully:"+origin+ " records:"+totalRecordsCount);
+        return totalRecordsCount.intValue();
     }
 
     /**
