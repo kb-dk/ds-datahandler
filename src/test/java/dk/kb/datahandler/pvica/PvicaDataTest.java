@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 import dk.kb.datahandler.oai.OaiHarvestClient;
+import dk.kb.datahandler.oai.OaiResponseFiltering;
 import dk.kb.util.Resolver;
 
 public class PvicaDataTest {
@@ -20,6 +21,13 @@ public class PvicaDataTest {
         assertTrue(xmlFixed.indexOf("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"") > 0);            
     }
 
+    @Test
+    public void testFindPvicaParent() throws Exception{
+        String xmlFile = "xml/pvica_parent_test.xml";        
+        String xml = Resolver.resolveUTF8String(xmlFile);        
+        String parent = OaiResponseFiltering.getPvicaParent(xml,"ds.radiotv");
+        assertEquals("ds.radiotv:6a8d279b-0276-4856-b2ba-77b0162f5d63", parent);        
+    }
 
     @Test
     public void testManifestationNameSpaceFix() throws Exception{
@@ -31,7 +39,15 @@ public class PvicaDataTest {
     }
 
 
-
+    @Test
+    public void testSkipPvicaRelRef() throws Exception{
+        String xmlFile = "xml/pvica_skip_manifestationRelRef.xml";        
+        String xml = Resolver.resolveUTF8String(xmlFile);        
+        boolean skip = OaiResponseFiltering.skipManRefRefNot2(xml);
+        assertEquals(true,skip);        
+    }
+    
+    
 
 
 }
