@@ -66,7 +66,6 @@ public class OaiHarvestClient {
         //log.info("resumption token at:"+resumptionToken);
         String xmlResponse=getHttpResponse(uri,oaiTarget.getUsername(),oaiTarget.getPassword()); 
 
-
         Document document =sanitizeXml(xmlResponse,uri);
 
         String errorMessage=getErrorMessage(document);

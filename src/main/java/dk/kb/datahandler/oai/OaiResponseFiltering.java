@@ -99,8 +99,13 @@ public class OaiResponseFiltering {
     
     //If xip:Manifestation record, return value of field  <ManifestationRef>.
     public static String getPvicaParent(String xml, String origin) {
-        String start="<ManifestationRef>";                    
-        String end="</ManifestationRef>";
+        
+         if (!xml.contains("<xip:Manifestation")) { 
+          return null;    
+        }
+        
+        String start="<DeliverableUnitRef>";                    
+        String end="</DeliverableUnitRef>";
         int indexStart=xml.indexOf(start);
         int indexEnd=xml.indexOf(end);        
         if (indexStart >= 0 && indexEnd >0){
@@ -108,7 +113,7 @@ public class OaiResponseFiltering {
           if (parent.length() < 30 || parent.length() > 40){
               log.warn("ParentID does not seem to have correct format:+parent");
           }                      
-          return parent=origin+":"+parent;
+          return parent=origin+":oai:du:"+parent;
           
         }
         return null;

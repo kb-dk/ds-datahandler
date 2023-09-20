@@ -26,7 +26,7 @@ public class PvicaDataTest {
         String xmlFile = "xml/pvica_parent_test.xml";        
         String xml = Resolver.resolveUTF8String(xmlFile);        
         String parent = OaiResponseFiltering.getPvicaParent(xml,"ds.radiotv");
-        assertEquals("ds.radiotv:6a8d279b-0276-4856-b2ba-77b0162f5d63", parent);        
+        assertEquals("ds.radiotv:oai:du:9d9785a8-71f4-4b34-9a0e-1c99c13b001b", parent);        
     }
 
     @Test
