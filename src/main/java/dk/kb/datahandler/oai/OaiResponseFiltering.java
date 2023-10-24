@@ -43,15 +43,12 @@ public class OaiResponseFiltering {
      */
     public static void addToStorageWithPvicaFiltering(OaiResponse response, DsStorageApi dsAPI,
                                                       String origin, AtomicInteger totalRecordsLoaded,
-                                                     AtomicInteger xipCollectionsCount, AtomicInteger manRelRefNot2Count) throws ApiException {
+                                                      AtomicInteger manRelRefNot2Count) throws ApiException {
         for (OaiRecord  oaiRecord : response.getRecords()) {
             totalRecordsLoaded.getAndAdd(1);
             String storageId=origin+":"+oaiRecord.getId();
-            if (skipPvicaXip(oaiRecord.getMetadata())){
-                // XIP:Collections do not provide any needed metadata. Therefore, they are not added to ds-storage.
-                xipCollectionsCount.getAndAdd(1);                                                
-            }
-            else if (skipManRefRefNot2(oaiRecord.getMetadata())) {
+
+            if (skipManRefRefNot2(oaiRecord.getMetadata())) {
                 manRelRefNot2Count.getAndAdd(1);                                
             }
             else if (oaiRecord.isDeleted()) { //mark for delete
@@ -84,14 +81,6 @@ public class OaiResponseFiltering {
     public static boolean skipManRefRefNot2(String xml) {        
                 
         if (xml.contains("<xip:Manifestation") && !xml.contains("<ManifestationRelRef>2</ManifestationRelRef>")){
-            return true;
-        }                
-        return false;
-    }
-    
-    //Skip '<xip:Collection'
-    public static boolean skipPvicaXip(String xml) {        
-        if (xml.contains("<xip:Collection")){
             return true;
         }                
         return false;
