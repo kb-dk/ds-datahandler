@@ -207,7 +207,6 @@ public class DsDatahandlerFacade {
         OaiResponse response = client.next();
 
         AtomicInteger totalRecordsCount = new AtomicInteger(0);
-        AtomicInteger xipCollectionsCount = new AtomicInteger(0);
         AtomicInteger manRelRefNot2Count = new AtomicInteger(0);
 
         while (response.getRecords().size() >0) {
@@ -215,15 +214,15 @@ public class DsDatahandlerFacade {
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
 
             if (targetName.startsWith("pvica")){
-                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsCount, xipCollectionsCount, manRelRefNot2Count);
+                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsCount, manRelRefNot2Count);
             } else {
                 OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
             }
 
-            if (xipCollectionsCount.intValue() > 0  || manRelRefNot2Count.intValue() > 0){
+            if (manRelRefNot2Count.intValue() > 0){
                 log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
-                            "'{}' xip:Collections have been skipped. '{}' ManifestationRelRef != 2 have been skipped. ",
-                        totalRecordsCount, origin, response.getTotalRecords(), xipCollectionsCount, manRelRefNot2Count);
+                            "'{}' ManifestationRelRef != 2 have been skipped. ",
+                        totalRecordsCount, origin, response.getTotalRecords(), manRelRefNot2Count);
             } else {
                 log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
                         totalRecordsCount, origin, response.getTotalRecords());

@@ -4,6 +4,7 @@ import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.RecordTypeDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,23 +36,19 @@ public class OaiResponseFiltering {
     }
 
     /**
-     * Filter records from OAI-PMH before they are added to ds-storage. This method filters preservica records
-     * containing xip:Collection files, as these contain meta-metadata, which are not used in the ds-ecosystem.
+     * Filter records from OAI-PMH before they are added to ds-storage.
      * @param response  OAI-PMH response containing pvica records.
      * @param dsAPI     api for storage.
      * @param origin    where the harvested OAI-PMH record is extracted from.
      */
     public static void addToStorageWithPvicaFiltering(OaiResponse response, DsStorageApi dsAPI,
                                                       String origin, AtomicInteger totalRecordsLoaded,
-                                                     AtomicInteger xipCollectionsCount, AtomicInteger manRelRefNot2Count) throws ApiException {
+                                                      AtomicInteger manRelRefNot2Count) throws ApiException {
         for (OaiRecord  oaiRecord : response.getRecords()) {
             totalRecordsLoaded.getAndAdd(1);
             String storageId=origin+":"+oaiRecord.getId();
-            if (skipPvicaXip(oaiRecord.getMetadata())){
-                // XIP:Collections do not provide any needed metadata. Therefore, they are not added to ds-storage.
-                xipCollectionsCount.getAndAdd(1);                                                
-            }
-            else if (skipManRefRefNot2(oaiRecord.getMetadata())) {
+
+            if (skipManRefRefNot2(oaiRecord.getMetadata())) {
                 manRelRefNot2Count.getAndAdd(1);                                
             }
             else if (oaiRecord.isDeleted()) { //mark for delete
@@ -77,23 +74,30 @@ public class OaiResponseFiltering {
         dsRecord.setOrigin(origin);
         dsRecord.setData(oaiRecord.getMetadata());
         dsRecord.setParentId(parent); //Does not matter if null is set
+        setRecordType(dsRecord, storageId);
         dsAPI.recordPost(dsRecord);
     }
 
+    /**
+     * Define RecordType from id.
+     * @param dsRecord to specify recordType for.
+     * @param storageId used to define the type of record.
+     */
+    public static void setRecordType(DsRecordDto dsRecord, String storageId) {
+        if (storageId.contains("oai:col")){
+            dsRecord.setRecordType(RecordTypeDto.COLLECTION);
+        } else if (storageId.contains("oai:du")) {
+            dsRecord.setRecordType(RecordTypeDto.DELIVERABLEUNIT);
+        } else if (storageId.contains("oai:man")) {
+            dsRecord.setRecordType(RecordTypeDto.MANIFESTATION);
+        }
+    }
+
     //  If <xip:Manifestation then value must be 2 for <ManifestationRelRef>2</ManifestationRelRef> 
-    public static boolean skipManRefRefNot2(String xml) {        
-                
+    public static boolean skipManRefRefNot2(String xml) {
         if (xml.contains("<xip:Manifestation") && !xml.contains("<ManifestationRelRef>2</ManifestationRelRef>")){
             return true;
-        }                
-        return false;
-    }
-    
-    //Skip '<xip:Collection'
-    public static boolean skipPvicaXip(String xml) {        
-        if (xml.contains("<xip:Collection")){
-            return true;
-        }                
+        }
         return false;
     }
     

@@ -1,8 +1,11 @@
 package dk.kb.datahandler.pvica;
 
+import static dk.kb.datahandler.oai.OaiResponseFiltering.setRecordType;
 import static org.junit.jupiter.api.Assertions.*;
 
 
+import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.RecordTypeDto;
 import org.junit.jupiter.api.Test;
 
 import dk.kb.datahandler.oai.OaiHarvestClient;
@@ -45,6 +48,31 @@ public class PvicaDataTest {
         String xml = Resolver.resolveUTF8String(xmlFile);        
         boolean skip = OaiResponseFiltering.skipManRefRefNot2(xml);
         assertEquals(true,skip);        
+    }
+
+    @Test
+    public void testRecordTypeCol() {
+        DsRecordDto collectionRecord = new DsRecordDto();
+        collectionRecord.setId("ds.test:oai:col:232234234");
+        setRecordType(collectionRecord, collectionRecord.getId());
+
+        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.COLLECTION);
+    }
+    @Test
+    public void testRecordTypeDU() {
+        DsRecordDto collectionRecord = new DsRecordDto();
+        collectionRecord.setId("ds.test:oai:du:232234234");
+        setRecordType(collectionRecord, collectionRecord.getId());
+
+        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.DELIVERABLEUNIT);
+    }
+    @Test
+    public void testRecordTypeMan() {
+        DsRecordDto collectionRecord = new DsRecordDto();
+        collectionRecord.setId("ds.test:oai:man:232234234");
+        setRecordType(collectionRecord, collectionRecord.getId());
+
+        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.MANIFESTATION);
     }
     
     
