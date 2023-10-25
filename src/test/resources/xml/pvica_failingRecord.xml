@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xip="http://www.tessella.com/XIP/v4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2023-10-25T10:22:15Z</responseDate>
+  <request verb="GetRecord" identifier="oai:du:e47690e4-4d37-464f-9006-ba3b017a7c51" metadataPrefix="XIP_full_schema">https://pvica-access-stage.statsbiblioteket.dk/OAI-PMH/</request>
+  <GetRecord>
+    <record>
+      <header>
+        <identifier>oai:du:e47690e4-4d37-464f-9006-ba3b017a7c51</identifier>
+        <datestamp>2023-10-04T09:58:39Z</datestamp>
+      </header>
+      <metadata>
+        <xip:DeliverableUnit xmlns="http://www.tessella.com/XIP/v4" status="changed">
+          <DeliverableUnitRef>e47690e4-4d37-464f-9006-ba3b017a7c51</DeliverableUnitRef>
+        </xip:DeliverableUnit>
+      </metadata>
+      <about>
+        <aboutRecord:aboutRecord xmlns:aboutRecord="http://www.preservica.com/OAI-PMH/Extension" xmlns="http://www.preservica.com/OAI-PMH/Extension">
+          <Identifier>oai:du:e47690e4-4d37-464f-9006-ba3b017a7c51</Identifier>
+          <BaseVersion>aef6a933-6093-4bd9-a070-09cae18b34c0</BaseVersion>
+          <CurrentVersion>e9ae2f5c-9bb4-41a9-872b-1670c3a396bf</CurrentVersion>
+          <ChangeType>Modified</ChangeType>
+        </aboutRecord:aboutRecord>
+      </about>
+    </record>
+  </GetRecord>
+</OAI-PMH>
