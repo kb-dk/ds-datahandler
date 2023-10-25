@@ -121,7 +121,7 @@ public class OaiHarvestClient {
         return uri;
     }
 
-    private ArrayList<OaiRecord> extractRecordsFromXml( Document document ) {
+    public ArrayList<OaiRecord> extractRecordsFromXml( Document document ) {
         NodeList nList = document.getElementsByTagName("record"); 
 
         ArrayList<OaiRecord> records= new ArrayList<OaiRecord>();
