@@ -24,6 +24,9 @@ public class ServiceConfig {
     private static final HashMap<String, OaiTargetDto> oaiTargets = new HashMap<String, OaiTargetDto>();
     private static String oaiTimestampFolder=null;
     private static String dsStorageUrl = null;
+    private static String solrUrl = null;
+    private static String dsPresentUrl = null;
+    
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -44,7 +47,8 @@ public class ServiceConfig {
         
         oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
         dsStorageUrl = serviceConfig.getString("config.storage.url");
-     
+        solrUrl = serviceConfig.getString("config.index.solrUrl");
+        dsPresentUrl = serviceConfig.getString("config.index.dsPresentUrl");
         
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
@@ -70,6 +74,15 @@ public class ServiceConfig {
             throw new IllegalStateException("The configuration should have been loaded, but was not");
         }
         return serviceConfig;
+    }
+
+
+    public static String getSolrUrl() {
+        return solrUrl;
+    }
+    
+    public static String getDsPresentUrl() {
+        return dsPresentUrl;
     }
 
     public static String getDsStorageUrl() {

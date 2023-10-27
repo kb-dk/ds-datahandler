@@ -2,6 +2,8 @@ package dk.kb.datahandler.facade;
 
 import java.io.BufferedInputStream;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ import dk.kb.datahandler.oai.OaiResponseFiltering;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.apache.commons.io.IOUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -27,6 +30,8 @@ import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
+import dk.kb.present.client.v1.DsPresentApi;
+import dk.kb.datahandler.util.HttpPostUtil;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.util.DsStorageClient;
@@ -37,6 +42,7 @@ public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
     
     private static DsStorageApi storageClient;  
+    private static DsPresentApi presentClient;
 
     /**
      * Ingest records directly into ds-storage from a zip-file containing multiple files that each is an xml-file with a single record
@@ -87,6 +93,49 @@ public class DsDatahandlerFacade {
         return errorRecords;         
     }
 
+    
+    /**  
+     *  Will start indexing records from storage into solr. The workflow is
+     *  1) Call ds-present that will extract records from ds-storage and xslt transform them into solr-add documents json
+     *  2) Send the input stream with json documents directly to solr so it is not kept in memory.
+     *  
+     * @param dsPresentCollectionName This collectionName must be define on the ds-present server.
+     * @exception Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
+     */    
+    public static void indexSolr(String dsPresentCollectionName)  throws Exception{
+   
+        //There is no way to validate dsPresentCollectionName exists unless calling again. The input stream is given directly to solr        
+        
+        //Below two lines would work if client was generated with streaming Api
+        //DsPresentApi presentClient = getDsPresentApiClient();
+        //StreamingOutput so = presentClient.getRecords(oaiTarget, 0L, -1L, "SolrJSON");
+        
+        String presentUrl =ServiceConfig.getDsPresentUrl()+"/records?&maxRecords=100000&format=SolrJSON&collection="+dsPresentCollectionName;
+        URL presentURL = new URL(presentUrl);
+        String solrUrl = ServiceConfig.getSolrUrl();        
+        URL solrURL = new URL(solrUrl);
+        
+        HttpURLConnection httpURLConnection = (HttpURLConnection) presentURL.openConnection();        
+        httpURLConnection.setRequestMethod("GET");        
+        try (InputStream inputStream = httpURLConnection.getInputStream()){                 
+            //Give input stream to the POST request.        
+            HttpURLConnection solrServerConnection = (HttpURLConnection) solrURL.openConnection(); 
+            solrServerConnection.setRequestProperty("Content-Type", "application/json");
+            String solrResponse = HttpPostUtil.callPost(solrServerConnection, inputStream);
+            log.info("Response from solr:"+solrResponse); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}           
+
+            if (solrResponse.indexOf("\"status\":0") < 0) {
+                throw new Exception ("Unexpected status from solr:"+solrResponse);
+            }            
+        }
+        catch(Exception e) { //
+            log.error("Error calling ds-present or solr.",e.getMessage());
+            throw new InternalServiceException("Error calling ds-present or solr");
+        }
+                      
+     
+    }
+    
 
     /**
      * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
@@ -274,6 +323,18 @@ public class DsDatahandlerFacade {
       }
     
   
+    private static DsPresentApi getDsPresentApiClient() {       
+        if (presentClient!= null) {
+          return presentClient;
+        }
+          
+       // String dsPresentUrl = ServiceConfig.getDsStorageUrl();                                
+        String dsPresentUrl = "http://devel11.statsbiblioteket.dk:10001/ds-storage/";
+        storageClient = new DsStorageClient(dsPresentUrl);               
+        return presentClient;
+      }
+    
+    
 
     private static synchronized void validateNotAlreadyRunning(String oaiTargetName) {
         boolean alreadyRunning= OaiJobCache.isJobRunningForTarget(oaiTargetName);        

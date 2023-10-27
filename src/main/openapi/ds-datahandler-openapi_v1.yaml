@@ -104,7 +104,28 @@ paths:
             application/json:
               schema:
                 type: integer
-                format: int32      
+                format: int32
+                
+               
+                
+  /solr/index/:
+    get:
+      tags:
+        - '${project.name}'
+      summary: 'Will start indexing workflow that will read records from ds-storage, xslt transform them in ds-present and post the documents to solr'
+      operationId: solrIndex
+      parameters:
+        - name: dsPresentCollectionName
+          in: query
+          description: 'Will call ds-present for solr-records that will be posted to solr. This collection name must be defined in the ds-present configuration'
+          required: true
+          schema:
+            type: string     
+                         
+      responses:
+        '200':
+          description: OK.               
+                      
 
   # The ping service should be in all projects, should not do any advanced processing
   # and should respond quickly with a simple message, e.g. "pong".
