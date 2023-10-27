@@ -112,7 +112,7 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'Will start indexing workflow that will read records from ds-storage, xslt transform them in ds-present and post the documents to solr'
+      summary: 'Will start indexing workflow that will read records from ds-storage, xslt transform them in ds-present and post the documents to solr. There is a hardcoded limit of 100.000 documents maximum'
       operationId: solrIndex
       parameters:
         - name: dsPresentCollectionName
