@@ -41,7 +41,6 @@
     |                  | The origin must be configured in DS-storage. ID will be {origin}:{id in OAI record}                       |
     | description      | Human text to give further description if needed                                                          |
     
-  
     ## Full import and delta import
     For each OAI target configured you can request a full import or a delta import from the OAI collection. A full import will
     harvest all records from to OAI target. A delta import will only import records with a datestamp later than the last record
@@ -132,6 +131,22 @@
         </exclusions>
       </dependency>
         
+
+     <!-- Client for ds-present This will also require the org.openapitools dependency-->     
+     <!-- NOT USED YET. Because client does not return streaming output -->
+      <dependency>
+        <groupId>dk.kb.present</groupId>
+        <artifactId>ds-present</artifactId>
+          <version>1.0</version>
+          <type>jar</type>
+          <classifier>classes</classifier>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+        </exclusions>
+      </dependency>
         
         <dependency>
             <groupId>jakarta.servlet</groupId>

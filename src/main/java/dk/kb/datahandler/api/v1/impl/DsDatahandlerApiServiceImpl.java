@@ -15,6 +15,7 @@ import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Request;
@@ -125,6 +126,17 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }  catch (Exception e){
             throw handleException(e);
         }
+    }
+
+    @Override
+    public void solrIndex(String solrUrl) {
+        log.debug("solrIndex(solrUrl='{}', ...) called with call details: {}", solrUrl, getCallDetails());
+        try {            
+            DsDatahandlerFacade.indexSolr(solrUrl);
+        }  catch (Exception e){
+            throw handleException(e);
+        }
+        
     }
 
 }

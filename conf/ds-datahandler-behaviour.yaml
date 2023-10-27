@@ -117,5 +117,11 @@ config:
   # The ds-storage server to ingest data into 
   storage:
     url: http://localhost:9072/ds-storage/v1    
+  
+  # Indexing to solr
+  index:
+    dsPresentUrl:  http://localhost:9073/ds-present/v1  
+    solrUrl:  http://localhost:10011/solr/ds/update
+    
     
       
