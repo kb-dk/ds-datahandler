@@ -36,31 +36,6 @@ public class OaiResponseFiltering {
     }
 
     /**
-     * Filter records from OAI-PMH before they are added to ds-storage.
-     * @param response  OAI-PMH response containing pvica records.
-     * @param dsAPI     api for storage.
-     * @param origin    where the harvested OAI-PMH record is extracted from.
-     */
-    public static void addToStorageWithPvicaFiltering(OaiResponse response, DsStorageApi dsAPI,
-                                                      String origin, AtomicInteger totalRecordsLoaded,
-                                                      AtomicInteger manRelRefNot2Count) throws ApiException {
-        for (OaiRecord  oaiRecord : response.getRecords()) {
-            totalRecordsLoaded.getAndAdd(1);
-            String storageId=origin+":"+oaiRecord.getId();
-
-            if (skipManRefRefNot2(oaiRecord.getMetadata())) {
-                manRelRefNot2Count.getAndAdd(1);                                
-            }
-            else if (oaiRecord.isDeleted()) { //mark for delete
-                dsAPI.markRecordForDelete(storageId);
-            } else { //Create or update
-                String parent=getPvicaParent(oaiRecord.getMetadata(), origin);                                                               
-                addOrUpdateRecord(oaiRecord, storageId, parent, origin, dsAPI);
-            }
-        }        
-    }
-
-    /**
      * Add or update record in ds-storage.
      * @param oaiRecord record from OAI-PMH to ingest to ds-storage.
      * @param storageId id given to the record in ds-storage.
@@ -93,13 +68,6 @@ public class OaiResponseFiltering {
         }
     }
 
-    //  If <xip:Manifestation then value must be 2 for <ManifestationRelRef>2</ManifestationRelRef> 
-    public static boolean skipManRefRefNot2(String xml) {
-        if (xml.contains("<xip:Manifestation") && !xml.contains("<ManifestationRelRef>2</ManifestationRelRef>")){
-            return true;
-        }
-        return false;
-    }
     
     //If xip:Manifestation record, return value of field  <ManifestationRef>.
     public static String getPvicaParent(String xml, String origin) {

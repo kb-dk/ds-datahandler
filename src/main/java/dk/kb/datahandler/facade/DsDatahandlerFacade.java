@@ -268,26 +268,17 @@ public class DsDatahandlerFacade {
         OaiResponse response = client.next();
 
         AtomicInteger totalRecordsCount = new AtomicInteger(0);
-        AtomicInteger manRelRefNot2Count = new AtomicInteger(0);
 
         while (response.getRecords().size() >0) {
 
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
 
-            if (targetName.startsWith("pvica")){
-                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsCount, manRelRefNot2Count);
-            } else {
-                OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
-            }
 
-            if (manRelRefNot2Count.intValue() > 0){
-                log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records. " +
-                            "'{}' ManifestationRelRef != 2 have been skipped. ",
-                        totalRecordsCount, origin, response.getTotalRecords(), manRelRefNot2Count);
-            } else {
-                log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
-                        totalRecordsCount, origin, response.getTotalRecords());
-            }
+            OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
+
+
+            log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
+                    totalRecordsCount, origin, response.getTotalRecords());
 
             //Update timestamp with timestamp from last OAI record.
             HarvestTimeUtil.updateDatestampForOaiTarget(oaiTargetDto,lastRecord.getDateStamp());

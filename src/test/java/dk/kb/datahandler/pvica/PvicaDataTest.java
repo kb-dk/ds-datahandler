@@ -53,15 +53,6 @@ public class PvicaDataTest {
         assertTrue(xmlFixed.indexOf("<xip:Manifestation xmlns:xip=\"http://www.tessella.com/XIP/v4\"") > 0);
     }
 
-
-    @Test
-    public void testSkipPvicaRelRef() throws Exception{
-        String xmlFile = "xml/pvica_skip_manifestationRelRef.xml";        
-        String xml = Resolver.resolveUTF8String(xmlFile);        
-        boolean skip = OaiResponseFiltering.skipManRefRefNot2(xml);
-        assertEquals(true,skip);        
-    }
-
     @Test
     public void testRecordTypeCol() {
         DsRecordDto collectionRecord = new DsRecordDto();
