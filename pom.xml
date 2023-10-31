@@ -131,23 +131,6 @@
         </exclusions>
       </dependency>
         
-
-     <!-- Client for ds-present This will also require the org.openapitools dependency-->     
-     <!-- NOT USED YET. Because client does not return streaming output -->
-      <dependency>
-        <groupId>dk.kb.present</groupId>
-        <artifactId>ds-present</artifactId>
-          <version>1.0</version>
-          <type>jar</type>
-          <classifier>classes</classifier>
-          <exclusions>
-            <exclusion>
-              <groupId>*</groupId>
-              <artifactId>*</artifactId>
-            </exclusion>
-        </exclusions>
-      </dependency>
-        
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
