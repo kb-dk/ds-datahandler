@@ -6,6 +6,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  *  Util class for doing POST request with an InputStream so it is not loaded into memory
@@ -13,7 +19,7 @@ import java.net.HttpURLConnection;
  */
 
 public class HttpPostUtil {
-        
+    private static final Logger log = LoggerFactory.getLogger(HttpPostUtil .class);
     
     /**
      * Takes an InputStream and feeds it to a HTTP post request
@@ -36,29 +42,21 @@ public class HttpPostUtil {
         conn.setDoOutput(true);
         
         try (input ; OutputStream out = conn.getOutputStream()){
-            
-            byte[] data = new byte[1024];
-            int read = 0;
-            while ((read = input.read(data, 0, data.length)) != -1) {
-                out.write(data, 0, read);
-            }
-
-            input.close();
-            out.flush();
-            out.close();
+            long copiedBytes = IOUtils.copyLarge(input, out);
+             log.info("Stream bytes read:"+copiedBytes);
+            out.flush();           
+        }
+       
+        try (InputStream is = conn.getInputStream()) {
+            return IOUtils.toString(is, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.warn("Exception posting to " + conn.getURL(), e);
+        }
+        try (InputStream err = conn.getErrorStream()) {
+            return IOUtils.toString(err, StandardCharsets.UTF_8);
         }
         
-        try (InputStream is = conn.getInputStream()){              
-          StringBuilder buf = new StringBuilder();
-          BufferedReader in = new BufferedReader(new InputStreamReader(is,"UTF-8"));
-          String inputLine;
-          while ((inputLine = in.readLine()) != null) {
-            buf.append(inputLine);
-          }
-          in.close();
-
-          return buf.toString();
-        }
+          
     }
 }
 
