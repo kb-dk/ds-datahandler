@@ -47,8 +47,8 @@ public class ServiceConfig {
         
         oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
         dsStorageUrl = serviceConfig.getString("config.storage.url");
-        solrUrl = serviceConfig.getString("config.index.solrUrl");
-        dsPresentUrl = serviceConfig.getString("config.index.dsPresentUrl");
+        solrUrl = serviceConfig.getString("config.solr.url");
+        dsPresentUrl = serviceConfig.getString("config.present.url");
         
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            

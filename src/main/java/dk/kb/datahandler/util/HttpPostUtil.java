@@ -14,17 +14,29 @@ import java.net.HttpURLConnection;
 
 public class HttpPostUtil {
         
-    public static String callPost(HttpURLConnection conn, InputStream input) throws IOException {
+    
+    /**
+     * Takes an InputStream and feeds it to a HTTP post request
+     * 
+     * 
+     * @param conn Connected data will be posted to
+     * @param input Stream having json data
+     * @param contentType. Example :  'application/json'
+     * @return Response string from server.
+     * @throws IOException
+     */
+    
+    
+    public static String callPost(HttpURLConnection conn, InputStream input, String contentType) throws IOException {
+        conn.setRequestProperty("Content-Type", contentType);
         conn.setRequestMethod("POST");
-        conn.setConnectTimeout(30 * 1000);
-        conn.setReadTimeout(30 * 1000);
+        conn.setConnectTimeout(30 * 1000); //30 secs
+        conn.setReadTimeout(60 * 1000); // 10 minutes 600 secs. Maybe large load needs to be delivered.
         conn.setUseCaches(false);
-
-        if (input != null) {
-            conn.setDoOutput(true);
-
-            OutputStream out = conn.getOutputStream();
-
+        conn.setDoOutput(true);
+        
+        try (input ; OutputStream out = conn.getOutputStream()){
+            
             byte[] data = new byte[1024];
             int read = 0;
             while ((read = input.read(data, 0, data.length)) != -1) {
@@ -34,27 +46,19 @@ public class HttpPostUtil {
             input.close();
             out.flush();
             out.close();
-        } else {
-            conn.connect();
         }
-
-        InputStream is = null;
-
-        try {
-            is = conn.getInputStream();
-        } catch (IOException e) {
-            is = conn.getErrorStream();
-        }
-
-        StringBuilder buf = new StringBuilder();
-        BufferedReader in = new BufferedReader(new InputStreamReader(is,"UTF-8"));
-        String inputLine;
-        while ((inputLine = in.readLine()) != null) {
+        
+        try (InputStream is = conn.getInputStream()){              
+          StringBuilder buf = new StringBuilder();
+          BufferedReader in = new BufferedReader(new InputStreamReader(is,"UTF-8"));
+          String inputLine;
+          while ((inputLine = in.readLine()) != null) {
             buf.append(inputLine);
-        }
-        in.close();
+          }
+          in.close();
 
-        return buf.toString();
+          return buf.toString();
+        }
     }
 }
 

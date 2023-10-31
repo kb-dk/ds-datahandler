@@ -117,11 +117,14 @@ config:
   # The ds-storage server to ingest data into 
   storage:
     url: http://localhost:9072/ds-storage/v1    
+
+  # solr. Used by workflow that extracts from storage, xslt and index into solr.  
+  solr:
+    url:  http://localhost:10011/solr/ds/update
   
-  # Indexing to solr
-  index:
-    dsPresentUrl:  http://localhost:9073/ds-present/v1  
-    solrUrl:  http://localhost:10011/solr/ds/update
+  # The ds-present server used for xslt
+  present:
+    url: http://localhost:9073/ds-present/v1
     
     
       

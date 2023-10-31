@@ -108,16 +108,16 @@ paths:
                 
                
                 
-  /solr/index/:
+  /solr/index/full:
     get:
       tags:
         - '${project.name}'
       summary: 'Will start indexing workflow that will read records from ds-storage, xslt transform them in ds-present and post the documents to solr. There is a hardcoded limit of 100.000 documents maximum'
       operationId: solrIndex
       parameters:
-        - name: dsPresentCollectionName
+        - name: origin
           in: query
-          description: 'Will call ds-present for solr-records that will be posted to solr. This collection name must be defined in the ds-present configuration'
+          description: 'Will call ds-present for solr-records that will be posted to solr. Origin must be defined in the ds-present configuration'
           required: true
           schema:
             type: string     
