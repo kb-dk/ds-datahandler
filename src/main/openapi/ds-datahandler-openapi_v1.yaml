@@ -65,7 +65,7 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'Start full ingest of a OAI target into DS-storage. From time will be 1900-01-01. When called the job will finished if no errors are encountered even if the socket is closed from the client triggering the call.'
+      summary: 'Start full ingest of a OAI target into DS-storage. From time will be 1900-01-01. When called the job will finished if no errors are encountered even if the socket is closed from the client triggering the call. After full ingest ds-storage will be called again and all older recorders from before the ingest fill be deleted.'
       operationId: oaiIngestFull
       parameters:
         - name: oaiTarget

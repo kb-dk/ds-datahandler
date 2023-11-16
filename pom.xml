@@ -120,7 +120,7 @@
       <dependency>
         <groupId>dk.kb.storage</groupId>
         <artifactId>ds-storage</artifactId>
-          <version>1.5</version>
+          <version>1.8</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>

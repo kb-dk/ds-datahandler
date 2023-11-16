@@ -66,6 +66,9 @@ public class OaiResponseFiltering {
         } else if (storageId.contains("oai:man")) {
             dsRecord.setRecordType(RecordTypeDto.MANIFESTATION);
         }
+        else {
+            dsRecord.setRecordType(RecordTypeDto.DELIVERABLEUNIT);
+        }
     }
 
     

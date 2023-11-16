@@ -81,7 +81,7 @@ public class OaiHarvestClient {
         String  resumptionToken=  getResumptionToken(document);
         oaiResponse.setTotalRecords(getResumptionTotalSize(document));        
 
-        if (resumptionToken != null) {
+        if (resumptionToken != null && !resumptionToken.equals("")) {
             this.resumptionToken = resumptionToken;  
             oaiResponse.setResumptionToken(resumptionToken);
         }
