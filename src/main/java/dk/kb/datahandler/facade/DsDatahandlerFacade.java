@@ -38,6 +38,7 @@ import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.HttpPostUtil;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.OriginCountDto;
 import dk.kb.storage.util.DsStorageClient;
 
 
@@ -189,13 +190,14 @@ public class DsDatahandlerFacade {
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
+     * After full ingest ds-storage will be called again and all older recorders from before the ingest fill be deleted. 
      *  
      * @param  oaiTargetName the location of the image, relative to the url argument
      * @return Number of harvested records.
      */    
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
 
-
+    	
         //Test no job is running before starting new for same target
         validateNotAlreadyRunning(oaiTargetName);
 
@@ -205,8 +207,13 @@ public class DsDatahandlerFacade {
         }
 
         OaiTargetJob job = createNewJob(oaiTargetDto);
+        //Get last modified record from ds-storage. After the full Ingest, all records earlier that this (included) will be deleted from ds-storage
+        DsStorageApi dsAPI = getDsStorageApiClient(); 
+    	List<OriginCountDto> originStatistics = dsAPI.getOriginStatistics();
 
-
+    	
+     	long lastModifiedForOrigin= getLastModifiedTimeForOrigin(originStatistics, oaiTargetDto.getOrigin());
+        
         //register job
         OaiJobCache.addNewJob(job);            
 
@@ -214,6 +221,10 @@ public class DsDatahandlerFacade {
 
             int number= oaiIngest(job , null);        
             OaiJobCache.finishJob(job, number,false);//No error
+
+            //Delete old records in storage from before.
+            Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getOrigin(), 0L, lastModifiedForOrigin);
+            log.info("After full ingest for origin={}, deleted {} old records in storage",oaiTargetDto.getOrigin(),numberDeleted);
             return number;
         }
         catch(Exception e) {
@@ -325,6 +336,20 @@ public class DsDatahandlerFacade {
         return storageClient;
       }
            
+    
+    private static long getLastModifiedTimeForOrigin(List<OriginCountDto> originStatistics, String origin) {
+    	for (OriginCountDto dto :originStatistics) {
+    		if (dto.getOrigin().equals(origin)) {
+    			return dto.getLatestMTime();
+    		}
+    	}
+
+    	//Can happen if there is no records in the origin
+    	log.warn("Origin name was not found in origin-statistics returned from ds-storage. Using mTime=0 for Origin:"+origin);
+    	return 0L;
+    	
+    	
+    }
 
     private static synchronized void validateNotAlreadyRunning(String oaiTargetName) {
         boolean alreadyRunning= OaiJobCache.isJobRunningForTarget(oaiTargetName);        

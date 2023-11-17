@@ -55,16 +55,23 @@ public class OaiResponseFiltering {
 
     /**
      * Define RecordType from id.
+     * For Pvica posts all 3 values can be defined.
+     * For OAI records from other collections such is images, the default will be RecordTypeDto.DELIVERABLEUNIT.
+     * 
+     * 
      * @param dsRecord to specify recordType for.
      * @param storageId used to define the type of record.
      */
     public static void setRecordType(DsRecordDto dsRecord, String storageId) {
-        if (storageId.contains("oai:col")){
+    	if (storageId.contains("oai:col")){
             dsRecord.setRecordType(RecordTypeDto.COLLECTION);
         } else if (storageId.contains("oai:du")) {
             dsRecord.setRecordType(RecordTypeDto.DELIVERABLEUNIT);
         } else if (storageId.contains("oai:man")) {
             dsRecord.setRecordType(RecordTypeDto.MANIFESTATION);
+        }
+        else {
+            dsRecord.setRecordType(RecordTypeDto.DELIVERABLEUNIT);
         }
     }
 
