@@ -45,10 +45,10 @@ public class ServiceConfig {
         serviceConfig = YAML.resolveLayeredConfigs(configFile);
         loadOaiTargets();
         
-        oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
-        dsStorageUrl = serviceConfig.getString("config.storage.url");
-        solrUrl = serviceConfig.getString("config.solr.url");
-        dsPresentUrl = serviceConfig.getString("config.present.url");
+        oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
+        dsStorageUrl = serviceConfig.getString("storage.url");
+        solrUrl = serviceConfig.getString("solr.url");
+        dsPresentUrl = serviceConfig.getString("present.url");
         
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
@@ -99,7 +99,7 @@ public class ServiceConfig {
 
     
     private static void loadOaiTargets() {
-        List<YAML> targets = serviceConfig.getYAMLList("config.oai_targets");
+        List<YAML> targets = serviceConfig.getYAMLList("oai_targets");
         for (YAML target: targets) {
             String name = target.getString("name");
             String url = target.getString("url");
