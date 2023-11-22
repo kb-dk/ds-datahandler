@@ -285,7 +285,11 @@ public class DsDatahandlerFacade {
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
 
 
-            OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
+            if (targetName.startsWith("pvica")){
+                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsCount);
+            } else {
+                OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
+            }
 
 
             log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
