@@ -36,6 +36,27 @@ public class OaiResponseFiltering {
     }
 
     /**
+     * Filter records from OAI-PMH before they are added to ds-storage.
+     * @param response  OAI-PMH response containing pvica records.
+     * @param dsAPI     api for storage.
+     * @param origin    where the harvested OAI-PMH record is extracted from.
+     */
+    public static void addToStorageWithPvicaFiltering(OaiResponse response, DsStorageApi dsAPI,
+                                                      String origin, AtomicInteger totalRecordsLoaded) throws ApiException {
+        for (OaiRecord  oaiRecord : response.getRecords()) {
+            totalRecordsLoaded.getAndAdd(1);
+            String storageId=origin+":"+oaiRecord.getId();
+
+            if (oaiRecord.isDeleted()) { //mark for delete
+                dsAPI.markRecordForDelete(storageId);
+            } else { //Create or update
+                String parent=getPvicaParent(oaiRecord.getMetadata(), origin);
+                addOrUpdateRecord(oaiRecord, storageId, parent, origin, dsAPI);
+            }
+        }
+    }
+
+    /**
      * Add or update record in ds-storage.
      * @param oaiRecord record from OAI-PMH to ingest to ds-storage.
      * @param storageId id given to the record in ds-storage.
@@ -92,7 +113,7 @@ public class OaiResponseFiltering {
           if (parent.length() < 30 || parent.length() > 40){
               log.warn("ParentID does not seem to have correct format:+parent");
           }                      
-          return parent=origin+":oai:du:"+parent;
+          return origin+":oai:du:"+parent;
           
         }
         return null;
