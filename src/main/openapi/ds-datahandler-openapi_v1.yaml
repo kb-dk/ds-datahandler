@@ -254,7 +254,8 @@ components:
         datasource:
           type: string
           description: |
-            Name of the origin when ingesting into DS-storage. The datasource must be configured in ds-storage.
+            A datasource defines where the OAI harvester has harvested the data from.
+            The datasource must be configured in ds-storage.
             For most targets, the datasource gets used as the direct origin in DS-Storage. However, some datasources may
             be split into multiple origins. An example of this are records harvested from preservica, where radio and tv
             are harvested from one datasource, but are put into their own respective origin in DS-storage.
