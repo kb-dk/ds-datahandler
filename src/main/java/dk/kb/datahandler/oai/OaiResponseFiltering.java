@@ -16,42 +16,46 @@ public class OaiResponseFiltering {
 
     /**
      * Add record from OAI-PMH harvest to ds-storage without applying any filtering.
-     * @param response  OAI-PMH response containing records.
-     * @param dsAPI     api for storage.
-     * @param origin    where the harvested OAI-PMH record is extracted from.
-     * @return          the number of records loaded in total.
+     * @param response      OAI-PMH response containing records.
+     * @param dsAPI         api for storage.
+     * @param datasource    where the harvested OAI-PMH record is extracted from.
+     *                      This value is used as origin in DS-storage
      */
     public static void addToStorageWithoutFiltering(OaiResponse response, DsStorageApi dsAPI,
-                                                    String origin, AtomicInteger totalRecordsLoaded) throws ApiException {
+                                                    String datasource, AtomicInteger totalRecordsLoaded) throws ApiException {
 
         for (OaiRecord  oaiRecord : response.getRecords()) {
             totalRecordsLoaded.getAndAdd(1);
-            String storageId=origin+":"+oaiRecord.getId();
+            String storageId=datasource+":"+oaiRecord.getId();
             if (oaiRecord.isDeleted()) { //mark for delete
                 dsAPI.markRecordForDelete(storageId);
             } else { //Create or update
-                addOrUpdateRecord(oaiRecord, storageId, null, origin, dsAPI); //No parent
+                addOrUpdateRecord(oaiRecord, storageId, null, datasource, dsAPI); //No parent
             }
         }
     }
 
     /**
      * Filter records from OAI-PMH before they are added to ds-storage.
-     * This method extracts
+     * This method extracts a specific origin for each record from the preservica OAI response and
+     * checks for references to parent records in the record in hand.
      * @param response  OAI-PMH response containing pvica records.
      * @param dsAPI     api for storage.
-     * @param origin    where the harvested OAI-PMH record is extracted from.
      */
     public static void addToStorageWithPvicaFiltering(OaiResponse response, DsStorageApi dsAPI,
-                                                      String origin, AtomicInteger totalRecordsLoaded) throws ApiException {
+                                                      AtomicInteger totalRecordsLoaded) throws ApiException {
         for (OaiRecord  oaiRecord : response.getRecords()) {
             totalRecordsLoaded.getAndAdd(1);
+
+            String xmlContent = oaiRecord.getMetadata();
+            String origin = getCorrectPvicaOrigin(xmlContent);
+
             String storageId=origin+":"+oaiRecord.getId();
 
             if (oaiRecord.isDeleted()) { //mark for delete
                 dsAPI.markRecordForDelete(storageId);
             } else { //Create or update
-                String parent=getPvicaParent(oaiRecord.getMetadata(), origin);
+                String parent=getPvicaParent(xmlContent, origin);
                 addOrUpdateRecord(oaiRecord, storageId, parent, origin, dsAPI);
             }
         }
@@ -118,7 +122,23 @@ public class OaiResponseFiltering {
           
         }
         return null;
-        
+    }
+
+    /**
+     * Extract origin from Preservica XML by looking for the tag {@code formatMediaType} and then define origin based
+     * on the value present.
+     * @param xmlContent a preservica XML record delivered through a OAI harvest.
+     * @return a value used as origin in ds-storage for preservica records.
+     */
+    private static String getCorrectPvicaOrigin(String xmlContent) {
+        if (xmlContent.contains("<formatMediaType>Sound</formatMediaType>")){
+            return "ds.radio";
+        } else if (xmlContent.contains("<formatMediaType>Moving Image</formatMediaType>")){
+            return "ds.tv";
+        } else {
+            // Not quite sure what we should do in the case where nothing gets matched.
+            return "";
+        }
     }
     
     
