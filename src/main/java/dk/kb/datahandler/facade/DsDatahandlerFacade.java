@@ -103,8 +103,8 @@ public class DsDatahandlerFacade {
      *  1) Call ds-present that will extract records from ds-storage and xslt transform them into solr-add documents json
      *  2) Send the input stream with json documents directly to solr so it is not kept in memory.
      *  
-     * @param origin. Origin must be define on the ds-present server.
-     * @exception Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
+     * @param origin Origin must be defined on the ds-present server.
+     * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
     public static void indexSolr(String origin)  throws Exception{
    
@@ -212,7 +212,7 @@ public class DsDatahandlerFacade {
     	List<OriginCountDto> originStatistics = dsAPI.getOriginStatistics();
 
     	
-     	long lastModifiedForOrigin= getLastModifiedTimeForOrigin(originStatistics, oaiTargetDto.getOrigin());
+     	long lastModifiedForOrigin= getLastModifiedTimeForOrigin(originStatistics, oaiTargetDto.getDatasource());
         
         //register job
         OaiJobCache.addNewJob(job);            
@@ -223,8 +223,8 @@ public class DsDatahandlerFacade {
             OaiJobCache.finishJob(job, number,false);//No error
 
             //Delete old records in storage from before.
-            Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getOrigin(), 0L, lastModifiedForOrigin);
-            log.info("After full ingest for origin={}, deleted {} old records in storage",oaiTargetDto.getOrigin(),numberDeleted);
+            Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getDatasource(), 0L, lastModifiedForOrigin);
+            log.info("After full ingest for origin={}, deleted {} old records in storage",oaiTargetDto.getDatasource(),numberDeleted);
             return number;
         }
         catch(Exception e) {
@@ -271,7 +271,7 @@ public class DsDatahandlerFacade {
             from = from.substring(0,10);               
         }
 
-        String origin=oaiTargetDto.getOrigin();
+        String origin=oaiTargetDto.getDatasource();
         String targetName = oaiTargetDto.getName();
 
         DsStorageApi dsAPI = getDsStorageApiClient();        
