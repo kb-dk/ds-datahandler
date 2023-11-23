@@ -114,12 +114,12 @@ public class DsDatahandlerFacade {
         //DsPresentApi presentClient = getDsPresentApiClient();
         //StreamingOutput so = presentClient.getRecords(oaiTarget, 0L, -1L, "SolrJSON");
                 
-               
+        // TODO: Convert this to ds-present client when the client supports true streaming
          URL presentUrl= new URIBuilder(ServiceConfig.getDsPresentUrl()+"/records")                           
                             //.setPath("records") //This will set whole path, needs the /records above                           
                            .setParameter("maxRecords", "100000")
                            .setParameter("format", "SolrJSON")
-                           .setParameter("collection", origin)
+                           .setParameter("origin", origin)
                            .build().toURL();
                         
          log.info("present URL protocol:"+presentUrl.getProtocol());
