@@ -37,6 +37,7 @@ public class OaiResponseFiltering {
 
     /**
      * Filter records from OAI-PMH before they are added to ds-storage.
+     * This method extracts
      * @param response  OAI-PMH response containing pvica records.
      * @param dsAPI     api for storage.
      * @param origin    where the harvested OAI-PMH record is extracted from.

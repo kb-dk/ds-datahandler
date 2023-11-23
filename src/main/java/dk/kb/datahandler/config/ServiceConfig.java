@@ -104,7 +104,7 @@ public class ServiceConfig {
             String name = target.getString("name");
             String url = target.getString("url");
             String set = target.getString("set",null);
-            String origin = target.getString("origin");
+            String datasource = target.getString("datasource");
             String metadataPrefix = target.getString("metadataPrefix");
             String description = target.getString("description");
             String user=target.getString("user",null);
@@ -117,7 +117,7 @@ public class ServiceConfig {
             oaiTarget.setMetadataprefix(metadataPrefix);
             oaiTarget.setUsername(user);
             oaiTarget.setPassword(password);
-            oaiTarget.setOrigin(origin);
+            oaiTarget.setDatasource(datasource);
             oaiTarget.setDecription(description);            
             oaiTargets.put(name, oaiTarget);
             
