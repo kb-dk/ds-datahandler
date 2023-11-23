@@ -286,7 +286,7 @@ public class DsDatahandlerFacade {
 
 
             if (targetName.startsWith("pvica")){
-                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsCount);
+                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, totalRecordsCount);
             } else {
                 OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
             }
