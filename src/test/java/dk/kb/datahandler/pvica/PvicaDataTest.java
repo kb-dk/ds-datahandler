@@ -45,6 +45,21 @@ public class PvicaDataTest {
     }
 
     @Test
+    public void testGetPvicaOriginRadio() throws Exception{
+        String xmlFile = "xml/pvica_origin_radio.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+        String origin = OaiResponseFiltering.getCorrectPvicaOrigin(xml);
+        assertEquals("ds.radio", origin);
+    }
+    @Test
+    public void testGetPvicaOriginTv() throws Exception{
+        String xmlFile = "xml/pvica_origin_tv.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+        String origin = OaiResponseFiltering.getCorrectPvicaOrigin(xml);
+        assertEquals("ds.tv", origin);
+    }
+
+    @Test
     public void testManifestationNameSpaceFix() throws Exception{
         String xmlFile = "xml/pvica_manifestation_namespace_to_fix.xml";
         String xml = Resolver.resolveUTF8String(xmlFile);
