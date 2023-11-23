@@ -101,10 +101,14 @@ public class OaiResponseFiltering {
         }
     }
 
-    
-    //If xip:Manifestation record, return value of field  <ManifestationRef>.
+
+    /**
+     * If input XML is a preservica manifestation, then check for relations to a DeliverableUnit.
+     * @param xml to check for parent record.
+     * @param origin used to create correct ID for parent record.
+     * @return the ID with origin prefixed for found parent record.
+     */
     public static String getPvicaParent(String xml, String origin) {
-        
          if (!xml.contains("<xip:Manifestation")) { 
           return null;    
         }
@@ -130,7 +134,7 @@ public class OaiResponseFiltering {
      * @param xmlContent a preservica XML record delivered through a OAI harvest.
      * @return a value used as origin in ds-storage for preservica records.
      */
-    private static String getCorrectPvicaOrigin(String xmlContent) {
+    public static String getCorrectPvicaOrigin(String xmlContent) {
         if (xmlContent.contains("<formatMediaType>Sound</formatMediaType>")){
             return "ds.radio";
         } else if (xmlContent.contains("<formatMediaType>Moving Image</formatMediaType>")){
