@@ -37,25 +37,27 @@ public class OaiResponseFiltering {
 
     /**
      * Filter records from OAI-PMH before they are added to ds-storage.
-     * This method extracts a specific origin for each record from the preservica OAI response and
-     * checks for references to parent records in the record in hand.
+     * This method checks for references to parent records in the record in hand.
      * @param response  OAI-PMH response containing pvica records.
      * @param dsAPI     api for storage.
      */
     public static void addToStorageWithPvicaFiltering(OaiResponse response, DsStorageApi dsAPI,
-                                                      AtomicInteger totalRecordsLoaded) throws ApiException {
+                                                      String origin, AtomicInteger totalRecordsLoaded) throws ApiException {
         for (OaiRecord  oaiRecord : response.getRecords()) {
             totalRecordsLoaded.getAndAdd(1);
 
+            /*
+            // This filtering has been rolled back, as it's not possible to correct the origins for all preservica reocrd types.
             String xmlContent = oaiRecord.getMetadata();
-            String origin = getCorrectPvicaOrigin(xmlContent);
+            String correctOrigin = getCorrectPvicaOrigin(xmlContent);
+             */
 
             String storageId=origin+":"+oaiRecord.getId();
 
             if (oaiRecord.isDeleted()) { //mark for delete
                 dsAPI.markRecordForDelete(storageId);
             } else { //Create or update
-                String parent=getPvicaParent(xmlContent, origin);
+                String parent=getPvicaParent(oaiRecord.getMetadata(), origin);
                 addOrUpdateRecord(oaiRecord, storageId, parent, origin, dsAPI);
             }
         }
@@ -128,12 +130,12 @@ public class OaiResponseFiltering {
         return null;
     }
 
-    /**
+    /*
+     * THIS METHOD HAS BEEN COMMENTED OUT AS WE CANT SPLIT PRESERVICA CONTENT INTO MULTIPLE ORIGINS AS OF NOW.
      * Extract origin from Preservica XML by looking for the tag {@code formatMediaType} and then define origin based
      * on the value present.
      * @param xmlContent a preservica XML record delivered through a OAI harvest.
      * @return a value used as origin in ds-storage for preservica records.
-     */
     public static String getCorrectPvicaOrigin(String xmlContent) {
         if (xmlContent.contains("<formatMediaType>Sound</formatMediaType>")){
             return "ds.radio";
@@ -143,7 +145,7 @@ public class OaiResponseFiltering {
             // Not quite sure what we should do in the case where nothing gets matched.
             return "";
         }
-    }
+    }*/
     
     
 }

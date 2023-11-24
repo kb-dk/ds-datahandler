@@ -212,7 +212,7 @@ public class DsDatahandlerFacade {
     	List<OriginCountDto> originStatistics = dsAPI.getOriginStatistics();
 
     	
-     	long lastModifiedForOrigin= getLastModifiedTimeForOrigin(originStatistics, oaiTargetDto.getDatasource());
+     	long lastModifiedForOrigin= getLastModifiedTimeForOrigin(originStatistics, oaiTargetDto.getOrigin());
         
         //register job
         OaiJobCache.addNewJob(job);            
@@ -223,8 +223,8 @@ public class DsDatahandlerFacade {
             OaiJobCache.finishJob(job, number,false);//No error
 
             //Delete old records in storage from before.
-            Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getDatasource(), 0L, lastModifiedForOrigin);
-            log.info("After full ingest for origin={}, deleted {} old records in storage",oaiTargetDto.getDatasource(),numberDeleted);
+            Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getOrigin(), 0L, lastModifiedForOrigin);
+            log.info("After full ingest for origin={}, deleted {} old records in storage",oaiTargetDto.getOrigin(),numberDeleted);
             return number;
         }
         catch(Exception e) {
@@ -271,7 +271,7 @@ public class DsDatahandlerFacade {
             from = from.substring(0,10);               
         }
 
-        String origin=oaiTargetDto.getDatasource();
+        String origin=oaiTargetDto.getOrigin();
         String targetName = oaiTargetDto.getName();
 
         DsStorageApi dsAPI = getDsStorageApiClient();        
@@ -286,7 +286,7 @@ public class DsDatahandlerFacade {
 
 
             if (targetName.startsWith("pvica")){
-                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, totalRecordsCount);
+                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsCount);
             } else {
                 OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
             }
