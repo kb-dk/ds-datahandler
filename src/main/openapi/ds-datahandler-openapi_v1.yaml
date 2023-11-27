@@ -261,6 +261,16 @@ components:
           type: string
           description: 'Human readable name for the collection.'                
           example: 'H.C. Andersen'
+        filter:
+          type: string
+          enum:  ['direct', 'preservica']
+          description: |
+            Special handling of record. Possible value are
+            * `direct`:     No special handling
+            * `preservica`: ID for the parent record, if present, is extracted from the 
+                            [Preservica](https://preservica.com/) XIP content of the record
+          example: 'direct'
+          default: 'direct'
 
     OaiJob:
       type: object

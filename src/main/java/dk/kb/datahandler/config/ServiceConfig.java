@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -109,7 +110,16 @@ public class ServiceConfig {
             String description = target.getString("description");
             String user=target.getString("user",null);
             String password=target.getString("password",null);
-                        
+            String filterStr = target.getString("filter","direct");
+            OaiTargetDto.FilterEnum filter;
+            try {
+                filter = OaiTargetDto.FilterEnum.fromValue(filterStr);
+            } catch (IllegalArgumentException e) {
+                log.error("Filter '{}' for target name '{}' not supported. Supported filters are: {}",
+                        filterStr, name, Arrays.toString(OaiTargetDto.FilterEnum.values()));
+                throw e;
+            }
+
             OaiTargetDto oaiTarget = new OaiTargetDto();
             oaiTarget.setName(name);
             oaiTarget.setUrl(url);       
@@ -118,7 +128,8 @@ public class ServiceConfig {
             oaiTarget.setUsername(user);
             oaiTarget.setPassword(password);
             oaiTarget.setOrigin(origin);
-            oaiTarget.setDecription(description);            
+            oaiTarget.setDecription(description);
+            oaiTarget.setFilter(filter);
             oaiTargets.put(name, oaiTarget);
             
             log.info("Load OAI target from yaml:"+name);

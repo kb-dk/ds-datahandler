@@ -13,9 +13,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 
+import dk.kb.datahandler.oai.*;
 import org.apache.http.client.utils.URIBuilder;
 
-import dk.kb.datahandler.oai.OaiResponseFiltering;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.apache.commons.io.IOUtils;
@@ -29,11 +29,6 @@ import org.w3c.dom.Node;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.OaiHarvestClient;
-import dk.kb.datahandler.oai.OaiJobCache;
-import dk.kb.datahandler.oai.OaiRecord;
-import dk.kb.datahandler.oai.OaiResponse;
-import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.HttpPostUtil;
 import dk.kb.storage.client.v1.DsStorageApi;
@@ -46,7 +41,7 @@ public class DsDatahandlerFacade {
 
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
     
-    private static DsStorageApi storageClient;  
+    private static DsStorageClient storageClient;
     
     /**
      * Ingest records directly into ds-storage from a zip-file containing multiple files that each is an xml-file with a single record
@@ -271,29 +266,37 @@ public class DsDatahandlerFacade {
             from = from.substring(0,10);               
         }
 
+        // TODO: Change this to datasource in the OpenAPI specification
         String origin=oaiTargetDto.getOrigin();
         String targetName = oaiTargetDto.getName();
 
-        DsStorageApi dsAPI = getDsStorageApiClient();        
+        DsStorageClient dsAPI = getDsStorageApiClient();
         OaiHarvestClient client = new OaiHarvestClient(job,from);
         OaiResponse response = client.next();
 
-        AtomicInteger totalRecordsCount = new AtomicInteger(0);
+        OaiResponseFilter oaiFilter;
+        if (oaiTargetDto.getFilter() == null) {
+            throw new IllegalStateException("The filter for OaiTargetDto '" + targetName + "' was null");
+        }
+        switch (oaiTargetDto.getFilter()) {
+            case DIRECT:
+                oaiFilter = new OaiResponseFilter(origin, dsAPI);
+                break;
+            case PRESERVICA:
+                oaiFilter = new OaiResponseFilterPreservica(origin, dsAPI);
+                break;
+            default: throw new UnsupportedOperationException(
+                    "Unknown filter '" + oaiTargetDto.getFilter() + "' for target '" + targetName + "'");
+        }
 
         while (response.getRecords().size() >0) {
 
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
 
+            oaiFilter.addToStorage(response);
 
-            if (targetName.startsWith("pvica")){
-                OaiResponseFiltering.addToStorageWithPvicaFiltering(response, dsAPI, origin, totalRecordsCount);
-            } else {
-                OaiResponseFiltering.addToStorageWithoutFiltering(response, dsAPI, origin, totalRecordsCount);
-            }
-
-
-            log.info("Ingesting '{}' records from origin: '{}' out of a total of '{}' records.",
-                    totalRecordsCount, origin, response.getTotalRecords());
+            log.info("Ingested '{}' records from origin: '{}' out of a total of '{}' records.",
+                    oaiFilter.getProcessed(), origin, response.getTotalRecords());
 
             //Update timestamp with timestamp from last OAI record.
             HarvestTimeUtil.updateDatestampForOaiTarget(oaiTargetDto,lastRecord.getDateStamp());
@@ -302,11 +305,12 @@ public class DsDatahandlerFacade {
         }
 
         if (response.isError()) {
-            throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() + " after harvesting " + totalRecordsCount + " records");
+            throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() +
+                    " after harvesting " + oaiFilter.getProcessed() + " records");
         }
 
-        log.info("Completed ingesting origin successfully:"+origin+ " records:"+totalRecordsCount);
-        return totalRecordsCount.intValue();
+        log.info("Completed ingesting origin '{}' successfully with {} records", origin, oaiFilter.getProcessed());
+        return oaiFilter.getProcessed();
     }
 
     /**
@@ -330,7 +334,7 @@ public class DsDatahandlerFacade {
         return job;                
     }
 
-    private static DsStorageApi getDsStorageApiClient() {       
+    private static DsStorageClient getDsStorageApiClient() {
         if (storageClient!= null) {
           return storageClient;
         }
