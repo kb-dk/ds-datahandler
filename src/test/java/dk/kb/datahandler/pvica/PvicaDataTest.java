@@ -44,6 +44,9 @@ public class PvicaDataTest {
         assertEquals("ds.radiotv:oai:du:9d9785a8-71f4-4b34-9a0e-1c99c13b001b", parent);        
     }
 
+    /*
+    // THESE TESTS CANT BE RUN AS THEY ARE RELATED TO CODE SPLITTING PRESERVICA RECORDS INTO DIFFERENT ORIGINS.
+    // THEY ARE KEPT FOR IF IT GETS POSSIBLE.
     @Test
     public void testGetPvicaOriginRadio() throws Exception{
         String xmlFile = "xml/pvica_origin_radio.xml";
@@ -58,6 +61,7 @@ public class PvicaDataTest {
         String origin = OaiResponseFiltering.getCorrectPvicaOrigin(xml);
         assertEquals("ds.tv", origin);
     }
+    */
 
     @Test
     public void testManifestationNameSpaceFix() throws Exception{

@@ -227,7 +227,7 @@ components:
         - url
         - set
         - metadataprefix
-        - datasource
+        - origin
       properties:
         name:
           type: string
@@ -251,14 +251,11 @@ components:
         password:
           type: string
           description: 'Password if the OAI server require basic authentication'                
-        datasource:
+        origin:
           type: string
           description: |
-            A datasource defines where the OAI harvester has harvested the data from.
-            The datasource must be configured in ds-storage.
-            For most targets, the datasource gets used as the direct origin in DS-Storage. However, some datasources may
-            be split into multiple origins. An example of this are records harvested from preservica, where radio and tv
-            are harvested from one datasource, but are put into their own respective origin in DS-storage.
+            An origin defines where the OAI harvester has harvested the data from.
+            The origin must be configured in ds-storage. The origin gets used as the direct origin in DS-Storage.
           example: 'kb.images.billed.hca'
         decription:
           type: string
