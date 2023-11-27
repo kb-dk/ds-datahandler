@@ -1,19 +1,11 @@
 package dk.kb.datahandler.pvica;
 
-import static dk.kb.datahandler.oai.OaiResponseFiltering.setRecordType;
-import static org.junit.jupiter.api.Assertions.*;
-
-
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.OaiRecord;
-import dk.kb.datahandler.oai.OaiTargetJob;
+import dk.kb.datahandler.oai.*;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
-import org.junit.jupiter.api.Test;
-
-import dk.kb.datahandler.oai.OaiHarvestClient;
-import dk.kb.datahandler.oai.OaiResponseFiltering;
 import dk.kb.util.Resolver;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -22,7 +14,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PvicaDataTest {
     
@@ -39,8 +33,11 @@ public class PvicaDataTest {
     @Test
     public void testFindPvicaParent() throws Exception{
         String xmlFile = "xml/pvica_parent_test.xml";        
-        String xml = Resolver.resolveUTF8String(xmlFile);        
-        String parent = OaiResponseFiltering.getPvicaParent(xml,"ds.radiotv");
+        String xml = Resolver.resolveUTF8String(xmlFile);
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String parent = oaiFilter.getParentID(record,"ds.radiotv");
         assertEquals("ds.radiotv:oai:du:9d9785a8-71f4-4b34-9a0e-1c99c13b001b", parent);        
     }
 
@@ -76,25 +73,28 @@ public class PvicaDataTest {
     public void testRecordTypeCol() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:col:232234234");
-        setRecordType(collectionRecord, collectionRecord.getId());
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
-        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.COLLECTION);
+        assertEquals(RecordTypeDto.COLLECTION, resolvedType);
     }
     @Test
     public void testRecordTypeDU() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:du:232234234");
-        setRecordType(collectionRecord, collectionRecord.getId());
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
-        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.DELIVERABLEUNIT);
+        assertEquals(RecordTypeDto.DELIVERABLEUNIT, resolvedType);
     }
     @Test
     public void testRecordTypeMan() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:man:232234234");
-        setRecordType(collectionRecord, collectionRecord.getId());
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
-        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.MANIFESTATION);
+        assertEquals(RecordTypeDto.MANIFESTATION, resolvedType);
     }
 
     @Test
@@ -118,14 +118,13 @@ public class PvicaDataTest {
         dsRecord.setId(testStorageId);
         dsRecord.setOrigin("ds.test");
         dsRecord.setData(oaiRecord.getMetadata());
-        OaiResponseFiltering.setRecordType(dsRecord, testStorageId);
+
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        RecordTypeDto resolvedType = oaiFilter.getRecordType(dsRecord, testStorageId);
 
         //Tests
-        assertEquals(RecordTypeDto.DELIVERABLEUNIT, dsRecord.getRecordType());
+        assertEquals(RecordTypeDto.DELIVERABLEUNIT, resolvedType);
         assertEquals("ds.test", dsRecord.getOrigin());
     }
-    
-    
-
 
 }
