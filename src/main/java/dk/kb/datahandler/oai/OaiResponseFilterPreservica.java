@@ -34,6 +34,21 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
             "<DeliverableUnitRef>([^<]+)</DeliverableUnitRef>");
 
     /**
+     * Pattern for determining if a DeliverableUnit or Manifestation from Preservica 5
+     * contains metadata about a radio resource.
+     */
+    private static final Pattern RADIO_PATTERN = Pattern.compile(
+            "<formatMediaType>Sound</formatMediaType>|<ComponentType>Audio</ComponentType>");
+
+    /**
+     * Pattern for determining if a DeliverableUnit or Manifestation from Preservica 5
+     * contains metadata about a television resource.
+     */
+    private static final Pattern TV_PATTERN = Pattern.compile(
+            "<formatMediaType>Moving\\sImage</formatMediaType>|<ComponentType>Video</ComponentType>");
+
+
+    /**
      * @param datasource source for records. Currently used for {@code origin}.
      * @param storage    destination for records.
      */
@@ -44,7 +59,19 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
     @Override
     public String getOrigin(OaiRecord oaiRecord, String datasource) {
         // TODO: Implement proper resolving when splitting Preservica datasource to multiple origins
-        return datasource;
+        String xml = oaiRecord.getMetadata();
+
+        Matcher radioDeliverableunitMatcher = RADIO_PATTERN.matcher(xml);
+        Matcher tvDeliverableUnitMatcher = TV_PATTERN.matcher(xml);
+
+        if (radioDeliverableunitMatcher.find()){
+            return "ds.radio";
+        } else if (tvDeliverableUnitMatcher.find()){
+            return "ds.tv";
+        } else {
+            // Not quite sure what we should do in the case where nothing gets matched.
+            return datasource;
+        }
     }
 
     @Override

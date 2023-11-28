@@ -41,24 +41,53 @@ public class PvicaDataTest {
         assertEquals("ds.radiotv:oai:du:9d9785a8-71f4-4b34-9a0e-1c99c13b001b", parent);        
     }
 
-    /*
-    // THESE TESTS CANT BE RUN AS THEY ARE RELATED TO CODE SPLITTING PRESERVICA RECORDS INTO DIFFERENT ORIGINS.
-    // THEY ARE KEPT FOR IF IT GETS POSSIBLE.
+
+
     @Test
-    public void testGetPvicaOriginRadio() throws Exception{
+    public void testPvicaOriginRadioDU() throws Exception{
         String xmlFile = "xml/pvica_origin_radio.xml";
         String xml = Resolver.resolveUTF8String(xmlFile);
-        String origin = OaiResponseFiltering.getCorrectPvicaOrigin(xml);
+
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String origin = oaiFilter.getOrigin(record, "preservica");
         assertEquals("ds.radio", origin);
     }
     @Test
-    public void testGetPvicaOriginTv() throws Exception{
+    public void testPvicaOriginRadioManifestation() throws Exception{
+        String xmlFile = "xml/pvica_origin_radio_manifestation.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String origin = oaiFilter.getOrigin(record, "preservica");
+        assertEquals("ds.radio", origin);
+    }
+    @Test
+    public void testPvicaOriginTvDU() throws Exception{
         String xmlFile = "xml/pvica_origin_tv.xml";
         String xml = Resolver.resolveUTF8String(xmlFile);
-        String origin = OaiResponseFiltering.getCorrectPvicaOrigin(xml);
+
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String origin = oaiFilter.getOrigin(record, "preservica");
         assertEquals("ds.tv", origin);
     }
-    */
+    @Test
+    public void testPvicaOriginTvManifestation() throws Exception{
+        String xmlFile = "xml/pvica_origin_tv_manifestation.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String origin = oaiFilter.getOrigin(record, "preservica");
+        assertEquals("ds.tv", origin);
+    }
+
 
     @Test
     public void testManifestationNameSpaceFix() throws Exception{
