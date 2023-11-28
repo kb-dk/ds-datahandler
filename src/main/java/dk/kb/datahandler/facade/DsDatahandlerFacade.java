@@ -207,7 +207,7 @@ public class DsDatahandlerFacade {
     	List<OriginCountDto> originStatistics = dsAPI.getOriginStatistics();
 
     	
-     	long lastModifiedForOrigin= getLastModifiedTimeForOrigin(originStatistics, oaiTargetDto.getOrigin());
+     	long lastModifiedForOrigin= getLastModifiedTimeForOrigin(originStatistics, oaiTargetDto.getDatasource());
         
         //register job
         OaiJobCache.addNewJob(job);            
@@ -218,8 +218,8 @@ public class DsDatahandlerFacade {
             OaiJobCache.finishJob(job, number,false);//No error
 
             //Delete old records in storage from before.
-            Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getOrigin(), 0L, lastModifiedForOrigin);
-            log.info("After full ingest for origin={}, deleted {} old records in storage",oaiTargetDto.getOrigin(),numberDeleted);
+            Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getDatasource(), 0L, lastModifiedForOrigin);
+            log.info("After full ingest for origin={}, deleted {} old records in storage",oaiTargetDto.getDatasource(),numberDeleted);
             return number;
         }
         catch(Exception e) {
@@ -267,7 +267,7 @@ public class DsDatahandlerFacade {
         }
 
         // TODO: Change this to datasource in the OpenAPI specification
-        String origin=oaiTargetDto.getOrigin();
+        String origin=oaiTargetDto.getDatasource();
         String targetName = oaiTargetDto.getName();
 
         DsStorageClient dsAPI = getDsStorageApiClient();
