@@ -92,7 +92,7 @@ public class PvicaDataTest {
     }
 
     @Test
-    public void testRemovalOfCollections() throws ApiException {
+    public void testRemovalOfCollectionsAndPreservationManifestations() throws ApiException {
         // We don't need a working storage to test this functionality. Therefore this mock
         DsStorageClient mockedStorage = Mockito.mock(DsStorageClient.class);
         // Create OAI-PMH test records.
@@ -102,6 +102,9 @@ public class PvicaDataTest {
         OaiRecord deliverableUnit2 = new OaiRecord();
         deliverableUnit2.setId("oai:du:12345678-test-test-test-testtest2222");
         deliverableUnit2.setMetadata("<formatMediaType>Sound</formatMediaType>");
+        OaiRecord preservationManifestation = new OaiRecord();
+        preservationManifestation.setId("oai:du:12345678-test-test-test-testtest2222");
+        preservationManifestation.setMetadata("<ManifestationRelRef>1</ManifestationRelRef>");
         OaiRecord collection = new OaiRecord();
         collection.setId("oai:col:123456-test-1234");
         // Create ArrayList of OAI records.
@@ -109,6 +112,7 @@ public class PvicaDataTest {
         oaiRecords.add(collection);
         oaiRecords.add(deliverableUnit1);
         oaiRecords.add(deliverableUnit2);
+        oaiRecords.add(preservationManifestation);
         // Create test OaiResponse.
         OaiResponse testResponse = new OaiResponse();
         testResponse.setRecords(oaiRecords);

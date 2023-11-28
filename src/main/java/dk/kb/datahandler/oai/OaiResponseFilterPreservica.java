@@ -48,6 +48,11 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
     private static final Pattern TV_PATTERN = Pattern.compile(
             "<formatMediaType>Moving\\sImage</formatMediaType>|<ComponentType>Video</ComponentType>");
 
+    /**
+     * Pattern to match preservation manifestations from Preservica5 by type.
+     */
+    private static final Pattern PRESERVATION_MANIFESTATION_PATTERN = Pattern.compile(
+            "<ManifestationRelRef>1</ManifestationRelRef>");
 
     /**
      * @param datasource source for records. Currently used for {@code origin}.
@@ -67,6 +72,12 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
     public void addToStorage(OaiResponse response) throws ApiException {
         for (OaiRecord oaiRecord: response.getRecords()) {
             if (oaiRecord.getId().contains("oai:col")){
+                continue;
+            }
+            Matcher preservationMatcher = PRESERVATION_MANIFESTATION_PATTERN.matcher(oaiRecord.getMetadata());
+            if (preservationMatcher.find()) {
+                log.debug("OAI-PMH record '{}' is a preservation manifestation and is not added to DS-storage.",
+                            oaiRecord.getId());
                 continue;
             }
             addToStorage(oaiRecord);
