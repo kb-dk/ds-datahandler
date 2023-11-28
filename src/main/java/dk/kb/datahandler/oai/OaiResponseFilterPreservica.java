@@ -58,7 +58,6 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
 
     @Override
     public String getOrigin(OaiRecord oaiRecord, String datasource) {
-        // TODO: Implement proper resolving when splitting Preservica datasource to multiple origins
         String xml = oaiRecord.getMetadata();
 
         Matcher radioDeliverableunitMatcher = RADIO_PATTERN.matcher(xml);
