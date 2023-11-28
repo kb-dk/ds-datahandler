@@ -14,6 +14,7 @@
  */
 package dk.kb.datahandler.oai;
 
+import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.storage.util.DsStorageClient;
@@ -54,6 +55,23 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
      */
     public OaiResponseFilterPreservica(String datasource, DsStorageClient storage) {
         super(datasource, storage);
+    }
+
+
+    /**
+     * Add records from Preservica OAI-PMH harvest to ds-storage. Records goes through a filtering where preservica
+     * collections are filtered away and not added to ds-storage. Furthermore, types are resolved based on IDs.
+     * @param response      OAI-PMH response containing preservica records.
+     */
+    @Override
+    public void addToStorage(OaiResponse response) throws ApiException {
+        for (OaiRecord oaiRecord: response.getRecords()) {
+            if (oaiRecord.getId().contains("oai:col")){
+                continue;
+            }
+            addToStorage(oaiRecord);
+            processed++;
+        }
     }
 
     @Override
