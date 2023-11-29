@@ -54,6 +54,11 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
     private static final Pattern PRESERVATION_MANIFESTATION_PATTERN = Pattern.compile(
             "<ManifestationRelRef>1</ManifestationRelRef>");
 
+    private static final Pattern METADATA_PATTERN = Pattern.compile(
+            "<Metadata schemaURI=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">");
+
+    protected int emptyMetadataRecords = 0;
+
     /**
      * @param datasource source for records. Currently used for {@code origin}.
      * @param storage    destination for records.
@@ -71,11 +76,25 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
     @Override
     public void addToStorage(OaiResponse response) throws ApiException {
         for (OaiRecord oaiRecord: response.getRecords()) {
+            String xml = oaiRecord.getMetadata();
+            // Preservica collections are ignored.
             if (oaiRecord.getId().contains("oai:col")){
                 continue;
             }
-            Matcher preservationMatcher = PRESERVATION_MANIFESTATION_PATTERN.matcher(oaiRecord.getMetadata());
-            if (preservationMatcher.find()) {
+            // DeliverableUnits need to have the PBCore metadata tag. Manifestations does not seem to have it.
+            // Therefore, we are checking the ID as well.
+            Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
+            if (oaiRecord.getId().contains("oai:du") && !metadataMatcher.find()){
+                processed++;
+                emptyMetadataRecords ++;
+                log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
+                        "'{}' empty records have been found and '{}' records have been processed in total.",
+                        oaiRecord.getId(), emptyMetadataRecords, processed);
+                continue;
+            }
+            // Manifestations can not be of type 1 as type 1 = preservation manifestations.
+            Matcher preservationMatcher = PRESERVATION_MANIFESTATION_PATTERN.matcher(xml);
+            if (oaiRecord.getId().contains("oai:man") && preservationMatcher.find()) {
                 log.debug("OAI-PMH record '{}' is a preservation manifestation and is not added to DS-storage.",
                             oaiRecord.getId());
                 continue;
@@ -97,7 +116,8 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
         } else if (tvDeliverableUnitMatcher.find()){
             return "ds.tv";
         } else {
-            log.warn("No specific origin has been extracted for preservica record '{}'", oaiRecord.getId());
+            log.warn("No specific origin has been extracted for preservica record '{}'.",
+                    oaiRecord.getId());
             // Not quite sure what we should do in the case where nothing gets matched.
             return datasource;
         }
