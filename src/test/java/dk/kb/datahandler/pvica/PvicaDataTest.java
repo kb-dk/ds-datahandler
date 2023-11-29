@@ -105,7 +105,7 @@ public class PvicaDataTest {
         deliverableUnit2.setMetadata("<Metadata schemaURI=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
                                         "<formatMediaType>Sound</formatMediaType>");
         OaiRecord preservationManifestation = new OaiRecord();
-        preservationManifestation.setId("oai:du:12345678-test-test-test-testtest2222");
+        preservationManifestation.setId("oai:man:12345678-test-test-test-testtest2222");
         preservationManifestation.setMetadata("<ManifestationRelRef>1</ManifestationRelRef>");
         OaiRecord collection = new OaiRecord();
         collection.setId("oai:col:123456-test-1234");

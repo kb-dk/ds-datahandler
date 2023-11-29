@@ -77,11 +77,14 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
     public void addToStorage(OaiResponse response) throws ApiException {
         for (OaiRecord oaiRecord: response.getRecords()) {
             String xml = oaiRecord.getMetadata();
+            // Preservica collections are ignored.
             if (oaiRecord.getId().contains("oai:col")){
                 continue;
             }
+            // DeliverableUnits need to have the PBCore metadata tag. Manifestations does not seem to have it.
+            // Therefore, we are checking the ID as well.
             Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
-            if (!metadataMatcher.find()){
+            if (oaiRecord.getId().contains("oai:du") && !metadataMatcher.find()){
                 processed++;
                 emptyMetadataRecords ++;
                 log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
@@ -89,8 +92,9 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
                         oaiRecord.getId(), emptyMetadataRecords, processed);
                 continue;
             }
+            // Manifestations can not be of type 1 as type 1 = preservation manifestations.
             Matcher preservationMatcher = PRESERVATION_MANIFESTATION_PATTERN.matcher(xml);
-            if (preservationMatcher.find()) {
+            if (oaiRecord.getId().contains("oai:man") && preservationMatcher.find()) {
                 log.debug("OAI-PMH record '{}' is a preservation manifestation and is not added to DS-storage.",
                             oaiRecord.getId());
                 continue;
