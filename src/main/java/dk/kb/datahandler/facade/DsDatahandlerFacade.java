@@ -8,7 +8,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -18,6 +17,8 @@ import org.apache.http.client.utils.URIBuilder;
 
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
+import dk.kb.util.webservice.stream.ContinuationInputStream;
+
 import org.apache.commons.io.IOUtils;
 
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.HttpPostUtil;
+import dk.kb.present.util.DsPresentClient;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.OriginCountDto;
@@ -94,57 +96,53 @@ public class DsDatahandlerFacade {
 
     
     /**  
-     *  Will start indexing records from storage into solr. The workflow is
-     *  1) Call ds-present that will extract records from ds-storage and xslt transform them into solr-add documents json
+     *  Will start a index flow of records from ds-storage into solr. 
+     *  
+     *  1) Call ds-present that will extract records from ds-storage and xslt transform them into solr-add documents json.
      *  2) Send the input stream with json documents directly to solr so it is not kept in memory.
      *  
      * @param origin Origin must be defined on the ds-present server.
+     * @param mTimeFrom Will only index records with a last modification time (mTime) after this value. 
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
-    public static void indexSolr(String origin)  throws Exception{
+    public static void indexSolr(String origin, Long mTimeFrom)  throws Exception{
    
-        //There is no way to validate dsPresentCollectionName exists unless calling again. The input stream is given directly to solr        
+        if (mTimeFrom==null) {
+            mTimeFrom=0L;
+        }
         
-        //Below two lines would work if client was generated with streaming Api
-        //DsPresentApi presentClient = getDsPresentApiClient();
-        //StreamingOutput so = presentClient.getRecords(oaiTarget, 0L, -1L, "SolrJSON");
-                
-        // TODO: Convert this to ds-present client when the client supports true streaming
-         URL presentUrl= new URIBuilder(ServiceConfig.getDsPresentUrl()+"/records")                           
-                            //.setPath("records") //This will set whole path, needs the /records above                           
-                           .setParameter("maxRecords", "100000")
-                           .setParameter("format", "SolrJSON")
-                           .setParameter("origin", origin)
-                           .build().toURL();
-                        
-         log.info("present URL protocol:"+presentUrl.getProtocol());
-        //String presentUrl =ServiceConfig.getDsPresentUrl()+"/records?&maxRecords=100000&format=SolrJSON&collection="+origin;
-                                
+        //Define the 2 clients. Inputstream from dsPresent will be feed direcly to the solrClient. 
+        DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getDsPresentUrl());
         URL solrUpdateUrl=new URIBuilder(ServiceConfig.getSolrUrl())
-                          .setParameter("commit", "true")
-                          .build().toURL();      
-                                 
-        HttpURLConnection httpURLConnection = (HttpURLConnection) presentUrl.openConnection();        
-        httpURLConnection.setRequestMethod("GET");        
-        try (InputStream inputStream = httpURLConnection.getInputStream()){                 
-            //Give input stream to the POST request.        
-            HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();             
-            String solrResponse = HttpPostUtil.callPost(solrServerConnection, inputStream , "application/json");
-            log.info("Response from solr:"+solrResponse); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}           
-
-            if (solrResponse.indexOf("\"status\":0") < 0) {
-                throw new IOException ("Unexpected status from solr:"+solrResponse);
-            }            
-        }
-        catch(Exception e) { //
-            log.error("Error calling ds-present or solr.",e);
-            throw new InternalServiceException("Error calling ds-present or solr");
-        }
-                      
+            .setParameter("commit", "true")
+            .build().toURL();      
      
-    }
-    
+                
+        boolean hasMore=true;        
+        long batchSize=100L; //There seems to no performance boost increasing to 1000. Better keep in small batches.           
+        
+        while (hasMore) {                       
+            //The formate-type SolrJSON, will later be defined as enums in ds-present. For new we have to hard-code format.
+            try (ContinuationInputStream<Long> solrDocsStream = presentClient.getRecordsJSON(origin, mTimeFrom,batchSize,"SolrJSON")) {
 
+                //POST request to Solr using the inputstream                          
+                HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
+                String solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
+             
+                      
+                if (solrResponse.indexOf("\"status\":0") < 0) {
+                    log.error("Unexptected reply from solr:"+solrResponse); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
+                    throw new IOException ("Unexpected status from solr:"+solrResponse);
+                }                                     
+             
+               hasMore=solrDocsStream.hasMore();
+               if (hasMore) {
+                   mTimeFrom=solrDocsStream.getContinuationToken(); //Next batch start from here.
+               }                                                   
+            }         
+        }                     
+    }
+        
     /**
      * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
      * saved on the file system for that target.

@@ -129,14 +129,15 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     @Override
-    public void solrIndex(String origin) {
-        log.debug("solrIndex(origin='{}', ...) called with call details: {}", origin, getCallDetails());
+    public void indexSolr(@NotNull String origin, Long mTimeFrom) {
+        log.debug("indexSolr(origin='{}', ...) called with call details: {}", origin, getCallDetails());
         try {            
-            DsDatahandlerFacade.indexSolr(origin);
+            DsDatahandlerFacade.indexSolr(origin,mTimeFrom);
         }  catch (Exception e){
             throw handleException(e);
         }
         
     }
+
 
 }
