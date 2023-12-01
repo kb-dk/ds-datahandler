@@ -51,6 +51,11 @@ public class ServiceConfig {
         solrUrl = serviceConfig.getString("config.solr.url");
         solrBatchSize=  serviceConfig.getInteger("config.solr.batchSize");
         dsPresentUrl = serviceConfig.getString("config.present.url");
+
+        log.info("solrUrl:"+solrUrl);
+        log.info("solrBatchSize:"+solrBatchSize);
+        log.info("dsStorageUrl:"+dsStorageUrl);
+        log.info("dsPresentUrl:"+dsPresentUrl);
         
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
