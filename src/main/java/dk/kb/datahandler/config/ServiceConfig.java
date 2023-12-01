@@ -27,7 +27,7 @@ public class ServiceConfig {
     private static String dsStorageUrl = null;
     private static String solrUrl = null;
     private static String dsPresentUrl = null;
-    
+    private static int solrBatchSize=100;
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -49,6 +49,7 @@ public class ServiceConfig {
         oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
         dsStorageUrl = serviceConfig.getString("config.storage.url");
         solrUrl = serviceConfig.getString("config.solr.url");
+        solrBatchSize=  serviceConfig.getInteger("config.solr.batchSize");
         dsPresentUrl = serviceConfig.getString("config.present.url");
         
         Path folderPath = Paths.get(oaiTimestampFolder);
@@ -77,7 +78,10 @@ public class ServiceConfig {
         return serviceConfig;
     }
 
-
+    public static int getSolrBatchSize() {
+    	return solrBatchSize;
+    }
+    
     public static String getSolrUrl() {
         return solrUrl;
     }

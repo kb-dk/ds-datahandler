@@ -119,7 +119,7 @@ public class DsDatahandlerFacade {
      
                 
         boolean hasMore=true;        
-        long batchSize=100L; //There seems to no performance boost increasing to 1000. Better keep in small batches.           
+        long batchSize=ServiceConfig.getSolrBatchSize();           
         
         while (hasMore) {                       
             //The formate-type SolrJSON, will later be defined as enums in ds-present. For new we have to hard-code format.

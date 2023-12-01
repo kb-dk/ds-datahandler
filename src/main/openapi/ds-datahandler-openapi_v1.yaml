@@ -123,7 +123,7 @@ paths:
             type: string
         - name: mTimeFrom
           in: query
-          description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin'
+          description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
           required: false
           schema:
               type: integer
