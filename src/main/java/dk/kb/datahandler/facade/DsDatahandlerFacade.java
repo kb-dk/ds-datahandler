@@ -141,6 +141,7 @@ public class DsDatahandlerFacade {
                }                                                   
             }         
         }                     
+        log.info("Solr index completed for origin:"+origin +" and mTime:"+mTimeFrom);
     }
         
     /**
