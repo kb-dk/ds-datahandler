@@ -76,8 +76,8 @@
 
     <scm>
         <url>https://github.com/kb-dk/ds-datahandler</url>
-        <connection>scm:git:ssh://git@github.com:kb-dk/ds-datahandler.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:kb-dk/ds-datahandler.git</developerConnection>
+        <connection>scm:git:git@github.com:kb-dk/ds-datahandler.git</connection>
+        <developerConnection>scm:git:git@github.com:kb-dk/ds-datahandler.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
