@@ -6,7 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-Solr indexing using ds-present streaming client. New parameter 'mTimeFrom' to pick only records modified after this.
+- Solr indexing using ds-present streaming client. New parameter 'mTimeFrom' to pick only records modified after this.
+
+### Changed 
+- General style of YAML configuration files, by removing the first level of indentation.
+
 
 
 ## [1.3.0] - 2023-09-05
