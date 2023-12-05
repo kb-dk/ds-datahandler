@@ -31,7 +31,7 @@ public class ServiceConfig {
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
-     * methods like {@code getInteger("someKey", defaultValue)} and {@code getSubMap("config.sub1.sub2")}.
+     * methods like {@code getInteger("someKey", defaultValue)} and {@code getSubMap("sub1.sub2")}.
      */
     private static YAML serviceConfig;
 
@@ -46,17 +46,17 @@ public class ServiceConfig {
         serviceConfig = YAML.resolveLayeredConfigs(configFile);
         loadOaiTargets();
         
-        oaiTimestampFolder= serviceConfig.getString("config.timestamps.folder");
-        dsStorageUrl = serviceConfig.getString("config.storage.url");
-        solrUrl = serviceConfig.getString("config.solr.url");
-        solrBatchSize=  serviceConfig.getInteger("config.solr.batchSize");
-        dsPresentUrl = serviceConfig.getString("config.present.url");
+        oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
+        dsStorageUrl = serviceConfig.getString("storage.url");
+        solrUrl = serviceConfig.getString("solr.url");
+        solrBatchSize=  serviceConfig.getInteger("solr.batchSize");
+        dsPresentUrl = serviceConfig.getString("present.url");
 
         log.info("solrUrl:"+solrUrl);
         log.info("solrBatchSize:"+solrBatchSize);
         log.info("dsStorageUrl:"+dsStorageUrl);
         log.info("dsPresentUrl:"+dsPresentUrl);
-        
+
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
             log.info("Oai timestamp folder:"+oaiTimestampFolder);
@@ -86,7 +86,7 @@ public class ServiceConfig {
     public static int getSolrBatchSize() {
     	return solrBatchSize;
     }
-    
+
     public static String getSolrUrl() {
         return solrUrl;
     }
@@ -109,7 +109,7 @@ public class ServiceConfig {
 
     
     private static void loadOaiTargets() {
-        List<YAML> targets = serviceConfig.getYAMLList("config.oai_targets");
+        List<YAML> targets = serviceConfig.getYAMLList("oai_targets");
         for (YAML target: targets) {
             String name = target.getString("name");
             String url = target.getString("url");
