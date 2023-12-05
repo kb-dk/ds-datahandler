@@ -31,7 +31,7 @@ public class ServiceConfig {
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
-     * methods like {@code getInteger("someKey", defaultValue)} and {@code getSubMap("config.sub1.sub2")}.
+     * methods like {@code getInteger("someKey", defaultValue)} and {@code getSubMap("sub1.sub2")}.
      */
     private static YAML serviceConfig;
 
