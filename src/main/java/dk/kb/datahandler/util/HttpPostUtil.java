@@ -1,9 +1,7 @@
 package dk.kb.datahandler.util;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
@@ -30,9 +28,7 @@ public class HttpPostUtil {
      * @param contentType. Example :  'application/json'
      * @return Response string from server.
      * @throws IOException
-     */
-    
-    
+     */      
     public static String callPost(HttpURLConnection conn, InputStream input, String contentType) throws IOException {
         conn.setRequestProperty("Content-Type", contentType);
         conn.setRequestMethod("POST");
@@ -43,14 +39,14 @@ public class HttpPostUtil {
         
         try (input ; OutputStream out = conn.getOutputStream()){
             long copiedBytes = IOUtils.copyLarge(input, out);
-             log.info("Stream bytes read:"+copiedBytes);
+             log.debug("Stream bytes read:"+copiedBytes);
             out.flush();           
         }
        
         try (InputStream is = conn.getInputStream()) {
             return IOUtils.toString(is, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            log.warn("Exception posting to " + conn.getURL(), e);
+            log.error("Exception posting to " + conn.getURL(), e);
         }
         try (InputStream err = conn.getErrorStream()) {
             return IOUtils.toString(err, StandardCharsets.UTF_8);

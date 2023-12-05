@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class ServiceConfig {
     private static String dsStorageUrl = null;
     private static String solrUrl = null;
     private static String dsPresentUrl = null;
-    
+    private static int solrBatchSize=100;
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -48,8 +49,14 @@ public class ServiceConfig {
         oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
         dsStorageUrl = serviceConfig.getString("storage.url");
         solrUrl = serviceConfig.getString("solr.url");
+        solrBatchSize=  serviceConfig.getInteger("solr.batchSize");
         dsPresentUrl = serviceConfig.getString("present.url");
-        
+
+        log.info("solrUrl:"+solrUrl);
+        log.info("solrBatchSize:"+solrBatchSize);
+        log.info("dsStorageUrl:"+dsStorageUrl);
+        log.info("dsPresentUrl:"+dsPresentUrl);
+
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
             log.info("Oai timestamp folder:"+oaiTimestampFolder);
@@ -76,6 +83,9 @@ public class ServiceConfig {
         return serviceConfig;
     }
 
+    public static int getSolrBatchSize() {
+    	return solrBatchSize;
+    }
 
     public static String getSolrUrl() {
         return solrUrl;
@@ -104,12 +114,21 @@ public class ServiceConfig {
             String name = target.getString("name");
             String url = target.getString("url");
             String set = target.getString("set",null);
-            String origin = target.getString("origin");
+            String datasource = target.getString("datasource");
             String metadataPrefix = target.getString("metadataPrefix");
             String description = target.getString("description");
             String user=target.getString("user",null);
             String password=target.getString("password",null);
-                        
+            String filterStr = target.getString("filter","direct");
+            OaiTargetDto.FilterEnum filter;
+            try {
+                filter = OaiTargetDto.FilterEnum.fromValue(filterStr);
+            } catch (IllegalArgumentException e) {
+                log.error("Filter '{}' for target name '{}' not supported. Supported filters are: {}",
+                        filterStr, name, Arrays.toString(OaiTargetDto.FilterEnum.values()));
+                throw e;
+            }
+
             OaiTargetDto oaiTarget = new OaiTargetDto();
             oaiTarget.setName(name);
             oaiTarget.setUrl(url);       
@@ -117,8 +136,9 @@ public class ServiceConfig {
             oaiTarget.setMetadataprefix(metadataPrefix);
             oaiTarget.setUsername(user);
             oaiTarget.setPassword(password);
-            oaiTarget.setOrigin(origin);
-            oaiTarget.setDecription(description);            
+            oaiTarget.setDatasource(datasource);
+            oaiTarget.setDecription(description);
+            oaiTarget.setFilter(filter);
             oaiTargets.put(name, oaiTarget);
             
             log.info("Load OAI target from yaml:"+name);

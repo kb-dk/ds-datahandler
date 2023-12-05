@@ -1,19 +1,14 @@
 package dk.kb.datahandler.pvica;
 
-import static dk.kb.datahandler.oai.OaiResponseFiltering.setRecordType;
-import static org.junit.jupiter.api.Assertions.*;
-
-
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.OaiRecord;
-import dk.kb.datahandler.oai.OaiTargetJob;
+import dk.kb.datahandler.oai.*;
+import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
-import org.junit.jupiter.api.Test;
-
-import dk.kb.datahandler.oai.OaiHarvestClient;
-import dk.kb.datahandler.oai.OaiResponseFiltering;
+import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.Resolver;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -23,6 +18,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PvicaDataTest {
     
@@ -39,11 +38,92 @@ public class PvicaDataTest {
     @Test
     public void testFindPvicaParent() throws Exception{
         String xmlFile = "xml/pvica_parent_test.xml";        
-        String xml = Resolver.resolveUTF8String(xmlFile);        
-        String parent = OaiResponseFiltering.getPvicaParent(xml,"ds.radiotv");
+        String xml = Resolver.resolveUTF8String(xmlFile);
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String parent = oaiFilter.getParentID(record,"ds.radiotv");
         assertEquals("ds.radiotv:oai:du:9d9785a8-71f4-4b34-9a0e-1c99c13b001b", parent);        
     }
 
+    @Test
+    public void testPvicaOriginRadioDU() throws Exception{
+        String xmlFile = "xml/pvica_origin_radio.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String origin = oaiFilter.getOrigin(record, "preservica");
+        assertEquals("ds.radio", origin);
+    }
+    @Test
+    public void testPvicaOriginRadioManifestation() throws Exception{
+        String xmlFile = "xml/pvica_origin_radio_manifestation.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String origin = oaiFilter.getOrigin(record, "preservica");
+        assertEquals("ds.radio", origin);
+    }
+    @Test
+    public void testPvicaOriginTvDU() throws Exception{
+        String xmlFile = "xml/pvica_origin_tv.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String origin = oaiFilter.getOrigin(record, "preservica");
+        assertEquals("ds.tv", origin);
+    }
+    @Test
+    public void testPvicaOriginTvManifestation() throws Exception{
+        String xmlFile = "xml/pvica_origin_tv_manifestation.xml";
+        String xml = Resolver.resolveUTF8String(xmlFile);
+
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        String origin = oaiFilter.getOrigin(record, "preservica");
+        assertEquals("ds.tv", origin);
+    }
+
+    @Test
+    public void testRemovalOfCollectionsAndPreservationManifestations() throws ApiException {
+        // We don't need a working storage to test this functionality. Therefore this mock
+        DsStorageClient mockedStorage = Mockito.mock(DsStorageClient.class);
+        // Create OAI-PMH test records.
+        OaiRecord deliverableUnit1 = new OaiRecord();
+        deliverableUnit1.setId("oai:du:12345678-test-test-test-testtest1111");
+        deliverableUnit1.setMetadata("<Metadata schemaURI=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
+                                        "<formatMediaType>Sound</formatMediaType>");
+        OaiRecord deliverableUnit2 = new OaiRecord();
+        deliverableUnit2.setId("oai:du:12345678-test-test-test-testtest2222");
+        deliverableUnit2.setMetadata("<Metadata schemaURI=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
+                                        "<formatMediaType>Sound</formatMediaType>");
+        OaiRecord preservationManifestation = new OaiRecord();
+        preservationManifestation.setId("oai:man:12345678-test-test-test-testtest2222");
+        preservationManifestation.setMetadata("<ManifestationRelRef>1</ManifestationRelRef>");
+        OaiRecord collection = new OaiRecord();
+        collection.setId("oai:col:123456-test-1234");
+        // Create ArrayList of OAI records.
+        ArrayList<OaiRecord> oaiRecords = new ArrayList<>();
+        oaiRecords.add(collection);
+        oaiRecords.add(deliverableUnit1);
+        oaiRecords.add(deliverableUnit2);
+        oaiRecords.add(preservationManifestation);
+        // Create test OaiResponse.
+        OaiResponse testResponse = new OaiResponse();
+        testResponse.setRecords(oaiRecords);
+
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica("preservica", mockedStorage);
+
+        oaiFilter.addToStorage(testResponse);
+        assertEquals(2, oaiFilter.getProcessed());
+    }
     @Test
     public void testManifestationNameSpaceFix() throws Exception{
         String xmlFile = "xml/pvica_manifestation_namespace_to_fix.xml";
@@ -57,25 +137,28 @@ public class PvicaDataTest {
     public void testRecordTypeCol() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:col:232234234");
-        setRecordType(collectionRecord, collectionRecord.getId());
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
-        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.COLLECTION);
+        assertEquals(RecordTypeDto.COLLECTION, resolvedType);
     }
     @Test
     public void testRecordTypeDU() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:du:232234234");
-        setRecordType(collectionRecord, collectionRecord.getId());
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
-        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.DELIVERABLEUNIT);
+        assertEquals(RecordTypeDto.DELIVERABLEUNIT, resolvedType);
     }
     @Test
     public void testRecordTypeMan() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:man:232234234");
-        setRecordType(collectionRecord, collectionRecord.getId());
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
-        assertEquals(collectionRecord.getRecordType(), RecordTypeDto.MANIFESTATION);
+        assertEquals(RecordTypeDto.MANIFESTATION, resolvedType);
     }
 
     @Test
@@ -99,14 +182,13 @@ public class PvicaDataTest {
         dsRecord.setId(testStorageId);
         dsRecord.setOrigin("ds.test");
         dsRecord.setData(oaiRecord.getMetadata());
-        OaiResponseFiltering.setRecordType(dsRecord, testStorageId);
+
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        RecordTypeDto resolvedType = oaiFilter.getRecordType(dsRecord, testStorageId);
 
         //Tests
-        assertEquals(RecordTypeDto.DELIVERABLEUNIT, dsRecord.getRecordType());
+        assertEquals(RecordTypeDto.DELIVERABLEUNIT, resolvedType);
         assertEquals("ds.test", dsRecord.getOrigin());
     }
-    
-    
-
 
 }

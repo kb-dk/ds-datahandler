@@ -12,119 +12,153 @@
 # List of oai targets
 oai_targets:
   - name: kb.letters.judsam.dsa
-    origin: kb.letters.judsam.dsa
+    datasource: kb.letters.judsam.dsa
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:letters:judsam:2011:mar:dsa
     metadataPrefix: mods
     description: David Simonsens Arkiv
+    filter: direct
+
   - name: kb.image.judsam.jsmss
-    origin: kb.image.judsam.jsmss
+    datasource: kb.image.judsam.jsmss
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:manus:judsam:2010:maj:jsmss
     metadataPrefix: mods
     description: 'Judaistisk Samling: Håndskrifter'
+    filter: direct
+
   - name: kb.image.luftfo.luftfoto
-    origin: kb.image.luftfo.luftfoto
+    datasource: kb.image.luftfo.luftfoto
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:images:luftfo:2011:maj:luftfoto
     metadataPrefix: mods
     description: Luftfoto
+    filter: direct
+
   - name: kb.pamphlets.dasmaa.smaatryk
-    origin: kb.pamphlets.dasmaa.smaatryk
+    datasource: kb.pamphlets.dasmaa.smaatryk
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:pamphlets:dasmaa:2012:jul:smaatryk
     metadataPrefix: mods
     description: Småtryk
+    filter: direct
+
   - name: kb.maps.kortsa.kortatlas
-    origin: kb.maps.kortsa.kortatlas
+    datasource: kb.maps.kortsa.kortatlas
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:maps:kortsa:2012:jul:kortatlas
     metadataPrefix: mods
     description: Kort og Atlas
+    filter: direct
+
   - name: kb.image.dasmaa.partiprogrammer
-    origin: kb.image.dasmaa.partiprogrammer
+    datasource: kb.image.dasmaa.partiprogrammer
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:pamphlets:dasmaa:2008:feb:partiprogrammer
     metadataPrefix: mods
     description: Partiprogram
+    filter: direct
+
   - name: kb.images.billed.billeder
-    origin: kb.images.billed.billeder
+    datasource: kb.images.billed.billeder
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:images:billed:2010:okt:billeder
     metadataPrefix: mods
     description: Billeder
+    filter: direct
+
   - name: kb.manus.ortsam.orientalia
-    origin: kb.manus.ortsam.orientalia
+    datasource: kb.manus.ortsam.orientalia
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:manus:ortsam:2009:okt:orientalia
     metadataPrefix: mods
     description: 'Oriental Collection: Manuscripts'
+    filter: direct
+
   - name: kb.books.dasmaa.daellsvarehus
-    origin: kb.books.dasmaa.daellsvarehus
+    datasource: kb.books.dasmaa.daellsvarehus
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:pamphlets:dasmaa:2008:feb:daellsvarehus
     metadataPrefix: mods
     description: Varehuskataloger
+    filter: direct
+
   - name: kb.books.judsam.jstryk
-    origin: kb.books.judsam.jstryk
+    datasource: kb.books.judsam.jstryk
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:books:judsam:2010:maj:jstryk
     metadataPrefix: mods
     description: 'Judaistisk Samling: Tidlige & sjældne tryk'
+    filter: direct
+
   - name: kb.manus.judsam.dsh
-    origin: kb.manus.judsam.dsh
+    datasource: kb.manus.judsam.dsh
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:manus:judsam:2009:sep:dsh
     metadataPrefix: mods
     description: David Simonsens Håndskrifter
+    filter: direct
+
   - name: kb.books.ortsam.ostryk
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:books:ortsam:2011:mar:ostryk
     metadataPrefix: mods
     description: Tidlige tryk i Orientalsk Samling
+    filter: direct
+
   - name: kb.manus.musman.viser
-    origin: kb.manus.musman.viser
+    datasource: kb.manus.musman.viser
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:manus:musman:2010:dec:viser
     metadataPrefix: mods
     description: DFS
+    filter: direct
+
   - name: kb.images.billed.hca
-    origin: kb.images.billed.hca
+    datasource: kb.images.billed.hca
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:images:billed:2014:jun:hca
     metadataPrefix: mods
     description: H.C. Andersen
+    filter: direct
+
   - name: kb.manus.vmanus.ha
-    origin: kb.manus.vmanus.ha
+    datasource: kb.manus.vmanus.ha
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:manus:vmanus:2011:dec:ha
     metadataPrefix: mods
     description: Vesterlandske håndskrifter
+    filter: direct
+
   - name: ds.radiotv
     # Internal information for pvica.devel is provided by internal config files
-    origin: ds.radiotv
+    datasource: ds.radiotv
     url: https://XXXXXXXXX.statsbiblioteket.dk/OAI-PMH/
     user: XXXXXXXXX
     password: XXXXXXXXX
     metadataPrefix: XIP_full_schema
     description: Radio- og TV-udsendelser
+    filter: preservica
 
 
-# Save timestamps of last OAI harvest for each target in this folder. This is used for incremental delta-imports.
+
+# Save timestamps of last OAI harvest for each target in this folder. This is used for incremental delta-imports.                
 timestamps:
  folder: /home/xxx/oai.timestamps/
 
-# The ds-storage server to ingest data into
+# The ds-storage server to ingest data into 
 storage:
-  url: http://localhost:9072/ds-storage/v1
+  url: http://localhost:9072/ds-storage/v1    
 
 # solr. Used by workflow that extracts from storage, xslt and index into solr.
+# Batchsize 100 or 1000 does not increase performance much. May change with large scale data.
 solr:
   url:  http://localhost:10011/solr/ds/update
+  batchSize: 500
 
 # The ds-present server used for xslt
 present:
   url: http://localhost:9073/ds-present/v1
-
-
-
+  
+    
+      
