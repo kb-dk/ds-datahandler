@@ -10,6 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 
@@ -236,7 +237,7 @@ public class OaiHarvestClient {
         }       
       
         //log.debug("http header:"+response.headers());
-        //log.debug("http body:"+response.body());
+        //log.debug("http body:"+response.body());if
 
         return response.body();
     }
@@ -296,9 +297,9 @@ public class OaiHarvestClient {
         }        
     }
 
-    private static final String getBasicAuthenticationHeader(String username, String password) {
-        String valueToEncode = username + ":" + password;
-        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+    private static final String getBasicAuthenticationHeader(String username, String password) {    	
+    	String valueToEncode = username + ":" + password;
+        return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes(StandardCharsets.UTF_8));
     }
     
     
