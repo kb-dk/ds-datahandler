@@ -32,6 +32,7 @@ import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.HttpPostUtil;
+import dk.kb.present.model.v1.FormatDto;
 import dk.kb.present.util.DsPresentClient;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
@@ -123,7 +124,7 @@ public class DsDatahandlerFacade {
         
         while (hasMore) {                       
             //The formate-type SolrJSON, will later be defined as enums in ds-present. For new we have to hard-code format.
-            try (ContinuationInputStream<Long> solrDocsStream = presentClient.getRecordsJSON(origin, mTimeFrom,batchSize,"SolrJSON")) {
+            try (ContinuationInputStream<Long> solrDocsStream = presentClient.getRecordsJSON(origin, mTimeFrom,batchSize,FormatDto.SOLRJSON)) {
 
                 //POST request to Solr using the inputstream                          
                 HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
