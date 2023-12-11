@@ -159,6 +159,11 @@ solr:
 # The ds-present server used for xslt
 present:
   url: http://localhost:9073/ds-present/v1
-  
+  headers:
+    # This is not security!
+    # This is used for establishing token flows using HTTP headers un preparation of OAuth2 support
+    # Set this to internal_service to bypass the ds-license based access server
+    - Simulated-OAuth2-Group: anonymous
+
     
       

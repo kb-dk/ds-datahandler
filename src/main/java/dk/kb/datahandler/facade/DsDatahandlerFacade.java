@@ -1,5 +1,27 @@
 package dk.kb.datahandler.facade;
 
+import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.model.v1.OaiJobDto;
+import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.oai.*;
+import dk.kb.datahandler.util.HarvestTimeUtil;
+import dk.kb.datahandler.util.HttpPostUtil;
+import dk.kb.present.model.v1.FormatDto;
+import dk.kb.present.util.DsPresentClient;
+import dk.kb.storage.client.v1.DsStorageApi;
+import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.OriginCountDto;
+import dk.kb.storage.util.DsStorageClient;
+import dk.kb.util.webservice.exception.InternalServiceException;
+import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
+import dk.kb.util.webservice.stream.ContinuationInputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,34 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-
-import dk.kb.datahandler.oai.*;
-import org.apache.http.client.utils.URIBuilder;
-
-import dk.kb.util.webservice.exception.InternalServiceException;
-import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
-import dk.kb.util.webservice.stream.ContinuationInputStream;
-
-import org.apache.commons.io.IOUtils;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
-
-import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.OaiJobDto;
-import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.util.HarvestTimeUtil;
-import dk.kb.datahandler.util.HttpPostUtil;
-import dk.kb.present.model.v1.FormatDto;
-import dk.kb.present.util.DsPresentClient;
-import dk.kb.storage.client.v1.DsStorageApi;
-import dk.kb.storage.model.v1.DsRecordDto;
-import dk.kb.storage.model.v1.OriginCountDto;
-import dk.kb.storage.util.DsStorageClient;
 
 
 public class DsDatahandlerFacade {
@@ -113,7 +107,7 @@ public class DsDatahandlerFacade {
         }
         
         //Define the 2 clients. Inputstream from dsPresent will be feed direcly to the solrClient. 
-        DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getDsPresentUrl());
+        DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getConfig());
         URL solrUpdateUrl=new URIBuilder(ServiceConfig.getSolrUrl())
             .setParameter("commit", "true")
             .build().toURL();      
