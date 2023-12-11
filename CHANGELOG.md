@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
-Pvica authentication now also uses basic authentication using headers. The callback authentication is still active, but will not be called from pvica6
+- Pvica authentication now also uses basic authentication using headers. The callback authentication is still active, but will not be called from pvica6
+- Use FormatDTO for SOLRJSON format when calling ds-present
 
 
 ## [1.4.0](https://github.com/kb-dk/ds-datahandler/releases/tag/v1.4.0) - 2023-12-05
