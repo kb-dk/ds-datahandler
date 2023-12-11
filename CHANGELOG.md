@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+Pvica authentication now also uses basic authentication using headers. The callback authentication is still active, but will not be called from pvica6
 
 
 ## [1.4.0](https://github.com/kb-dk/ds-datahandler/releases/tag/v1.4.0) - 2023-12-05
@@ -15,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed 
 - General style of YAML configuration files, by removing the first level of indentation.
 
->>>>>>> Stashed changes
 
 
 ## [1.3.0](https://github.com/kb-dk/ds-datahandler/releases/tag/v1.3.0) - 2023-09-05
