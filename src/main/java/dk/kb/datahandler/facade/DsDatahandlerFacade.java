@@ -51,9 +51,9 @@ public class DsDatahandlerFacade {
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
 
         DsStorageApi dsAPI = getDsStorageApiClient();
-        ArrayList<String> errorRecords= new ArrayList<String>(); 
+        ArrayList<String> errorRecords= new ArrayList<>();
 
-        ZipEntry entry = null;
+        ZipEntry entry;
 
         while ((entry = zis.getNextEntry()) != null) {
 
@@ -71,7 +71,7 @@ public class DsDatahandlerFacade {
                 identifier=identifier.replaceFirst("urn:uuid:", ""); // Clear this first part from the ID
                 
                 String recordId= origin+":"+identifier;
-                log.info("Ingesting record filename from zip:"+fileName +" id:"+recordId);
+                log.info("Ingesting record filename from zip: '{}' and id: '{}'", fileName, recordId);
                 DsRecordDto dsRecord = new DsRecordDto();
                 dsRecord.setId(recordId); 
                 dsRecord.setOrigin(origin);
@@ -81,7 +81,7 @@ public class DsDatahandlerFacade {
             }
             catch(Exception e) {
                 errorRecords.add(fileName);
-                log.error("Error parsing xml record for file:"+fileName, e);              
+                log.error("Error parsing xml record for file: '{}'", fileName, e);
             }
         }
 
@@ -92,7 +92,7 @@ public class DsDatahandlerFacade {
     
     /**  
      *  Will start a index flow of records from ds-storage into solr. 
-     *  
+     * <p>
      *  1) Call ds-present that will extract records from ds-storage and xslt transform them into solr-add documents json.
      *  2) Send the input stream with json documents directly to solr so it is not kept in memory.
      *  
@@ -100,6 +100,7 @@ public class DsDatahandlerFacade {
      * @param mTimeFrom Will only index records with a last modification time (mTime) after this value. 
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
+    @SuppressWarnings("unchecked")
     public static void indexSolr(String origin, Long mTimeFrom)  throws Exception{
    
         if (mTimeFrom==null) {
@@ -125,9 +126,9 @@ public class DsDatahandlerFacade {
                 String solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
              
                       
-                if (solrResponse.indexOf("\"status\":0") < 0) {
-                    log.error("Unexptected reply from solr:"+solrResponse); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
-                    throw new IOException ("Unexpected status from solr:"+solrResponse);
+                if (!solrResponse.contains("\"status\":0")) {
+                    log.error("Unexpectected reply from solr: '" + solrResponse + "'"); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
+                    throw new IOException ("Unexpected status from solr: '" + solrResponse + "'");
                 }                                     
              
                hasMore=solrDocsStream.hasMore();
@@ -136,7 +137,7 @@ public class DsDatahandlerFacade {
                }                                                   
             }         
         }                     
-        log.info("Solr index completed for origin:"+origin +" and mTime:"+mTimeFrom);
+        log.info("Solr index completed for origin: '{}' and mTime: {}", origin, mTimeFrom);
     }
         
     /**
@@ -153,7 +154,8 @@ public class DsDatahandlerFacade {
         validateNotAlreadyRunning(oaiTargetName);        
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
         if (oaiTargetDto== null) {
-            throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName + "' . See the config method for list of configured targets.");
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName +
+                    "' . See the config method for list of configured targets.");
         }
 
         OaiTargetJob job = createNewJob(oaiTargetDto);        
@@ -168,7 +170,7 @@ public class DsDatahandlerFacade {
             return number;
         }
         catch(Exception e) {
-            log.error("Oai delta harvest did not complete succesfull:"+oaiTargetName);
+            log.error("Oai delta harvest did not complete succesfull: '{}'", oaiTargetName);
             job.setCompletedTime(System.currentTimeMillis());
             OaiJobCache.finishJob(job, 0,true);//Error                        
             throw new Exception(e);
@@ -192,7 +194,8 @@ public class DsDatahandlerFacade {
 
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
         if (oaiTargetDto== null) {
-            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +"' . See the config method for list of configured targets.");            
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +
+                    "' . See the config method for list of configured targets.");
         }
 
         OaiTargetJob job = createNewJob(oaiTargetDto);
@@ -213,7 +216,8 @@ public class DsDatahandlerFacade {
 
             //Delete old records in storage from before.
             Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getDatasource(), 0L, lastModifiedForOrigin);
-            log.info("After full ingest for origin={}, deleted {} old records in storage",oaiTargetDto.getDatasource(),numberDeleted);
+            log.info("After full ingest for origin={}, deleted {} old records in storage",
+                    oaiTargetDto.getDatasource(), numberDeleted);
             return number;
         }
         catch(Exception e) {
@@ -232,7 +236,7 @@ public class DsDatahandlerFacade {
      *  
      * @return List of jobs with status
      */    
-    public static List<OaiJobDto> getJobs() throws Exception {    
+    public static List<OaiJobDto> getJobs() {
         List<OaiJobDto> running=OaiJobCache.getRunningJobsMostRecentFirst();
         List<OaiJobDto> completed=OaiJobCache.getCompletedJobsMostRecentFirst();
         List<OaiJobDto> result = new ArrayList<OaiJobDto>();
@@ -308,11 +312,10 @@ public class DsDatahandlerFacade {
     }
 
     /**
-     * Generates a OaiRargetJob from an OaiTargetDto.
-     * 
+     * Generates a {@link OaiTargetJob} from a {@link OaiTargetDto}.
+     * <p>
      * The job will have a unique timestamp used as ID.  
      *   
-     * @param  dto 
      */
     public static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) {                  
 
@@ -336,18 +339,18 @@ public class DsDatahandlerFacade {
         String dsLicenseUrl = ServiceConfig.getDsStorageUrl();                                
         storageClient = new DsStorageClient(dsLicenseUrl);               
         return storageClient;
-      }
-           
-    
+    }
+
     private static long getLastModifiedTimeForOrigin(List<OriginCountDto> originStatistics, String origin) {
     	for (OriginCountDto dto :originStatistics) {
-    		if (dto.getOrigin().equals(origin)) {
-    			return dto.getLatestMTime();
+    		if (dto.getOrigin() != null && dto.getOrigin().equals(origin)) {
+    			return dto.getLatestMTime() == null ? 0L : dto.getLatestMTime();
     		}
     	}
 
     	//Can happen if there is no records in the origin
-    	log.warn("Origin name was not found in origin-statistics returned from ds-storage. Using mTime=0 for Origin:"+origin);
+    	log.warn("Origin name was not found in origin-statistics returned from ds-storage. " +
+                "Using mTime=0 for Origin: '{}'", origin);
     	return 0L;
     	
     	
