@@ -116,10 +116,13 @@ public class DsDatahandlerFacade {
                 
         boolean hasMore=true;        
         long batchSize=ServiceConfig.getSolrBatchSize();           
-        
+
+        Long documents = null;
+
         while (hasMore) {                       
             //The formate-type SolrJSON, will later be defined as enums in ds-present. For new we have to hard-code format.
-            try (ContinuationInputStream<Long> solrDocsStream = presentClient.getRecordsJSON(origin, mTimeFrom,batchSize,FormatDto.SOLRJSON)) {
+            try (ContinuationInputStream<Long> solrDocsStream =
+                         presentClient.getRecordsJSON(origin, mTimeFrom,batchSize,FormatDto.SOLRJSON)) {
 
                 //POST request to Solr using the inputstream                          
                 HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
@@ -130,14 +133,21 @@ public class DsDatahandlerFacade {
                     log.error("Unexpectected reply from solr: '" + solrResponse + "'"); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
                     throw new IOException ("Unexpected status from solr: '" + solrResponse + "'");
                 }                                     
-             
-               hasMore=solrDocsStream.hasMore();
-               if (hasMore) {
-                   mTimeFrom=solrDocsStream.getContinuationToken(); //Next batch start from here.
-               }                                                   
+                if (solrDocsStream.getRecordCount() != null) {
+                    if (documents == null) {
+                        documents = 0L;
+                    }
+                    documents += solrDocsStream.getRecordCount();
+                }
+
+                hasMore=solrDocsStream.hasMore();
+                if (hasMore) {
+                    mTimeFrom=solrDocsStream.getContinuationToken(); //Next batch start from here.
+                }
             }         
         }                     
-        log.info("Solr index completed for origin: '{}' and mTime: {}", origin, mTimeFrom);
+        log.info("Solr index completed for origin: '{}', mTime: {}, #docs: {}",
+                origin, mTimeFrom, documents == null ? "N/A" : documents);
     }
         
     /**
