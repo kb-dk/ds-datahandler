@@ -100,6 +100,7 @@ oai_targets:
     filter: direct
 
   - name: kb.books.ortsam.ostryk
+    datasource: kb.books.ortsam.ostryk
     url: http://www5.kb.dk/cop/oai/
     set: oai:kb.dk:books:ortsam:2011:mar:ostryk
     metadataPrefix: mods
