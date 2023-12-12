@@ -105,7 +105,7 @@
         <dependency>
             <groupId>dk.kb.util</groupId>
             <artifactId>kb-util</artifactId>
-            <version>1.4.19-SNAPSHOT</version>
+            <version>1.4.19</version>
             <exclusions>
                 <exclusion>
                     <!-- kb-util has 2.3.3, but transitive resolving has 2.4.0 somewhere-->
@@ -134,7 +134,7 @@
       <dependency>
         <groupId>dk.kb.present</groupId>
         <artifactId>ds-present</artifactId>
-          <version>1.2.2-SNAPSHOT</version>
+          <version>1.2.2</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
