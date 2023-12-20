@@ -54,11 +54,9 @@ public class ServiceConfig {
         solrBatchSize=  serviceConfig.getInteger("solr.batchSize");
         dsPresentUrl = serviceConfig.getString("present.url");
 
-        // TODO: Write prettier log message which includes solrQueryUrl
-        log.info("solrUpdateUrl:"+ solrUpdateUrl);
-        log.info("solrBatchSize:"+solrBatchSize);
-        log.info("dsStorageUrl:"+dsStorageUrl);
-        log.info("dsPresentUrl:"+dsPresentUrl);
+        log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
+                "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}'",
+                configFile, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl);
 
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
