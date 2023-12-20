@@ -322,15 +322,14 @@ components:
       type: array
       items: 
         $ref: '#/components/schemas/OaiJob'
-                       
+
     IndexType:
-      type: object
-      properties:
-        Type:
-          type: string
-          enum:
-            - FULL
-            - DELTA
+      type: string
+      enum:
+        - FULL
+        - DELTA
+      example: 'FULL'
+      default: 'FULL'
 
     Error:
       type: object
