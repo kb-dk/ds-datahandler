@@ -81,10 +81,12 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
             if (oaiRecord.getId().contains("oai:col")){
                 continue;
             }
-            // DeliverableUnits need to have the PBCore metadata tag. Manifestations does not seem to have it.
+            // DeliverableUnits from preservica 5 and InformationObjects from preservcia 6 need to have the PBCore metadata tag.
+            // Manifestations from preservica 5 does not seem to have it.
             // Therefore, we are checking the ID as well.
             Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
-            if (oaiRecord.getId().contains("oai:du") && !metadataMatcher.find()){
+            if (oaiRecord.getId().contains("oai:du") || oaiRecord.getId().contains("oai:io")
+                    && !metadataMatcher.find()){
                 processed++;
                 emptyMetadataRecords ++;
                 log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
