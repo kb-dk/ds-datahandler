@@ -85,8 +85,8 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
             // Manifestations from preservica 5 does not seem to have it.
             // Therefore, we are checking the ID as well.
             Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
-            if (oaiRecord.getId().contains("oai:du") || oaiRecord.getId().contains("oai:io")
-                    && !metadataMatcher.find()){
+            if ((oaiRecord.getId().contains("oai:du") || oaiRecord.getId().contains("oai:io"))
+                    && !metadataMatcher.find()) {
                 processed++;
                 emptyMetadataRecords ++;
                 log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
