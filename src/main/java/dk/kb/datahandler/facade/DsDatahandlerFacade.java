@@ -131,13 +131,11 @@ public class DsDatahandlerFacade {
         // Perform a query
         SolrQuery query = new SolrQuery("origin:"+ origin);
         query.setGetFieldStatistics(true);
-        // TODO: When DISC-575 has gone through review, the stat field should be internal_storage_mTime
-        query.setGetFieldStatistics("duration_ms");
+        query.setGetFieldStatistics("internal_storage_mTime");
 
         // Parse response to get last modified field
         QueryResponse response = solrClient.query(query);
-        // TODO: When DISC-575 has gone through review, the retrieved field should be internal_storage_mTime
-        Long lastStorageMTime = (Long) response.getFieldStatsInfo().get("duration_ms").getMax();
+        Long lastStorageMTime = (Long) response.getFieldStatsInfo().get("internal_storage_mTime").getMax();
 
         indexOrigin(origin, lastStorageMTime);
     }
