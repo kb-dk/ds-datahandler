@@ -37,4 +37,10 @@ public class DsDatahandlerFacadeTest {
 
     }
 
+    @Test
+    void testSolrQuery() throws Exception {
+        Long result = DsDatahandlerFacade.getLatestMTimeForOrigin("ds.radio");
+        System.out.println(result);
+    }
+
 }

@@ -22,6 +22,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -124,20 +125,38 @@ public class DsDatahandlerFacade {
      * @param origin to index records from.
      */
     public static void indexSolrDelta(String origin) throws IOException, SolrServerException, URISyntaxException {
+        Long lastStorageMTime = getLatestMTimeForOrigin(origin);
+
+        indexOrigin(origin, lastStorageMTime);
+    }
+
+    /**
+     *
+     * @param origin
+     * @return
+     */
+    public static Long getLatestMTimeForOrigin(String origin) throws SolrServerException, IOException {
         // Solr query client
         String solrQueryUrl = ServiceConfig.getSolrQueryUrl();
         SolrClient solrClient = new HttpSolrClient.Builder(solrQueryUrl).build();
 
+        String storageMTime = "internal_storage_mTime";
+
         // Perform a query
-        SolrQuery query = new SolrQuery("origin:"+ origin);
-        query.setGetFieldStatistics(true);
-        query.setGetFieldStatistics("internal_storage_mTime");
+        SolrQuery query = new SolrQuery("origin:"+ origin + " AND " + storageMTime + ":*");
+        query.setFields(storageMTime);
+        query.setSort(storageMTime, SolrQuery.ORDER.desc);
+        query.setRows(1);
+        // Have to add facet and highlights like this as the query.setFacet and query.setHighlight aren't appended
+        // to the query.
+        query.add("facet", "false");
+        query.add("hl", "false");
 
         // Parse response to get last modified field
         QueryResponse response = solrClient.query(query);
-        Long lastStorageMTime = (Long) response.getFieldStatsInfo().get("internal_storage_mTime").getMax();
 
-        indexOrigin(origin, lastStorageMTime);
+        Long lastStorageMTime = (Long) response.getResults().get(0).getFieldValue(storageMTime);
+        return lastStorageMTime;
     }
 
     private static void indexOrigin(String origin, Long sinceTime) throws IOException, URISyntaxException {
