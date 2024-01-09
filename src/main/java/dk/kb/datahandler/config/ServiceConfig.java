@@ -25,7 +25,8 @@ public class ServiceConfig {
     private static final HashMap<String, OaiTargetDto> oaiTargets = new HashMap<String, OaiTargetDto>();
     private static String oaiTimestampFolder=null;
     private static String dsStorageUrl = null;
-    private static String solrUrl = null;
+    private static String solrUpdateUrl = null;
+    private static String solrQueryUrl = null;
     private static String dsPresentUrl = null;
     private static int solrBatchSize=100;
     
@@ -48,14 +49,14 @@ public class ServiceConfig {
         
         oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
         dsStorageUrl = serviceConfig.getString("storage.url");
-        solrUrl = serviceConfig.getString("solr.url");
+        solrUpdateUrl = serviceConfig.getString("solr.updateUrl");
+        solrQueryUrl = serviceConfig.getString("solr.queryUrl");
         solrBatchSize=  serviceConfig.getInteger("solr.batchSize");
         dsPresentUrl = serviceConfig.getString("present.url");
 
-        log.info("solrUrl:"+solrUrl);
-        log.info("solrBatchSize:"+solrBatchSize);
-        log.info("dsStorageUrl:"+dsStorageUrl);
-        log.info("dsPresentUrl:"+dsPresentUrl);
+        log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
+                "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}'",
+                configFile, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl);
 
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
@@ -87,8 +88,11 @@ public class ServiceConfig {
     	return solrBatchSize;
     }
 
-    public static String getSolrUrl() {
-        return solrUrl;
+    public static String getSolrUpdateUrl() {
+        return solrUpdateUrl;
+    }
+    public static String getSolrQueryUrl() {
+        return solrQueryUrl;
     }
     
     public static String getDsPresentUrl() {

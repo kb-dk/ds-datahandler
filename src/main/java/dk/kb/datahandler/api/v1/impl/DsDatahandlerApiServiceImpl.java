@@ -3,7 +3,7 @@ package dk.kb.datahandler.api.v1.impl;
 import dk.kb.datahandler.api.v1.DsDatahandlerApi;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
-import dk.kb.datahandler.model.v1.OaiJobDto;
+import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.webservice.ImplBase;
 import org.apache.cxf.jaxrs.ext.MessageContext;
@@ -129,10 +129,18 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     @Override
-    public void indexSolr(@NotNull String origin, Long mTimeFrom) {
+    public void indexSolr(@NotNull String origin, Long mTimeFrom, IndexTypeDto type) {
         log.debug("indexSolr(origin='{}', ...) called with call details: {}", origin, getCallDetails());
-        try {            
-            DsDatahandlerFacade.indexSolr(origin,mTimeFrom);
+        try {
+            switch (type){
+                case FULL:
+                    DsDatahandlerFacade.indexSolrFull(origin,mTimeFrom);
+                case DELTA:
+                    DsDatahandlerFacade.indexSolrDelta(origin);
+                default:
+                    log.error("No indexing type has been selected. Indexing cannot continue without knowing which records to index.");
+            }
+
         }  catch (Exception e){
             throw handleException(e);
         }

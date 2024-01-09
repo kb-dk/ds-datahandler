@@ -17,6 +17,12 @@ import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -26,9 +32,11 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -101,55 +109,102 @@ public class DsDatahandlerFacade {
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
     @SuppressWarnings("unchecked")
-    public static void indexSolr(String origin, Long mTimeFrom)  throws Exception{
+    public static void indexSolrFull(String origin, Long mTimeFrom)  throws Exception{
    
         if (mTimeFrom==null) {
             mTimeFrom=0L;
         }
-        
-        //Define the 2 clients. Inputstream from dsPresent will be feed direcly to the solrClient. 
+
+        indexOrigin(origin, mTimeFrom);
+    }
+
+    /**
+     * Indexes ds-storage records that haven't been indexed in solr through the following workflow:
+     * Get latest  ds-storage modification time for records in existing solr index.
+     * Then fetch newer records from ds-storage, transform to solr documents in ds-present and index into solr.
+     * @param origin to index records from.
+     */
+    public static void indexSolrDelta(String origin) throws IOException, SolrServerException, URISyntaxException {
+        Long lastStorageMTime = getLatestMTimeForOrigin(origin);
+
+        indexOrigin(origin, lastStorageMTime);
+    }
+
+    /**
+     * Get the latest MTime for records in the backing storage represented in the existing solr index
+     * for the requested origin.
+     * @param origin to extract latest mTime for.
+     * @return the latest mTime as a long representing time in epoch with three added digits.
+     */
+    public static Long getLatestMTimeForOrigin(String origin) throws SolrServerException, IOException {
+        // Solr query client
+        String solrQueryUrl = ServiceConfig.getSolrQueryUrl();
+        SolrClient solrClient = new HttpSolrClient.Builder(solrQueryUrl).build();
+
+        String storageMTime = "internal_storage_mTime";
+
+        // Perform a query
+        SolrQuery query = new SolrQuery("origin:"+ origin + " AND " + storageMTime + ":*");
+        query.setFields(storageMTime);
+        query.setSort(storageMTime, SolrQuery.ORDER.desc);
+        query.setRows(1);
+        // Have to add facet and highlights like this as the query.setFacet and query.setHighlight aren't appended
+        // to the query.
+        query.add("facet", "false");
+        query.add("hl", "false");
+
+        // Parse response to get last modified field
+        QueryResponse response = solrClient.query(query);
+
+        if (!response.getResults().isEmpty()) {
+            Long lastStorageMTime = (Long) response.getResults().get(0).getFieldValue(storageMTime);
+            return lastStorageMTime;
+        } else {
+            return 0L;
+        }
+    }
+
+    private static void indexOrigin(String origin, Long sinceTime) throws IOException, URISyntaxException {
+        //DS-present client
         DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getConfig());
-        URL solrUpdateUrl=new URIBuilder(ServiceConfig.getSolrUrl())
-            .setParameter("commit", "true")
-            .build().toURL();      
-     
-                
-        boolean hasMore=true;        
-        long batchSize=ServiceConfig.getSolrBatchSize();           
+        // Solr update client
+        URL solrUpdateUrl=new URIBuilder(ServiceConfig.getSolrUpdateUrl())
+                .setParameter("commit", "true")
+                .build().toURL();
 
-        Long documents = null;
+        boolean hasMore=true;
+        long batchSize= ServiceConfig.getSolrBatchSize();
 
-        while (hasMore) {                       
-            //The formate-type SolrJSON, will later be defined as enums in ds-present. For new we have to hard-code format.
+        Long documents = 0L;
+
+        while (hasMore) {
             try (ContinuationInputStream<Long> solrDocsStream =
-                         presentClient.getRecordsJSON(origin, mTimeFrom,batchSize,FormatDto.SOLRJSON)) {
+                         presentClient.getRecordsJSON(origin, sinceTime,batchSize, FormatDto.SOLRJSON)) {
 
-                //POST request to Solr using the inputstream                          
+                //POST request to Solr using the inputstream
                 HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
                 String solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
-             
-                      
+
+
                 if (!solrResponse.contains("\"status\":0")) {
                     log.error("Unexpectected reply from solr: '" + solrResponse + "'"); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
                     throw new IOException ("Unexpected status from solr: '" + solrResponse + "'");
-                }                                     
+                }
                 if (solrDocsStream.getRecordCount() != null) {
-                    if (documents == null) {
-                        documents = 0L;
-                    }
                     documents += solrDocsStream.getRecordCount();
                 }
 
                 hasMore=solrDocsStream.hasMore();
                 if (hasMore) {
-                    mTimeFrom=solrDocsStream.getContinuationToken(); //Next batch start from here.
+                    sinceTime=solrDocsStream.getContinuationToken(); //Next batch start from here.
                 }
-            }         
-        }                     
+            }
+        }
         log.info("Solr index completed for origin: '{}', mTime: {}, #docs: {}",
-                origin, mTimeFrom, documents == null ? "N/A" : documents);
+                origin, sinceTime, documents);
     }
-        
+
+
     /**
      * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
      * saved on the file system for that target.
