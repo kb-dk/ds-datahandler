@@ -156,8 +156,12 @@ public class DsDatahandlerFacade {
         // Parse response to get last modified field
         QueryResponse response = solrClient.query(query);
 
-        Long lastStorageMTime = (Long) response.getResults().get(0).getFieldValue(storageMTime);
-        return lastStorageMTime;
+        if (!response.getResults().isEmpty()) {
+            Long lastStorageMTime = (Long) response.getResults().get(0).getFieldValue(storageMTime);
+            return lastStorageMTime;
+        } else {
+            return 0L;
+        }
     }
 
     private static void indexOrigin(String origin, Long sinceTime) throws IOException, URISyntaxException {
