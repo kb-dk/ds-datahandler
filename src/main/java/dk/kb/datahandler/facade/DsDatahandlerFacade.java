@@ -131,9 +131,10 @@ public class DsDatahandlerFacade {
     }
 
     /**
-     *
-     * @param origin
-     * @return
+     * Get the latest MTime for records in the backing storage represented in the existing solr index
+     * for the requested origin.
+     * @param origin to extract latest mTime for.
+     * @return the latest mTime as a long representing time in epoch with three added digits.
      */
     public static Long getLatestMTimeForOrigin(String origin) throws SolrServerException, IOException {
         // Solr query client
