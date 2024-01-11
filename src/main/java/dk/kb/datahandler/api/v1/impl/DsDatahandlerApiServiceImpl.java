@@ -129,22 +129,22 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     @Override
-    public void indexSolr(@NotNull String origin, Long mTimeFrom, IndexTypeDto type) {
+    public String indexSolr(@NotNull String origin, Long mTimeFrom, IndexTypeDto type) {
         log.debug("indexSolr(origin='{}', ...) called with call details: {}", origin, getCallDetails());
         try {
             switch (type){
                 case FULL:
-                    DsDatahandlerFacade.indexSolrFull(origin,mTimeFrom);
+                    return DsDatahandlerFacade.indexSolrFull(origin,mTimeFrom);
                 case DELTA:
-                    DsDatahandlerFacade.indexSolrDelta(origin);
+                    return DsDatahandlerFacade.indexSolrDelta(origin);
                 default:
                     log.error("No indexing type has been selected. Indexing cannot continue without knowing which records to index.");
+                    return "No indexing type has been selected. Indexing cannot continue without knowing which records to index.";
             }
 
         }  catch (Exception e){
             throw handleException(e);
         }
-        
     }
 
 

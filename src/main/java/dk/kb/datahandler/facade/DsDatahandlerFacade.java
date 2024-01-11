@@ -109,13 +109,13 @@ public class DsDatahandlerFacade {
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
     @SuppressWarnings("unchecked")
-    public static void indexSolrFull(String origin, Long mTimeFrom)  throws Exception{
+    public static String indexSolrFull(String origin, Long mTimeFrom)  throws Exception{
    
         if (mTimeFrom==null) {
             mTimeFrom=0L;
         }
 
-        indexOrigin(origin, mTimeFrom);
+        return indexOrigin(origin, mTimeFrom);
     }
 
     /**
@@ -124,10 +124,10 @@ public class DsDatahandlerFacade {
      * Then fetch newer records from ds-storage, transform to solr documents in ds-present and index into solr.
      * @param origin to index records from.
      */
-    public static void indexSolrDelta(String origin) throws IOException, SolrServerException, URISyntaxException {
+    public static String indexSolrDelta(String origin) throws IOException, SolrServerException, URISyntaxException {
         Long lastStorageMTime = getLatestMTimeForOrigin(origin);
 
-        indexOrigin(origin, lastStorageMTime);
+        return indexOrigin(origin, lastStorageMTime);
     }
 
     /**
@@ -164,7 +164,7 @@ public class DsDatahandlerFacade {
         }
     }
 
-    private static void indexOrigin(String origin, Long sinceTime) throws IOException, URISyntaxException {
+    private static String indexOrigin(String origin, Long sinceTime) throws IOException, URISyntaxException {
         //DS-present client
         DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getConfig());
         // Solr update client
@@ -176,6 +176,7 @@ public class DsDatahandlerFacade {
         long batchSize= ServiceConfig.getSolrBatchSize();
 
         Long documents = 0L;
+        String solrResponse = "";
 
         while (hasMore) {
             try (ContinuationInputStream<Long> solrDocsStream =
@@ -183,7 +184,7 @@ public class DsDatahandlerFacade {
 
                 //POST request to Solr using the inputstream
                 HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
-                String solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
+                solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
 
 
                 if (!solrResponse.contains("\"status\":0")) {
@@ -202,6 +203,8 @@ public class DsDatahandlerFacade {
         }
         log.info("Solr index completed for origin: '{}', mTime: {}, #docs: {}",
                 origin, sinceTime, documents);
+
+        return solrResponse;
     }
 
 
