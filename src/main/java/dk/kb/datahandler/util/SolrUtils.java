@@ -1,8 +1,9 @@
 package dk.kb.datahandler.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.solr.SolrResponseHeader;
@@ -90,17 +91,17 @@ public class SolrUtils {
                 HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
                 solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
 
-
                 if (!solrResponse.contains("\"status\":0")) {
                     log.error("Unexpectected reply from solr: '" + solrResponse + "'"); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
                     throw new IOException ("Unexpected status from solr: '" + solrResponse + "'");
                 }
+                // TODO: DS-Present does not send the Paging-Record-Count header yet,
+                //  therefor the number of documents are not currently updated
                 if (solrDocsStream.getRecordCount() != null) {
                     documents += solrDocsStream.getRecordCount();
                 }
 
                 updateFinalResponse(solrResponse, finalResponse, documents);
-
 
                 hasMore=solrDocsStream.hasMore();
                 if (hasMore) {
@@ -111,7 +112,7 @@ public class SolrUtils {
         log.info("Solr index completed for origin: '{}', mTime: {}, #docs: {}",
                 origin, sinceTime, documents);
 
-        return finalResponse.toString();
+        return solrIndexObjectAsJSON(finalResponse);
     }
 
 
@@ -136,13 +137,19 @@ public class SolrUtils {
      *
      * @param documents             The total amount of documents indexed.
      */
-    private static void updateFinalResponse(String individualSolrResponse, SolrIndexResponse finalResponse,
+     public static void updateFinalResponse(String individualSolrResponse, SolrIndexResponse finalResponse,
                                             Long documents) throws JsonProcessingException {
 
         SolrResponseHeader currentResponseHeader = new SolrResponseHeader(individualSolrResponse);
 
-        finalResponse.setLastResponseHeader(currentResponseHeader);
+        finalResponse.setLastSolrResponseHeader(currentResponseHeader);
         finalResponse.setAllDocumentsIndexed(documents);
         finalResponse.incrementCombinedQTime(currentResponseHeader.getqTime());
     }
+
+    private static String solrIndexObjectAsJSON(SolrIndexResponse solrIndexResponse) throws JsonProcessingException {
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        return ow.writeValueAsString(solrIndexResponse);
+    }
+
 }

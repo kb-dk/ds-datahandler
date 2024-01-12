@@ -1,10 +1,11 @@
 package dk.kb.datahandler.solr;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.kb.datahandler.util.SolrUtils;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -15,19 +16,32 @@ public class SolrIndexResponseTest {
         SolrResponseHeader responseHeader = new SolrResponseHeader(solrResponse);
 
         SolrIndexResponse solrIndexResponse = new SolrIndexResponse();
-        solrIndexResponse.setLastResponseHeader(responseHeader);;
+        solrIndexResponse.setLastSolrResponseHeader(responseHeader);;
 
-        assertEquals(solrIndexResponse.getLastResponseHeader().getqTime(), 1348);
+        assertEquals(solrIndexResponse.getLastSolrResponseHeader().getqTime(), 1348);
 
     }
 
     @Test
-    void testJsonStringToHashMap() throws JsonProcessingException {
-        String solrResponse = "{  \"responseHeader\":{    \"rf\":1,    \"status\":0,    \"QTime\":1348}}";
+    void testObjectToString() throws JsonProcessingException {
+        List<String> responses = new ArrayList<>();
+        responses.add("{  \"responseHeader\":{    \"rf\":1,    \"status\":0,    \"QTime\":1348}}");
+        responses.add("{  \"responseHeader\":{    \"rf\":1,    \"status\":0,    \"QTime\":1500}}");
+        responses.add("{  \"responseHeader\":{    \"rf\":1,    \"status\":0,    \"QTime\":12}}");
 
-        HashMap<String,Long> currentResponseHeader =
-                (HashMap<String, Long>) new ObjectMapper().readValue(solrResponse, HashMap.class).get("responseHeader");
+        SolrIndexResponse indexResponse = new SolrIndexResponse();
+        Long documents = 1231516L;
 
-        System.out.println(currentResponseHeader);
+
+        for (String response: responses) {
+            SolrUtils.updateFinalResponse(response, indexResponse, documents);
+        }
+
+        assertEquals("SolrIndexResponse{rf=1, lastStatus=0, combinedQTime=2860, allDocumentsIndexed=1231516}",
+                     indexResponse.toString());
+
+
     }
+
+
 }
