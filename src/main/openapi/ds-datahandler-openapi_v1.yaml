@@ -146,7 +146,9 @@ paths:
               schema:
                 type: object
                 example:
-                  responseHeader:
+                  combinedQTime: 103200
+                  allDocumentsIndexed: 200
+                  lastSolrResponseHeader:
                     rf: 1
                     status: 0
                     QTime: 1200
