@@ -111,7 +111,7 @@ public class SolrUtils {
         log.info("Solr index completed for origin: '{}', mTime: {}, #docs: {}",
                 origin, sinceTime, documents);
 
-        return solrResponse;
+        return finalResponse.toString();
     }
 
 

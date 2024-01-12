@@ -75,4 +75,14 @@ public class SolrIndexResponse {
     public void incrementAllDocumentsIndexed(Long documentsIndexed){
         this.allDocumentsIndexed += documentsIndexed;
     }
+
+    @Override
+    public String toString() {
+        return "SolrIndexResponse{" +
+                "rf=" + rf +
+                ", lastStatus=" + lastStatus +
+                ", combinedQTime=" + combinedQTime +
+                ", allDocumentsIndexed=" + allDocumentsIndexed +
+                '}';
+    }
 }
