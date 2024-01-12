@@ -140,8 +140,18 @@ paths:
 
       responses:
         '200':
-          description: OK.               
-                      
+          description: OK.
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  combinedQTime: 103200
+                  allDocumentsIndexed: 200
+                  lastSolrResponseHeader:
+                    rf: 1
+                    status: 0
+                    QTime: 1200
 
   # The ping service should be in all projects, should not do any advanced processing
   # and should respond quickly with a simple message, e.g. "pong".
