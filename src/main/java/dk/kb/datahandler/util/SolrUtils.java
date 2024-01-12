@@ -3,6 +3,7 @@ package dk.kb.datahandler.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
+import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.solr.SolrResponseHeader;
 import dk.kb.present.model.v1.FormatDto;
@@ -24,6 +25,7 @@ import java.net.URL;
 
 public class SolrUtils {
     private static final Logger log = LoggerFactory.getLogger(SolrUtils.class);
+
     /**
      * Get the latest MTime for records in the backing storage represented in the existing solr index
      * for the requested origin.
@@ -58,6 +60,12 @@ public class SolrUtils {
         }
     }
 
+    /**
+     * Index documents from a given oringin into the configured solr index.
+     * @param origin    where the records come from. Has to be registered with DS-Storage
+     * @param sinceTime A long representation of time since epoch.
+     * @return          A status on how many records have been indexed.
+     */
     public static String indexOrigin(String origin, Long sinceTime) throws IOException, URISyntaxException {
         //DS-present client
         DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getConfig());
@@ -107,10 +115,31 @@ public class SolrUtils {
     }
 
 
-    private static void updateFinalResponse(String solrResponse, SolrIndexResponse finalResponse,
+    /**
+     * Update the final {@code SolrIndexResponse} with the content from the single {@code individualSolrResponse}.
+     * The updated {@code SolrIndexResponse} is used as the response for the endpoint
+     * {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, IndexTypeDto)}. This
+     * updated response contains information on the amount of documents that have been indexed in total and not just
+     * during the last batch of the stream.
+     * @param individualSolrResponse a string representation of a JSON solr response returned when indexing a batch of
+     *                               documents. Eg:
+     * <pre>
+     * {"responseHeader": {    <br>
+     *   "rf":1, <br>
+     *   "status":0, <br>
+     *   "QTime":1348}}  <br>
+     *</pre>
+     * @param finalResponse         containing the {@code rf} value from the latest added {@code individualSolrResponse},
+     *                              the {@code status} value from the latest added {@code individualSolrResponse}
+     *                              the combined {@code QTime} for all added response headers and the total amount
+     *                              of documents indexed.
+     *
+     * @param documents             The total amount of documents indexed.
+     */
+    private static void updateFinalResponse(String individualSolrResponse, SolrIndexResponse finalResponse,
                                             Long documents) throws JsonProcessingException {
 
-        SolrResponseHeader currentResponseHeader = new SolrResponseHeader(solrResponse);
+        SolrResponseHeader currentResponseHeader = new SolrResponseHeader(individualSolrResponse);
 
         finalResponse.setLastResponseHeader(currentResponseHeader);
         finalResponse.setAllDocumentsIndexed(documents);

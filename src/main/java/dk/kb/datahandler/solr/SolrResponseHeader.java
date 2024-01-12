@@ -5,13 +5,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 
+/**
+ * Original response header from solr. Received when performing a POST of documents to be indexed into the backing solr.
+ */
 public class SolrResponseHeader {
     private Integer rf;
     private Integer status;
     private Long qTime;
-    public SolrResponseHeader() {
-    }
 
+    /**
+     * Construct a {@code SolrResponseHeader} from a string representation of the response in the format:
+     * <pre>
+     * {"responseHeader": {
+     *   "rf":1,
+     *   "status":0,
+     *   "QTime":1348}
+     *   }
+     *</pre>
+     * @param solrResponseHeader The string representation of a solr response header which the {@code SolrResponseHeader}
+     *                           is created from.
+     */
     public SolrResponseHeader(String solrResponseHeader) throws JsonProcessingException {
         HashMap<String,Integer> responseHeader =
                 (HashMap<String, Integer>) new ObjectMapper().readValue(solrResponseHeader, HashMap.class).get("responseHeader");
