@@ -61,7 +61,11 @@ public class SolrIndexResponse {
         return "SolrIndexResponse{" +
                 "combinedQTime=" + combinedQTime +
                 ", allDocumentsIndexed=" + allDocumentsIndexed +
-                ", lastResponseHeader=" + lastSolrResponseHeader +
+                ", lastResponseHeader=" + "SolrResponseHeader{rf=" +
+                                            lastSolrResponseHeader.getRf() +
+                                        ", status=" + lastSolrResponseHeader.getStatus() +
+                                        ", qTime=" + lastSolrResponseHeader.getqTime() +
+                                        "}" +
                 '}';
     }
 }

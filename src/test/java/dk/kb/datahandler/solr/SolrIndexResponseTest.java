@@ -37,8 +37,8 @@ public class SolrIndexResponseTest {
             SolrUtils.updateFinalResponse(response, indexResponse, documents);
         }
 
-        assertEquals("SolrIndexResponse{rf=1, lastStatus=0, combinedQTime=2860, allDocumentsIndexed=1231516}",
-                     indexResponse.toString());
+        assertEquals("SolrIndexResponse{combinedQTime=2860, allDocumentsIndexed=1231516, lastResponseHeader=SolrResponseHeader{rf=1, status=0, qTime=12}}",
+                    indexResponse.toString());
 
 
     }
