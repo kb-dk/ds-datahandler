@@ -5,11 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+
 ### Added
+
+
+## [1.5.0](https://github.com/kb-dk/ds-datahandler/releases/tag/v1.4.0) - 2023-12-05
 - Pvica authentication now also uses basic authentication using headers. The callback authentication is still active, but will not be called from pvica6
 - Use FormatDTO for SOLRJSON format when calling ds-present
 - Preliminary support for token based user group resolving, preparing for OAuth2
-
+- logback template changes
 
 ## [1.4.0](https://github.com/kb-dk/ds-datahandler/releases/tag/v1.4.0) - 2023-12-05
 ### Added
