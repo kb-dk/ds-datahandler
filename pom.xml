@@ -105,7 +105,7 @@
         <dependency>
             <groupId>dk.kb.util</groupId>
             <artifactId>kb-util</artifactId>
-            <version>1.4.21</version>
+            <version>1.4.22</version>
             <exclusions>
                 <exclusion>
                     <!-- kb-util has 2.3.3, but transitive resolving has 2.4.0 somewhere-->
@@ -359,7 +359,7 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <includes>
-                    <include>build.properties</include>
+                    <include>ds-datahandler.build.properties</include>
                 </includes>
             </resource>
         </resources>
@@ -574,7 +574,7 @@
                         <webResource> <!-- Store application name, version and build time -->
                           <directory>${basedir}/src/main/resources/</directory>
                           <includes>
-                            <include>build.properties</include>
+                            <include>ds-datahandler.build.properties</include>
                           </includes>
                           <filtering>true</filtering>
                         </webResource>
