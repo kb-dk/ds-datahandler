@@ -239,6 +239,23 @@ components:
           example: 'ok'
         jobs:
           $ref: '#/components/schemas/OaiJobList'
+        gitCommitChecksum:
+          type: string
+          description: 'The checksum of the deployed commit.'
+          example: 'ca82a6dff817ec66f44342007202690a93763949'
+        gitBranch:
+          type: string
+          description: 'The current deployed branch.'
+          example: master
+        gitCurrentTag:
+          type: string
+          description: 'The current tag of the deployed branch.'
+        gitClosestTag:
+          type: string
+          description: 'The closest tag of the deployed branch.'
+        gitCommitTime:
+          type: string
+          description: 'The time for the latest commit of the deplyed branch.'
 
     OaiTargetList:
       type: array
