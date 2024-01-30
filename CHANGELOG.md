@@ -6,10 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-
 ### Added
+- Added git information to the status endpoint. It now delivers, deployed branch name, commit hash, time of latest commit and closest tag
 
 ## [1.5.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.5) - 2024-01-22
+### Added
 - Pvica authentication now also uses basic authentication using headers. The callback authentication is still active, but will not be called from pvica6
 - Use FormatDTO for SOLRJSON format when calling ds-present
 - Preliminary support for token based user group resolving, preparing for OAuth2
@@ -38,5 +39,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of <project>
 
 
-[Unreleased](https://github.com/kb-dk/ds-datahandler/compare/v1.0.0...HEAD)
-[1.0.0](https://github.com/kb-dk/ds-datahandler/releases/tag/v1.0.0)
+[Unreleased](https:

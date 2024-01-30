@@ -105,7 +105,7 @@
         <dependency>
             <groupId>dk.kb.util</groupId>
             <artifactId>kb-util</artifactId>
-            <version>1.4.19</version>
+            <version>1.4.21</version>
             <exclusions>
                 <exclusion>
                     <!-- kb-util has 2.3.3, but transitive resolving has 2.4.0 somewhere-->
@@ -630,6 +630,39 @@
                         <phase>package</phase>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Plugin used to extract information on the current git setup.
+     See: https://github.com/git-commit-id/git-commit-id-maven-plugin -->
+            <plugin>
+                <groupId>io.github.git-commit-id</groupId>
+                <artifactId>git-commit-id-maven-plugin</artifactId>
+                <version>7.0.0</version>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includeOnlyProperties>
+                        <includeOnlyProperty>git.commit.id</includeOnlyProperty>
+                        <includeOnlyProperty>git.branch</includeOnlyProperty>
+                        <includeOnlyProperty>git.tag</includeOnlyProperty>
+                        <includeOnlyProperty>git.closest.tag.name</includeOnlyProperty>
+                        <includeOnlyProperty>git.commit.author.time</includeOnlyProperty>
+                    </includeOnlyProperties>
+                    <replacementProperties>
+                        <replacementProperty>
+                            <property>git.tag</property>
+                            <regex>false</regex>
+                            <token>git.tag</token>
+                            <value>unknown</value>
+                        </replacementProperty>
+                    </replacementProperties>
+                </configuration>
             </plugin>
         </plugins>
     </build>

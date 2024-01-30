@@ -72,6 +72,11 @@ public class ServiceApiServiceImpl extends ImplBase implements ServiceApi {
                     .java(System.getProperty("java.version"))
                     .heap(Runtime.getRuntime().maxMemory()/1048576L)
                     .server(host)
+                    .gitCommitChecksum(BuildInfoManager.getGitCommitChecksum())
+                    .gitBranch(BuildInfoManager.getGitBranch())
+                    .gitClosestTag(BuildInfoManager.getGitClosestTag())
+                    .gitCurrentTag(BuildInfoManager.getGitCurrentTag())
+                    .gitCommitTime(BuildInfoManager.getGitCommitTime())
                     .health("ok")
                     .jobs(jobs);
         } catch (Exception e) {
