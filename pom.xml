@@ -664,6 +664,30 @@
                     </replacementProperties>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>dk.kb.util</groupId>
+                <artifactId>injection-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>read-yaml-properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <filePath>conf/ds-datahandler-behaviour.yaml</filePath>
+                    <yamlResolvers>
+                        <YamlResolver>
+                            <yamlType>List</yamlType>
+                            <yamlPath>oai_targets</yamlPath>
+                            <sourceKey>name</sourceKey>
+                            <destinationKey>oai_targets</destinationKey>
+                            <createEnum>true</createEnum>
+                        </YamlResolver>
+                    </yamlResolvers>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
