@@ -685,6 +685,17 @@
                             <destinationKey>oai_targets</destinationKey>
                             <createEnum>true</createEnum>
                         </YamlResolver>
+                        <yamlResolver>
+                            <yamlType>List</yamlType>
+                            <yamlPath>present.origins</yamlPath>
+                            <destinationKey>present_origins</destinationKey>
+                            <createEnum>true</createEnum>
+                        </yamlResolver>
+                        <yamlResolver>
+                            <yamlType>Single-value</yamlType>
+                            <yamlPath>present.origins[7]</yamlPath>
+                            <destinationKey>present_origin_example</destinationKey>
+                        </yamlResolver>
                     </yamlResolvers>
                 </configuration>
             </plugin>

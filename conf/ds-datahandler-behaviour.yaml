@@ -161,6 +161,17 @@ solr:
 # The ds-present server used for xslt
 present:
   url: http://localhost:9073/ds-present/v1
+  # The following origins are available in ds-present. These values are used to define the list of available origins
+  # used when indexing through the '/solr/index'-endpoint.
+  origins:
+    - kb.images.billed.hca
+    - kb.image.judsam.jsmss
+    - kb.images.luftfo.luftfoto
+    - kb.pamphlets.dasmaa.smaatryk
+    - ds.samlingsbilleder
+    - ds.radiotv
+    - ds.radio
+    - ds.tv
   headers:
     # This is not security!
     # This is used for establishing token flows using HTTP headers un preparation of OAuth2 support
