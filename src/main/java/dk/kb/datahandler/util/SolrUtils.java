@@ -95,8 +95,6 @@ public class SolrUtils {
                     log.error("Unexpectected reply from solr: '" + solrResponse + "'"); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
                     throw new IOException ("Unexpected status from solr: '" + solrResponse + "'");
                 }
-                // TODO: DS-Present does not send the Paging-Record-Count header yet,
-                //  therefor the number of documents are not currently updated
                 if (solrDocsStream.getRecordCount() != null) {
                     documents += solrDocsStream.getRecordCount();
                 }
