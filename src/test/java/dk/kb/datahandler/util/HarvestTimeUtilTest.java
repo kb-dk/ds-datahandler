@@ -1,11 +1,16 @@
 package dk.kb.datahandler.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Calendar;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -52,6 +57,33 @@ public class HarvestTimeUtilTest {
         }
     }
     
-    //TODO validate date format
+
+    @Test
+    void testValidateDayFormat() throws Exception {
+    	assertTrue(HarvestTimeUtil.validateDayFormat("2024-01-01"));
+    	assertTrue(HarvestTimeUtil.validateDayFormat("2024-12-12"));
+    	assertFalse(HarvestTimeUtil.validateDayFormat("2024-02-31")); //31. feb does not exist
+    	
+    }
+
+    @Test
+    void testGetNextDay() throws Exception {    	
+    	    	
+    	assertEquals("2020-01-02",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("2020-01-01")); //1 day
+    	assertEquals("2021-01-01",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("2020-12-31")); //new year
+    
+        //Test 2 days in future
+    	//Construct today in format yyyy-MM-dd
+    	String today = HarvestTimeUtil.formatDate2Day(Calendar.getInstance().getTime());
+    	
+    	//Next day must be returned
+    	String tomorrow=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(today);    	
+    	assertNotNull(tomorrow);    
+    	
+    	//This is 2 days in future.
+    	String todayPlus2Days = HarvestTimeUtil.getNextDayIfNot2DaysInFuture(tomorrow);
+    	assertNull(todayPlus2Days); //2 days in future     	    
+    }
+	
     
 }

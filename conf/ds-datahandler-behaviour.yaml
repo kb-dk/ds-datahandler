@@ -17,7 +17,7 @@ oai_targets:
     set: oai:kb.dk:letters:judsam:2011:mar:dsa
     metadataPrefix: mods
     description: David Simonsens Arkiv
-    filter: direct
+    filter: direct    
 
   - name: kb.image.judsam.jsmss
     datasource: kb.image.judsam.jsmss
@@ -140,6 +140,7 @@ oai_targets:
     metadataPrefix: XIP_full_schema
     description: Radio- og TV-udsendelser
     filter: preservica
+    oai_daily: true
 
 
 

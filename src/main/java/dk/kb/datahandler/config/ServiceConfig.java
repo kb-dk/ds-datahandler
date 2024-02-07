@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.util.yaml.YAML;
 
 /**
@@ -124,6 +125,15 @@ public class ServiceConfig {
             String user=target.getString("user",null);
             String password=target.getString("password",null);
             String filterStr = target.getString("filter","direct");
+            Boolean dayOnly = target.getBoolean("day_only",Boolean.FALSE);
+        	String startDay = target.getString("start_day",null);            
+            if (dayOnly) { //startDay must be defined for datOnly strategy                        	      
+            	boolean validStartDay=HarvestTimeUtil.validateDayFormat(startDay);
+                if (!validStartDay) {
+                 	throw new IllegalArgumentException("Failed to parse startDate for OAI target with dayOnly strategy. Day="+startDay);
+                }            	
+            }
+            
             OaiTargetDto.FilterEnum filter;
             try {
                 filter = OaiTargetDto.FilterEnum.fromValue(filterStr);
@@ -143,6 +153,8 @@ public class ServiceConfig {
             oaiTarget.setDatasource(datasource);
             oaiTarget.setDecription(description);
             oaiTarget.setFilter(filter);
+            oaiTarget.setDayOnly(dayOnly);
+            oaiTarget.setStartDay(startDay);
             oaiTargets.put(name, oaiTarget);
             
             log.info("Load OAI target from yaml:"+name);
