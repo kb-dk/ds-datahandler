@@ -118,16 +118,80 @@ public class DsDatahandlerFacade {
         return SolrUtils.indexOrigin(origin, lastStorageMTime);
     }
 
-
     /**
      * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
      * saved on the file system for that target.
+     * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
      *  
      * @param  oaiTargetName the location of the image, relative to the url argument
      * @return Number of harvested records.
      */    
-    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {                
+    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {   
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
+    	if (oaiTargetDto.getDayOnly()) {
+    		Integer delta=oaiIngestDeltaImplByDay(oaiTargetName); 
+    		return delta;    		
+    	}
+    	else {
+    		Integer delta = oaiIngestDeltaImpl(oaiTargetName);	
+    		return delta;
+    	}    	
+    }
+    
+    
+    public static Integer oaiIngestDeltaImplByDay(String oaiTargetName) throws Exception {                
+
+        //Test no job is running before starting new for same target
+        validateNotAlreadyRunning(oaiTargetName);        
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
+        if (oaiTargetDto== null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName +
+                    "' . See the config method for list of configured targets.");
+        }
+
+        OaiTargetJob job = createNewJob(oaiTargetDto);        
+
+        //register job
+        OaiJobCache.addNewJob(job);
+        
+        //Notice we cut date down to day here always. 2023-10-25T12:51:58Z -> 2023-10-25
+        String dayStamp = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
+        if (dayStamp== null) {
+        	dayStamp=oaiTargetDto.getStartDay();        
+        }
+
+        //Now we have start date and we have to batch to every day from dayStamp until tomorrow
+        //Every day is also be batched with resumptionToken as standard OAI
+        
+        String nextDay=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(dayStamp);
+        
+        int totalNumber=0;
+        while (nextDay != null) {        	 
+
+        	try {                       
+                int number= oaiIngest(job , dayStamp,nextDay);
+                OaiJobCache.finishJob(job, number,false);//No error
+                totalNumber+=number;
+            }
+            catch(Exception e) {
+                log.error("Oai delta harvest did not complete succesfull: '{}'", oaiTargetName);
+                job.setCompletedTime(System.currentTimeMillis());
+                OaiJobCache.finishJob(job, 0,true);//Error                        
+                throw new Exception(e);
+            }
+            
+           //Add 1 day to from and to day
+        	dayStamp=nextDay;
+        	nextDay=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(nextDay); //when null it will stop
+        	
+        }
+        return totalNumber;
+    }
+
+    
+   
+    public static Integer oaiIngestDeltaImpl(String oaiTargetName) throws Exception {                
 
         //Test no job is running before starting new for same target
         validateNotAlreadyRunning(oaiTargetName);        
@@ -144,7 +208,7 @@ public class DsDatahandlerFacade {
 
         try {
             String datestamp = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);        
-            int number= oaiIngest(job , datestamp);
+            int number= oaiIngest(job , datestamp,null);
             OaiJobCache.finishJob(job, number,false);//No error
             return number;
         }
@@ -156,16 +220,31 @@ public class DsDatahandlerFacade {
         }
     }
 
-
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
+     * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job.
      * After full ingest ds-storage will be called again and all older recorders from before the ingest fill be deleted. 
      *  
      * @param  oaiTargetName the location of the image, relative to the url argument
      * @return Number of harvested records.
-     */    
+     */        
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
+    	
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
+       	if (oaiTargetDto.getDayOnly()) {
+       		Integer delta= oaiIngestDeltaImplByDay(oaiTargetName); //even if full, it will be split into many delta's
+       		return delta;    		
+       	}
+       	else {
+       		Integer delta = oaiIngestFull(oaiTargetName);	
+       		return delta;
+       	}    	
+    	
+    	
+    }
+   
+    public static Integer oaiIngestFullImpl(String oaiTargetName) throws Exception {
 
     	
         //Test no job is running before starting new for same target
@@ -190,7 +269,7 @@ public class DsDatahandlerFacade {
 
         try {
 
-            int number= oaiIngest(job , null);        
+            int number= oaiIngest(job , null,null);        
             OaiJobCache.finishJob(job, number,false);//No error
 
             //Delete old records in storage from before.
@@ -231,7 +310,7 @@ public class DsDatahandlerFacade {
      * Will be changed later when more OAI targets comes.
      *  
      */
-    protected static Integer oaiIngest(OaiTargetJob job, String from) throws Exception {
+    protected static Integer oaiIngest(OaiTargetJob job, String from, String until) throws Exception {
 
         //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)        
         //But COP only supports the short version. So when this is called use short format
@@ -248,7 +327,7 @@ public class DsDatahandlerFacade {
         String targetName = oaiTargetDto.getName();
 
         DsStorageClient dsAPI = getDsStorageApiClient();
-        OaiHarvestClient client = new OaiHarvestClient(job,from);
+        OaiHarvestClient client = new OaiHarvestClient(job,from,until);
         OaiResponse response = client.next();
 
         OaiResponseFilter oaiFilter;

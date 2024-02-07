@@ -73,7 +73,6 @@ paths:
           description: 'Name of the oai target to start full import. '
           required: true
           schema:
-            enum: [${oai_targets}]
             type: string
       responses:
         '200':
@@ -95,8 +94,7 @@ paths:
           in: query
           description: 'Name of the oai target to start delta import'
           required: true
-          schema:
-            enum: [${oai_targets}]
+          schema:            
             type: string
       responses:
         '200':

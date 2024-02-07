@@ -173,7 +173,7 @@ public class PvicaDataTest {
         //Empty test OAI Target
         OaiTargetDto dto = new OaiTargetDto();
         OaiTargetJob job = new OaiTargetJob(1, dto);
-        OaiHarvestClient client = new OaiHarvestClient(job, "test");
+        OaiHarvestClient client = new OaiHarvestClient(job, "test",null);
         OaiRecord oaiRecord = client.extractRecordsFromXml(doc).get(0);
         String testStorageId = "ds.test:" + oaiRecord.getId();
 

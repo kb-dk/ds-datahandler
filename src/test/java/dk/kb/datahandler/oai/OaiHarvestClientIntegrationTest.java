@@ -45,7 +45,7 @@ public class OaiHarvestClientIntegrationTest {
 //       String set="oai:kb.dk:images:billed:2014:jun:hca";
        OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);        
        
-       OaiHarvestClient client = new OaiHarvestClient(job,from);
+       OaiHarvestClient client = new OaiHarvestClient(job,from,null);
        
        OaiResponse r1 = client.next();
        System.out.println("records:"+r1.getRecords().size());

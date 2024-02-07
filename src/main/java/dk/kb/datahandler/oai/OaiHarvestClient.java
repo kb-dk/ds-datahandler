@@ -39,11 +39,13 @@ public class OaiHarvestClient {
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
+    private String until;
 
-    public OaiHarvestClient (OaiTargetJob oaiTargetJob,String from){
+    public OaiHarvestClient (OaiTargetJob oaiTargetJob,String from, String until){
         this.oaiTargetJob=oaiTargetJob;
         this.oaiTarget=oaiTargetJob.getDto();
         this.from=from;
+        this.until=until;
     }
 
 
@@ -62,7 +64,7 @@ public class OaiHarvestClient {
         String set= oaiTarget.getSet();
         String metadataPrefix= oaiTarget.getMetadataprefix();
 
-        uri=addQueryParamsToUri(uri, set, resumptionToken,metadataPrefix,from);
+        uri=addQueryParamsToUri(uri, set, resumptionToken,metadataPrefix,from, until);
          log.info("calling uri:"+uri);
         //log.info("resumption token at:"+resumptionToken);
         String xmlResponse=getHttpResponse(uri,oaiTarget.getUsername(),oaiTarget.getPassword()); 
@@ -70,7 +72,7 @@ public class OaiHarvestClient {
         Document document =sanitizeXml(xmlResponse,uri);
 
         String errorMessage=getErrorMessage(document);
-         if (errorMessage != null) {                       
+         if (errorMessage != null && errorMessage.trim().length() >1) {                       
             log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
             oaiTargetJob.setCompletedTime(System.currentTimeMillis());            
             oaiResponse.setError(true);
@@ -84,6 +86,7 @@ public class OaiHarvestClient {
 
         if (resumptionToken != null && !resumptionToken.equals("")) {
             this.resumptionToken = resumptionToken;  
+      log.info("next resumption token:"+resumptionToken);
             oaiResponse.setResumptionToken(resumptionToken);
         }
         else {
@@ -102,7 +105,7 @@ public class OaiHarvestClient {
     /* Will construct the uri for next http request. Resumption token will be set if not null.
      * Also special coding since  Cumulus/Cups API is not OAI-PMH compliant. 
      */
-    private String addQueryParamsToUri(String uri,String set, String resumptionToken, String metadataPrefix, String from) {
+    private String addQueryParamsToUri(String uri,String set, String resumptionToken, String metadataPrefix, String from, String until) {
 
         //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
         if (resumptionToken==null && set != null) { //COPS fails if set is still used with resumptiontoken
@@ -116,6 +119,11 @@ public class OaiHarvestClient {
         if (from != null && resumptionToken == null) {
             uri += "&from="+from;            
         }
+        if (until != null && resumptionToken == null) {
+            uri += "&until="+until;            
+        }
+        
+        
         if (metadataPrefix != null && resumptionToken == null) {
             uri +="&metadataPrefix="+metadataPrefix;            
         }

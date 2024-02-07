@@ -14,6 +14,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 
@@ -109,11 +110,11 @@ public class HarvestTimeUtil {
     	}
     	
     	//Add one day
-    	Calendar nextDayCal = Calendar.getInstance();
+    	Calendar nextDayCal = Calendar.getInstance(TimeZone.getDefault(),Locale.getDefault());
     	nextDayCal.setTime(date ); //Set time from input
     	nextDayCal.add(Calendar.DATE, 1);
     	
-    	Calendar future1DaysCal=Calendar.getInstance();
+    	Calendar future1DaysCal=Calendar.getInstance(TimeZone.getDefault(),Locale.getDefault());
         future1DaysCal.add(Calendar.DATE, 1); 
     	
         //more than 1 day in future. 1 day + 1 millis is enough 

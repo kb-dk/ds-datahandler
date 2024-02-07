@@ -11,6 +11,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -74,7 +76,8 @@ public class HarvestTimeUtilTest {
     
         //Test 2 days in future
     	//Construct today in format yyyy-MM-dd
-    	String today = HarvestTimeUtil.formatDate2Day(Calendar.getInstance().getTime());
+    	Calendar cal = Calendar.getInstance(TimeZone.getDefault(),Locale.getDefault());
+    	String today = HarvestTimeUtil.formatDate2Day(cal.getTime());
     	
     	//Next day must be returned
     	String tomorrow=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(today);    	

@@ -677,14 +677,7 @@
                 </executions>
                 <configuration>
                     <filePath>conf/ds-datahandler-behaviour.yaml</filePath>
-                    <yamlResolvers>
-                        <YamlResolver>
-                            <yamlType>List</yamlType>
-                            <yamlPath>oai_targets</yamlPath>
-                            <sourceKey>name</sourceKey>
-                            <destinationKey>oai_targets</destinationKey>
-                            <createEnum>true</createEnum>
-                        </YamlResolver>
+                    <yamlResolvers>                    
                         <yamlResolver>
                             <yamlType>List</yamlType>
                             <yamlPath>present.origins</yamlPath>
