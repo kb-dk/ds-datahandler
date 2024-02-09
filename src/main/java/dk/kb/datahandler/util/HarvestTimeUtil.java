@@ -38,7 +38,6 @@ public class HarvestTimeUtil {
     private static final Charset UTF8= Charset.forName("UTF-8");            
     private static String dayPattern = "yyyy-MM-dd";
     
-
     
     public static synchronized String loadLastHarvestTime(OaiTargetDto oaiTarget) throws Exception{            
         String oaiTargetNameFile = getFileNameFromOaiTarget(oaiTarget);        
@@ -48,7 +47,12 @@ public class HarvestTimeUtil {
     
     public static synchronized void updateDatestampForOaiTarget(OaiTargetDto oaiTarget, String datestamp) throws Exception{        
         
-        if (!validateDataFormat(datestamp)) {
+        //Hack to fix datestamp for Preservica.
+        if (datestamp.length() >20) { // 2021-03-24T19:57:34.123Z -> 2021-03-24T19:57:34Z. 
+            datestamp=datestamp.substring(0,20)+"Z";
+        }
+            
+        if (!validateOaiDateFormat(datestamp)) {
             log.error("Datestamp not valid format:"+datestamp +" for Oai target:"+oaiTarget.getName());
             throw new InvalidArgumentServiceException("Datastamp not valid format:" + datestamp);
         }
@@ -62,11 +66,12 @@ public class HarvestTimeUtil {
      * Validate day format is of form at yyyy-MM-dd.
      * Example: 2024-02-09
      * 
-     * @param day  Validate is of correct format<
+     * @param day  Validate is of correct format
      */
     public static boolean validateDayFormat(String day) {
-    	SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dayPattern,Locale.getDefault());    	
-    	try {    	
+    	SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dayPattern,Locale.getDefault());
+        simpleDateFormat.setLenient(false); //day must exist
+    try {    	
     	   Date date = simpleDateFormat.parse(day);    	   
     	}
     	catch(Exception e) {
@@ -135,6 +140,12 @@ public class HarvestTimeUtil {
         }
         else {                        
             String lastHarvestDate= getFirstLineFromFile(oaiTargetNameFile);
+            if (!validateOaiDateFormat(lastHarvestDate)) {
+                String errorMsg="Invalid saved last harvest dateformat:+"+lastHarvestDate +" for file:"+oaiTargetNameFile;
+                log.error(errorMsg);
+                throw new InvalidArgumentServiceException(errorMsg);
+            }
+            
             log.info("OAI target: "+oaiTargetNameFile +" has last harvestDate:"+lastHarvestDate);
             return lastHarvestDate;
         }               
@@ -166,13 +177,14 @@ public class HarvestTimeUtil {
         outputStream.close();                        
     }
     
-    /*
-     * Validate UTC timestamp.
+    /**
      * 
-     *  example: 2021-03-24T19:57:34Z
+     * Validate UTC timestamp, format is strict and only seconds allowed
+     * 
+     * example: 2021-03-24T19:57:34Z
      */
      
-    public static boolean validateDataFormat(String datestamp) {            
+    public static boolean validateOaiDateFormat(String datestamp) {            
 
         try {
             DateTimeFormatter.ISO_DATE_TIME.parse(datestamp);
