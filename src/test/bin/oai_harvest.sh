@@ -40,7 +40,31 @@ popd > /dev/null
 START_TIME=$(date +"%Y-%m-%d %H:%M")
 
 function usage() {
-    echo "Usage: ./oai_harvest.sh [config]"
+    cat <<EOF
+Usage:
+  FROM=YYYY-HH-MMThh:mm:ssZ UNTIL=YYYY-HH-MMThh:mm:ssZ ./oai_harvest.sh [config]
+
+Sample call:
+  FROM=2021-12-04T00:00:00Z UNTIL=2021-12-04T25:59:59Z ./oai_harvest.sh
+
+Basic setup:
+  Create a file 'oai_harvest.conf' in the folder where oai_harvest.sh is called.
+  The file defines the properties for the harvest with a sample being
+
+# ---------------------------------------------------
+: \${SERVER:="https://<KUANA_STAGE_MACHINE>/OAI-PMH/"}
+: \${METADATA_PREFIX:="xip"}
+: \${USER_PASS:="<USER>:<PASS>"}
+: \${OUTPUT_PREFIX:="preservica_\$(date +%Y%m%d-%H%M)"}
+: \${OUTPUT_POSTFIX:=".xml"}
+# ---------------------------------------------------
+
+
+For Royal Danish Library developers only:
+  Basic setup can be done by calling aegis 'kb init' from the root of a
+  ds-datahandler checkout.
+EOF
+    
     exit $1
 }
 
