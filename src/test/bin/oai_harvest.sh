@@ -83,7 +83,7 @@ harvest() {
         BASE="${BASE}&set=${SET}"
     fi 
     
-    echo "Performing harvest"
+    echo "Performing harvest to ${OUTPUT_PREFIX}.....${OUTPUT_POSTFIX}"
 
     while [[ true ]]; do
         local DEST="${OUTPUT_PREFIX}$(printf "%.5d" $COUNTER)${OUTPUT_POSTFIX}"
@@ -108,6 +108,7 @@ harvest() {
 
         COUNTER=$((COUNTER+1))
     done
+    TOTAL=$(grep -o '<header><identifier>' ${OUTPUT_PREFIX}*${OUTPUT_POSTFIX} | wc -l)
 }
 
 ###############################################################################
@@ -121,4 +122,6 @@ info
 echo ""
 harvest
 END_TIME=$(date +%s)
-echo "Finished in $((END_TIME-START_TIME)) seconds"
+SECONDS=$((END_TIME-START_TIME))
+SPEED=$(echo "scale=2;TOTAL/SECONDS" | bc)
+echo "Finished harvesting ${TOTAL} records in ${SECONDS} seconds: $SPEED records/second"
