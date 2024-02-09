@@ -49,7 +49,9 @@ Sample call:
 
 Basic setup:
   Create a file 'oai_harvest.conf' in the folder where oai_harvest.sh is called.
-  The file defines the properties for the harvest with a sample being
+  The file defines the properties for the harvest.
+  A template is available as 'oai_harvest.conf.template' and contains properties
+  like this sample:
 
 # ---------------------------------------------------
 : \${SERVER:="https://<KUANA_STAGE_MACHINE>/OAI-PMH/"}
@@ -58,6 +60,7 @@ Basic setup:
 : \${OUTPUT_PREFIX:="preservica_\$(date +%Y%m%d-%H%M)"}
 : \${OUTPUT_POSTFIX:=".xml"}
 # ---------------------------------------------------
+
 
 
 For Royal Danish Library developers only:
@@ -114,6 +117,7 @@ harvest() {
     echo "Storing harvested records in ${OUTPUT_PREFIX}_.....${OUTPUT_POSTFIX}"
 
     while [[ true ]]; do
+        local LSTART=$(date +%s)
         local DEST="${OUTPUT_PREFIX}_$(printf "%.5d" $COUNTER)${OUTPUT_POSTFIX}"
         
         if [[ -z "$RESUMPTION_TOKEN" ]]; then
@@ -122,7 +126,7 @@ harvest() {
             local CALL="${SERVER}?verb=ListRecords&resumptionToken=${RESUMPTION_TOKEN}"
         fi
 
-        echo " - $CALL -> $DEST"
+        echo -n " - $CALL -> $DEST"
         if [[ -z "$USER_PASS" ]]; then
             curl -s -X POST "$CALL" -H "Content-Type: ${CONTENT_TYPE}" > "$DEST"
         else
@@ -130,6 +134,11 @@ harvest() {
         fi
 
         RESUMPTION_TOKEN="$(grep -o '<resumptionToken>.*</resumptionToken>' "$DEST" | sed 's/<resumptionToken>\(.*\)<\/resumptionToken>/\1/')"
+
+        local LEND=$(date +%s)
+        LSECONDS=$((LEND-LSTART))
+        echo " (${LSECONDS} seconds)"
+        
         if [[ -z "$RESUMPTION_TOKEN" ]]; then
             break
         fi
