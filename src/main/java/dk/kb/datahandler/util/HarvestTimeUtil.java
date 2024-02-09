@@ -48,8 +48,8 @@ public class HarvestTimeUtil {
     public static synchronized void updateDatestampForOaiTarget(OaiTargetDto oaiTarget, String datestamp) throws Exception{        
         
         //Hack to fix datestamp for Preservica.
-        if (datestamp.length() >20) { // 2021-03-24T19:57:34.123Z -> 2021-03-24T19:57:34Z. 
-            datestamp=datestamp.substring(0,20)+"Z";
+        if (datestamp.length() >20) { // 2021-03-24T19:57:34.123Z -> 2021-03-24T19:57:34Z 
+            datestamp=datestamp.substring(0,19)+"Z";
         }
             
         if (!validateOaiDateFormat(datestamp)) {
