@@ -31,3 +31,6 @@ hs_err_pid*
 /.openapi-generator/
 /.classpath
 /.openapi-generator-ignore
+
+# Contains username and password for test instance
+oai_harvest.conf
