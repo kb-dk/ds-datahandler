@@ -81,11 +81,13 @@ public class SolrUtils {
         Long documents = 0L;
         String solrResponse = "";
         SolrIndexResponse finalResponse = new SolrIndexResponse();
+        log.info("Starting indexing of records from origin: '{}'", origin);
 
 
         while (hasMore) {
             try (ContinuationInputStream<Long> solrDocsStream =
                          presentClient.getRecordsJSON(origin, sinceTime,batchSize, FormatDto.SOLRJSON)) {
+                log.info("Indexing {} records from DS-storage origin '{}' to solr.", solrDocsStream.getRecordCount(), origin);
 
                 //POST request to Solr using the inputstream
                 HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
