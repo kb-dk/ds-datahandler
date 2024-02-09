@@ -81,7 +81,7 @@ public class SolrUtils {
         Long documents = 0L;
         String solrResponse = "";
         SolrIndexResponse finalResponse = new SolrIndexResponse();
-        log.info("Starting indexing of records from origin: '{}'", origin);
+        log.info("Starting indexing of records with sinceTime: '{}' from origin: '{}'", sinceTime, origin);
 
 
         while (hasMore) {
