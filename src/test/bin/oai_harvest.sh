@@ -114,6 +114,7 @@ harvest() {
     echo "Storing harvested records in ${OUTPUT_PREFIX}_.....${OUTPUT_POSTFIX}"
 
     while [[ true ]]; do
+        local LSTART=$(date +%s)
         local DEST="${OUTPUT_PREFIX}_$(printf "%.5d" $COUNTER)${OUTPUT_POSTFIX}"
         
         if [[ -z "$RESUMPTION_TOKEN" ]]; then
@@ -122,7 +123,7 @@ harvest() {
             local CALL="${SERVER}?verb=ListRecords&resumptionToken=${RESUMPTION_TOKEN}"
         fi
 
-        echo " - $CALL -> $DEST"
+        echo -n " - $CALL -> $DEST"
         if [[ -z "$USER_PASS" ]]; then
             curl -s -X POST "$CALL" -H "Content-Type: ${CONTENT_TYPE}" > "$DEST"
         else
@@ -130,6 +131,11 @@ harvest() {
         fi
 
         RESUMPTION_TOKEN="$(grep -o '<resumptionToken>.*</resumptionToken>' "$DEST" | sed 's/<resumptionToken>\(.*\)<\/resumptionToken>/\1/')"
+
+        local LEND=$(date +%s)
+        LSECONDS=$((LEND-LSTART))
+        echo " (${LSECONDS} seconds)"
+        
         if [[ -z "$RESUMPTION_TOKEN" ]]; then
             break
         fi
