@@ -155,8 +155,8 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
             return RecordTypeDto.MANIFESTATION;
         }
 
-        log.debug("Unable to derive record type for id '{}' from datasource '{}'. Falling back to '{}'",
-                storageId, datasource, RecordTypeDto.DELIVERABLEUNIT);
+        //TODO Until "so"-records are XSLT handled correct, this line will spam too much even on debug. Instead maybe give a count of discarded after each batch  
+        //log.debug("Unable to derive record type for id '{}' from datasource '{}'. Falling back to '{}'", storageId, datasource, RecordTypeDto.DELIVERABLEUNIT);
         return RecordTypeDto.DELIVERABLEUNIT;
     }
 }
