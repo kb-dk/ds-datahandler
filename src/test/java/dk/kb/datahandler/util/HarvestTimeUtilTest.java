@@ -89,4 +89,18 @@ public class HarvestTimeUtilTest {
     }
 	
     
+    @Test
+    void testUtcSecondsFormat() {
+                   
+        //All valid
+        assertTrue(HarvestTimeUtil.validateOaiDateFormat("2020-01-01T00:00:00Z"));
+        assertTrue(HarvestTimeUtil.validateOaiDateFormat("2021-03-24T19:57:34Z"));
+                
+        //Not valid
+        assertFalse(HarvestTimeUtil.validateOaiDateFormat("2021-03-32T19:57:34Z")); //day 32 does not exist
+        assertFalse(HarvestTimeUtil.validateOaiDateFormat("2021-03-24"));
+        assertFalse(HarvestTimeUtil.validateOaiDateFormat("2021-03-24T19:57:34.00.00Z"));
+        assertFalse(HarvestTimeUtil.validateOaiDateFormat("2021-03-24T19:57:34.00.000Z"));         
+    }
+    
 }

@@ -51,8 +51,8 @@ public class OaiJobCache {
         job.setCompletedTime(System.currentTimeMillis());        
         log.info("Setting completed for job:"+job.getDto().getName() +" time:"+job.getCompletedTime());
     
-        //We do not want more than 1000 completed jobs 
-        if (completedJobsMap.size() > 1000) {
+        //We do not want more than 10000 completed jobs 
+        if (completedJobsMap.size() > 10000) { //because preservica harvest 1 day at a time. it is increased to 10K 
             completedJobsMap.remove(completedJobsMap.firstKey()); //Remove oldest
         }
         

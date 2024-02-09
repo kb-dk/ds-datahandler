@@ -143,7 +143,7 @@ public class DsDatahandlerFacade {
     public static Integer oaiIngestDeltaImplByDay(String oaiTargetName) throws Exception {                
 
         //Test no job is running before starting new for same target
-        validateNotAlreadyRunning(oaiTargetName);        
+        validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
         if (oaiTargetDto== null) {
             throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName +
@@ -312,15 +312,27 @@ public class DsDatahandlerFacade {
      */
     protected static Integer oaiIngest(OaiTargetJob job, String from, String until) throws Exception {
 
-        //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)        
+        //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)               
         //But COP only supports the short version. So when this is called use short format
+        //Preservica seems to only accept full UTC format
         //Dirty but quick solution fix. Best would be if COP could fix it
 
         OaiTargetDto oaiTargetDto = job.getDto();
 
+        // A little custom tweaking because none of our the OAI servers seems to follow full spec for datestamp format
         if (from != null && oaiTargetDto.getUrl().indexOf("kb.dk/cop/")> 0) {
             from = from.substring(0,10);               
         }
+        else { //For preservica. Enforce UTC but still allowing yyyy-MM-dd as input and fix behind the scenes.
+            
+            if (from != null && from.length() ==10) {
+                from=from+"T00:00:00Z";
+            }
+            if (until != null && until.length() ==10) {
+                until=until+"T00:00:00Z";
+            }            
+        }
+        
 
         // TODO: Change this to datasource in the OpenAPI specification
         String origin=oaiTargetDto.getDatasource();
