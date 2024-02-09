@@ -1,0 +1,20 @@
+#
+# Template for oai_harvest.sh configuration
+# Copy the template to 'oai_harvest.conf' and adjust the values
+#
+
+# SERVER must be set
+: ${SERVER:="https://<KUANA_STAGE_MACHINE>/OAI-PMH/"}
+
+# Set this to the empty string if no user/password
+# Note: The colon (:) is the separator for username and password
+: ${USER_PASS:="<USER>:<PASS>"} 
+
+# OAI-PMH target specific
+: ${METADATA_PREFIX:="xip"}
+
+# SET is optional
+: ${SET:=""}
+
+: ${OUTPUT_PREFIX:="oai_$(date +%Y%m%d-%H%M)"}
+: ${OUTPUT_POSTFIX:=".xml"}

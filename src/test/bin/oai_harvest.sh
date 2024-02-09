@@ -49,7 +49,9 @@ Sample call:
 
 Basic setup:
   Create a file 'oai_harvest.conf' in the folder where oai_harvest.sh is called.
-  The file defines the properties for the harvest with a sample being
+  The file defines the properties for the harvest.
+  A template is available as 'oai_harvest.conf.template' and contains properties
+  like this sample:
 
 # ---------------------------------------------------
 : \${SERVER:="https://<KUANA_STAGE_MACHINE>/OAI-PMH/"}
@@ -58,6 +60,7 @@ Basic setup:
 : \${OUTPUT_PREFIX:="preservica_\$(date +%Y%m%d-%H%M)"}
 : \${OUTPUT_POSTFIX:=".xml"}
 # ---------------------------------------------------
+
 
 
 For Royal Danish Library developers only:
