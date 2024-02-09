@@ -32,10 +32,12 @@ SHOME=`pwd`
 : ${METADATA_PREFIX:="xip"}
 : ${CONTENT_TYPE:="application/xml"}
 : ${USER_PASS:=""} # user:password
-: ${OUTPUT_PREFIX:="oai_$(date +%Y%m%d-%H%M)_"}
+: ${OUTPUT_PREFIX:="oai_$(date +%Y%m%d-%H%M)"}
 : ${OUTPUT_POSTFIX:=".xml"}
 : ${SET:=""}
+: ${LOG:="${OUTPUT_PREFIX}.log"}
 popd > /dev/null
+START_TIME=$(date +"%Y-%m-%d %H:%M")
 
 function usage() {
     echo "Usage: ./oai_harvest.sh [config]"
@@ -72,6 +74,7 @@ EOF
     else
         echo "USER_PASS=<Present>"
     fi
+    echo ""
 }
 
 # Perform harvest
@@ -79,14 +82,15 @@ harvest() {
     local RESUMPTION_TOKEN=""
     local COUNTER=1
     local BASE="${SERVER}?verb=ListRecords&from=${FROM}&until=${UNTIL}&metadataPrefix=${METADATA_PREFIX}"
+    local START_TIME=$(date +%s)
     if [[ ! -z "$SET" ]]; then
         BASE="${BASE}&set=${SET}"
     fi 
     
-    echo "Performing harvest to ${OUTPUT_PREFIX}.....${OUTPUT_POSTFIX}"
+    echo "Storing harvested records in ${OUTPUT_PREFIX}_.....${OUTPUT_POSTFIX}"
 
     while [[ true ]]; do
-        local DEST="${OUTPUT_PREFIX}$(printf "%.5d" $COUNTER)${OUTPUT_POSTFIX}"
+        local DEST="${OUTPUT_PREFIX}_$(printf "%.5d" $COUNTER)${OUTPUT_POSTFIX}"
         
         if [[ -z "$RESUMPTION_TOKEN" ]]; then
             local CALL="$BASE"
@@ -108,7 +112,34 @@ harvest() {
 
         COUNTER=$((COUNTER+1))
     done
-    TOTAL=$(grep -o '<header><identifier>' ${OUTPUT_PREFIX}*${OUTPUT_POSTFIX} | wc -l)
+    local END_TIME=$(date +%s)
+    # SECONDS is not local as it is to be used in report()
+    SECONDS=$((END_TIME-START_TIME))
+}
+
+report() {
+    echo "sss"
+    T=$(mktemp)
+    grep -o '<datestamp>[^<]*<\/datestamp>' ${OUTPUT_PREFIX}_*${OUTPUT_POSTFIX} | cut -d: -f2- | grep -o '[0-9T:.Z-]*'| sort > "$T"
+    TOTAL=$(wc -l < "$T")
+    SPEED=$(echo "scale=2;$TOTAL/$SECONDS" | bc) 
+    FIRST=$(head -n 1 < "$T")
+    LAST=$(tail -n 1 < "$T")
+    rm "$T"
+    
+    echo "Finished harvesting"
+    echo ""
+    echo "Req. from:     $FROM"
+    echo "First record:  $FIRST"
+    echo "Last record:   $LAST"
+    echo "Req. until:    $UNTIL"
+    echo ""
+    echo "Total records: $TOTAL"
+    echo "Total seconds: $SECONDS"
+    echo "Record/second: $SPEED"
+    echo ""
+    echo "Harvest start: $START_TIME"
+    echo "Harvest end:   $(date +"%Y-%m-%d %H:%M")"
 }
 
 ###############################################################################
@@ -117,11 +148,9 @@ harvest() {
 
 check_parameters "$@"
 
-START_TIME=$(date +%s)
-info
+info | tee -a "$LOG"
+harvest | tee -a "$LOG"
+report  | tee -a "$LOG"
+
 echo ""
-harvest
-END_TIME=$(date +%s)
-SECONDS=$((END_TIME-START_TIME))
-SPEED=$(echo "scale=2;TOTAL/SECONDS" | bc)
-echo "Finished harvesting ${TOTAL} records in ${SECONDS} seconds: $SPEED records/second"
+echo "Report available in $LOG"
