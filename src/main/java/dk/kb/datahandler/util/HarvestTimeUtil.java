@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,8 +36,8 @@ public class HarvestTimeUtil {
     
     public static final String defaultStartDate="1900-01-01T00:00:00Z"; //Used as start if no file has been written yet for that target
     private static final Logger log = LoggerFactory.getLogger(HarvestTimeUtil.class);
-    private static final Charset UTF8= Charset.forName("UTF-8");            
-    private static String dayPattern = "yyyy-MM-dd";
+    private static final Charset UTF8= StandardCharsets.UTF_8;         
+    private static final String DAY_PATTERN = "yyyy-MM-dd";
     
     
     public static synchronized String loadLastHarvestTime(OaiTargetDto oaiTarget) throws Exception{            
@@ -47,11 +48,15 @@ public class HarvestTimeUtil {
     
     public static synchronized void updateDatestampForOaiTarget(OaiTargetDto oaiTarget, String datestamp) throws Exception{        
         
-        //Hack to fix datestamp return from Preservica. Format returned are not in OAI standard and is parsed wrong (downgrade to day) when given to preservica.
+        //Hack to fix datestamp returned from Preservica. Format returned are not in OAI standard and is parsed wrong (downgrade to seconds) when given to preservica.
+        //Only preservica 6 does not, preservica 5 gives correct format.
         if (datestamp.length() >20) { // 2021-03-24T19:57:34.123Z -> 2021-03-24T19:57:34Z 
             datestamp=datestamp.substring(0,19)+"Z";
         }
-            
+        else if(datestamp.length()==10) {             
+            datestamp=datestamp+"T00:00:00Z";
+        }
+        
         if (!validateOaiDateFormat(datestamp)) {
             log.error("Datestamp not valid format:"+datestamp +" for Oai target:"+oaiTarget.getName());
             throw new InvalidArgumentServiceException("Datastamp not valid format:" + datestamp);
@@ -69,7 +74,7 @@ public class HarvestTimeUtil {
      * @param day  Validate is of correct format
      */
     public static boolean validateDayFormat(String day) {
-    	SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dayPattern,Locale.getDefault());
+    	SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN,Locale.ROOT);
         simpleDateFormat.setLenient(false); //day must exist
     try {    	
     	   Date date = simpleDateFormat.parse(day);    	   
@@ -89,7 +94,7 @@ public class HarvestTimeUtil {
      * @param date  Java date object
      */
     public static String formatDate2Day(Date date) {
-    	SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dayPattern,Locale.getDefault());    	    	    	
+    	SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN,Locale.ROOT);    	    	    	
     	String day = simpleDateFormat.format(date);    	       	    
         return day;			    	    
     }
@@ -105,7 +110,7 @@ public class HarvestTimeUtil {
      * @param day day in format yyyy-MM.dd
      */
     public static String getNextDayIfNot2DaysInFuture(String day) throws InvalidArgumentServiceException {
-    	SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dayPattern,Locale.getDefault());
+    	SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN,Locale.ROOT);
     	Date date = null;
     	try{
     		 date = simpleDateFormat.parse(day);
@@ -115,11 +120,11 @@ public class HarvestTimeUtil {
     	}
     	
     	//Add one day
-    	Calendar nextDayCal = Calendar.getInstance(TimeZone.getDefault(),Locale.getDefault());
+    	Calendar nextDayCal = Calendar.getInstance(TimeZone.getTimeZone("UTC"),Locale.ROOT);
     	nextDayCal.setTime(date ); //Set time from input
     	nextDayCal.add(Calendar.DATE, 1);
     	
-    	Calendar future1DaysCal=Calendar.getInstance(TimeZone.getDefault(),Locale.getDefault());
+    	Calendar future1DaysCal=Calendar.getInstance(TimeZone.getTimeZone("UTC"),Locale.ROOT);
         future1DaysCal.add(Calendar.DATE, 1); 
     	
         //more than 1 day in future. 1 day + 1 millis is enough 

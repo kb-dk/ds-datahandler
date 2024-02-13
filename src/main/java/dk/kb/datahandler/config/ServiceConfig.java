@@ -126,11 +126,11 @@ public class ServiceConfig {
             String password=target.getString("password",null);
             String filterStr = target.getString("filter","direct");
             Boolean dayOnly = target.getBoolean("day_only",Boolean.FALSE);
-        	String startDay = target.getString("start_day",null);            
-            if (dayOnly) { //startDay must be defined for datOnly strategy                        	      
-            	boolean validStartDay=HarvestTimeUtil.validateDayFormat(startDay);
+            String startDay = target.getString("start_day",null);            
+            if (dayOnly) { //startDay must be defined for dayOnly strategy                        	      
+                boolean validStartDay=HarvestTimeUtil.validateDayFormat(startDay);
                 if (!validStartDay) {
-                 	throw new IllegalArgumentException("Failed to parse startDate for OAI target with dayOnly strategy. Day="+startDay);
+                    throw new IllegalArgumentException("Failed to parse 'start_day' for OAI target with 'day_only' strategy. start_day="+startDay +" OAI target="+name);
                 }            	
             }
             
