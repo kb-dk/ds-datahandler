@@ -237,7 +237,7 @@ public class DsDatahandlerFacade {
        		return delta;    		
        	}
        	else {
-       		Integer delta = oaiIngestFull(oaiTargetName);	
+       		Integer delta = oaiIngestFullImpl(oaiTargetName);	
        		return delta;
        	}    	
     	
