@@ -318,11 +318,20 @@ components:
                             [Preservica](https://preservica.com/) XIP content of the record
           example: 'direct'
           default: 'direct'
+        dateStampFormat:
+          type: string
+          enum:  ['day', 'date']
+          description: |
+            Special handling of record. Possible value are
+            * `day`:     Only use format yyyy-MM-dd as from/until parameters
+            * `date`:    Use UTC format yyyy-MM-ddThh:mm:ssZ as from/until parameters. This is default.                        
+          example: 'date'
+          default: 'date'
         day_only:
           type: boolean          
           description: 'OAI harvest will fetch by day using from until. This is required for OAI servers that does not scale'                        
           example: true
-          default: false
+          default: false        
         start_day: 
           type: string
           description: 'Date of format yyyy-MM-dd. Only used if day_only attribute is true'                        
