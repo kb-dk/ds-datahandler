@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.util.yaml.YAML;
 
@@ -127,6 +128,7 @@ public class ServiceConfig {
             String filterStr = target.getString("filter","direct");
             Boolean dayOnly = target.getBoolean("day_only",Boolean.FALSE);
             String startDay = target.getString("start_day",null);            
+            String dateStampFormat = target.getString("dateStampFormat");           
             if (dayOnly) { //startDay must be defined for dayOnly strategy                        	      
                 boolean validStartDay=HarvestTimeUtil.validateDayFormat(startDay);
                 if (!validStartDay) {
@@ -155,6 +157,13 @@ public class ServiceConfig {
             oaiTarget.setFilter(filter);
             oaiTarget.setDayOnly(dayOnly);
             oaiTarget.setStartDay(startDay);
+            try {
+              oaiTarget.setDateStampFormat(DateStampFormatEnum.fromValue(dateStampFormat));
+            }
+            catch(Exception e) {
+                log.warn("dateStampFormat not 'day' or 'date':"+dateStampFormat);
+            }
+                    
             oaiTargets.put(name, oaiTarget);
             
             log.info("Load OAI target from yaml:"+name);

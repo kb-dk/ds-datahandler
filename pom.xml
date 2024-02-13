@@ -183,21 +183,7 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>1.8</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cxf</groupId>
-            <artifactId>cxf-rt-transports-http</artifactId>
-            <version>3.3.5</version>
-            <!--<version>3.4.0</version>-->
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <!-- cxf-rt-transports-http has 1.2.0, but transitive resolving has 1.2.2 somewhere-->
-                    <groupId>com.sun.activation</groupId>
-                    <artifactId>javax.activation</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        </dependency>      
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>

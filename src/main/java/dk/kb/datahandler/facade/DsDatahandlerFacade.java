@@ -1,24 +1,5 @@
 package dk.kb.datahandler.facade;
 
-import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.OaiJobDto;
-import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.*;
-import dk.kb.datahandler.util.HarvestTimeUtil;
-import dk.kb.datahandler.util.SolrUtils;
-import dk.kb.storage.client.v1.DsStorageApi;
-import dk.kb.storage.model.v1.DsRecordDto;
-import dk.kb.storage.model.v1.OriginCountDto;
-import dk.kb.storage.util.DsStorageClient;
-import dk.kb.util.webservice.exception.InternalServiceException;
-import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
-import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +9,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.model.v1.OaiJobDto;
+import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.oai.OaiHarvestClient;
+import dk.kb.datahandler.oai.OaiJobCache;
+import dk.kb.datahandler.oai.OaiRecord;
+import dk.kb.datahandler.oai.OaiResponse;
+import dk.kb.datahandler.oai.OaiResponseFilter;
+import dk.kb.datahandler.oai.OaiResponseFilterPreservica;
+import dk.kb.datahandler.oai.OaiTargetJob;
+import dk.kb.datahandler.util.HarvestTimeUtil;
+import dk.kb.datahandler.util.SolrUtils;
+import dk.kb.storage.client.v1.DsStorageApi;
+import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.OriginCountDto;
+import dk.kb.storage.util.DsStorageClient;
+import dk.kb.util.webservice.exception.InternalServiceException;
+import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 
 
 public class DsDatahandlerFacade {
