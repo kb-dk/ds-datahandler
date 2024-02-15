@@ -20,6 +20,8 @@ import org.w3c.dom.Node;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
+import dk.kb.datahandler.oai.OaiFromUntilInterval;
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiJobCache;
 import dk.kb.datahandler.oai.OaiRecord;
@@ -125,6 +127,34 @@ public class DsDatahandlerFacade {
         return SolrUtils.indexOrigin(origin, lastStorageMTime);
     }
 
+    
+    /**
+     * Starts a full OAI harvest job for the target.
+     * The job will harvest records from the OAI server and ingest them into DS-storage  
+     * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job.
+     * After full ingest ds-storage will be called again and all older recorders from before the ingest fill be deleted. 
+     *  
+     * @param  oaiTargetName the location of the image, relative to the url argument
+     * @return Number of harvested records.
+     */        
+    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
+    
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
+       if (oaiTargetDto.getDayOnly()) {
+       //Integer delta= oaiIngestDeltaImplByDay(oaiTargetName); //even if full, it will be split into many delta's
+       //return delta;
+       return null;
+       }
+       else {
+       //Integer delta = oaiIngestFullImpl(oaiTargetName);
+       //return delta;
+       return null;
+       }    
+    
+    
+    }
+   
+    
     /**
      * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
      * saved on the file system for that target.
@@ -137,163 +167,71 @@ public class DsDatahandlerFacade {
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {   
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
     	if (oaiTargetDto.getDayOnly()) {
-    		Integer delta=oaiIngestDeltaImplByDay(oaiTargetName); 
-    		return delta;    		
+    		//Integer delta=oaiIngestDeltaImplByDay(oaiTargetName); 
+    		//return delta;
+        return null;
     	}
     	else {
-    		Integer delta = oaiIngestDeltaImpl(oaiTargetName);	
-    		return delta;
+    		//Integer delta = oaiIngestDeltaImpl(oaiTargetName);	o
+    		//return delta;
+        return null;
     	}    	
     }
     
+  
+        
+   
+
     
-    public static Integer oaiIngestDeltaImplByDay(String oaiTargetName) throws Exception {                
-
-        //Test no job is running before starting new for same target
-        validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
-        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
-        if (oaiTargetDto== null) {
-            throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName +
+    /**
+     * This method has no specific code for the different OAI targets. Dateformats must be set correct for the target when calling this method. <br>
+     * The list of date-intervals must be ascending in time<br> 
+     * The date intervals will be harvested in same order as in list. After each interval harvest they persistent last harvesttime will be updated for that OAI target.
+     *  
+     * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform()  oaiIngestPerform method}<br> 
+     *  
+     * @param oaiTargetName the name of the configured oai-target
+     * @param fromUntilList List of date intervals. When calling this method the date formats must be in format accepted by the target.
+     * 
+     * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
+     *      
+     */
+     protected static Integer oaiIngestWrapper(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {                
+         int totalNumber=0;
+                  
+         for (OaiFromUntilInterval fromUntil: fromUntilList) {         
+             //Test no job is running before starting new for same target
+             validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
+             OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
+             if (oaiTargetDto== null) {
+                 throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName +
                     "' . See the config method for list of configured targets.");
-        }
+             }
 
-        OaiTargetJob job = createNewJob(oaiTargetDto);        
+             OaiTargetJob job = createNewJob(oaiTargetDto);        
 
-        //register job
-        OaiJobCache.addNewJob(job);
-        
-        //Notice we cut date down to day here always. 2023-10-25T12:51:58Z -> 2023-10-25
-        String dayStamp = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
-        if (dayStamp== null) {
-        	dayStamp=oaiTargetDto.getStartDay();        
-        }
-
-        //Now we have start date and we have to batch to every day from dayStamp until tomorrow
-        //Every day is also be batched with resumptionToken as standard OAI
-        
-        String nextDay=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(dayStamp);
-        
-        int totalNumber=0;
-        while (nextDay != null) {        	 
-
-        	try {                       
-                int number= oaiIngest(job , dayStamp,nextDay);
+             //register job
+             OaiJobCache.addNewJob(job);
+              
+             try {                       
+                int number= oaiIngestPerform(job , fromUntil.getFrom(),fromUntil.getUntil());
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
-            }
-            catch(Exception e) {
+             }
+             catch(Exception e) {
                 log.error("Oai delta harvest did not complete succesfull: '{}'", oaiTargetName);
                 job.setCompletedTime(System.currentTimeMillis());
                 OaiJobCache.finishJob(job, 0,true);//Error                        
                 throw new Exception(e);
-            }
-            
-           //Add 1 day to from and to day
-        	dayStamp=nextDay;
-        	nextDay=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(nextDay); //when null it will stop
-        	
-        }
+             }            
+         }
         return totalNumber;
     }
 
     
-   
-    public static Integer oaiIngestDeltaImpl(String oaiTargetName) throws Exception {                
+      
 
-        //Test no job is running before starting new for same target
-        validateNotAlreadyRunning(oaiTargetName);        
-        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
-        if (oaiTargetDto== null) {
-            throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName +
-                    "' . See the config method for list of configured targets.");
-        }
-
-        OaiTargetJob job = createNewJob(oaiTargetDto);        
-
-        //register job
-        OaiJobCache.addNewJob(job);
-
-        try {
-            String datestamp = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);        
-            int number= oaiIngest(job , datestamp,null);
-            OaiJobCache.finishJob(job, number,false);//No error
-            return number;
-        }
-        catch(Exception e) {
-            log.error("Oai delta harvest did not complete succesfull: '{}'", oaiTargetName);
-            job.setCompletedTime(System.currentTimeMillis());
-            OaiJobCache.finishJob(job, 0,true);//Error                        
-            throw new Exception(e);
-        }
-    }
-
-    /**
-     * Starts a full OAI harvest job for the target.
-     * The job will harvest records from the OAI server and ingest them into DS-storage  
-     * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job.
-     * After full ingest ds-storage will be called again and all older recorders from before the ingest fill be deleted. 
-     *  
-     * @param  oaiTargetName the location of the image, relative to the url argument
-     * @return Number of harvested records.
-     */        
-    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
-    	
-        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
-       	if (oaiTargetDto.getDayOnly()) {
-       		Integer delta= oaiIngestDeltaImplByDay(oaiTargetName); //even if full, it will be split into many delta's
-       		return delta;    		
-       	}
-       	else {
-       		Integer delta = oaiIngestFullImpl(oaiTargetName);	
-       		return delta;
-       	}    	
-    	
-    	
-    }
-   
-    public static Integer oaiIngestFullImpl(String oaiTargetName) throws Exception {
-
-    	
-        //Test no job is running before starting new for same target
-        validateNotAlreadyRunning(oaiTargetName);
-
-        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);   
-        if (oaiTargetDto== null) {
-            throw new InvalidArgumentServiceException("No target found in configuration with name:'"+oaiTargetName +
-                    "' . See the config method for list of configured targets.");
-        }
-
-        OaiTargetJob job = createNewJob(oaiTargetDto);
-        //Get last modified record from ds-storage. After the full Ingest, all records earlier that this (included) will be deleted from ds-storage
-        DsStorageApi dsAPI = getDsStorageApiClient(); 
-    	List<OriginCountDto> originStatistics = dsAPI.getOriginStatistics();
-
-    	
-     	long lastModifiedForOrigin= getLastModifiedTimeForOrigin(originStatistics, oaiTargetDto.getDatasource());
-        
-        //register job
-        OaiJobCache.addNewJob(job);            
-
-        try {
-
-            int number= oaiIngest(job , null,null);        
-            OaiJobCache.finishJob(job, number,false);//No error
-
-            //Delete old records in storage from before.
-            Integer numberDeleted = dsAPI.deleteRecordsForOrigin(oaiTargetDto.getDatasource(), 0L, lastModifiedForOrigin);
-            log.info("After full ingest for origin={}, deleted {} old records in storage",
-                    oaiTargetDto.getDatasource(), numberDeleted);
-            return number;
-        }
-        catch(Exception e) {
-            log.error("Oai full harvest did not complete succesfull:"+oaiTargetName);
-            OaiJobCache.finishJob(job, 0, true);//Error
-            job.setCompletedTime(System.currentTimeMillis());                                    
-            throw new Exception(e);
-        }
-    }
-
-
+    
 
     /**
      *  Gives a ist of both completed and running jobs with status. Jobs still running will be first.
@@ -312,12 +250,18 @@ public class DsDatahandlerFacade {
 
 
     /**
-     * If from is null it will harvest everything.
-     * Format for from is yyyy-MM-dd as this is only one supported by COPs/Cumulus.
-     * Will be changed later when more OAI targets comes.
+     * This method will be called by the {@link #oaiIngestWrapper() oaiIngestWrapper method}<br>
+     * The wrapper method will setup the job and responsible for status of the job. <br>
+     * The target will be harvest full for this interval using the resumptionToken from the reponse and call recursively.<br>
+     * For each succesful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
+     *      
+     * @param job The configured OAI target
+     * @param from Datestamp format that will be accepted for that OAI target
+     * @param until Datestamp format that will be accepted for that OAI target
      *  
+     * @return Number of harvested records for this date interval. Records discarded by filter etc. will not counted. 
      */
-    protected static Integer oaiIngest(OaiTargetJob job, String from, String until) throws Exception {
+     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws Exception {
 
         //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)               
         //But COP only supports the short version. So when this is called use short format

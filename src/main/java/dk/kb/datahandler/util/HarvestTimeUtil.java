@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
+import dk.kb.datahandler.oai.OaiFromUntilInterval;
 
 /*
  * All access to this class is syncronized since we are using filesystem as persistence.
@@ -34,7 +37,7 @@ import dk.kb.datahandler.model.v1.OaiTargetDto;
 
 public class HarvestTimeUtil {
     
-    public static final String defaultStartDate="1900-01-01T00:00:00Z"; //Used as start if no file has been written yet for that target
+    public static final String DEFAULT_START_DATE="1900-01-01T00:00:00Z"; //Used as start if no file has been written yet for that target
     private static final Logger log = LoggerFactory.getLogger(HarvestTimeUtil.class);
     private static final Charset UTF8= StandardCharsets.UTF_8;         
     private static final String DAY_PATTERN = "yyyy-MM-dd";
@@ -101,6 +104,47 @@ public class HarvestTimeUtil {
     
     
     /**
+     * Some OAI targets needs to be split into days instead of a full date interval. 
+     * Will format from and until date to a format supported by the OAI target<br> 
+     */
+    public static ArrayList<OaiFromUntilInterval> generateFromUntilIntervalForFullIngest( OaiTargetDto oaiTarget) throws Exception{
+        
+        ArrayList<OaiFromUntilInterval> intervals = new ArrayList<OaiFromUntilInterval>();
+        String from= null;        
+        //From date
+        if (oaiTarget.getDayOnly()) {
+            from=oaiTarget.getStartDay(); //Since we harvest by day, we need a start day and not from year 1900
+            from+="T00:00:00Z";
+        }
+        else {
+            from=HarvestTimeUtil.DEFAULT_START_DATE; //year 1900. 
+        }        
+        
+        //Full interval or daily
+        if (oaiTarget.getDayOnly()) {
+            String dayStamp = from.substring(0,10); //day only
+            String nextDay=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(dayStamp);
+            //Build all day intervals until tomorrow
+            while (nextDay!= null) {
+           System.out.println("next day:"+nextDay);
+               String fromFormattet= formatDateForOaiTarget(dayStamp, oaiTarget);
+               String untilFormattet = formatDateForOaiTarget(nextDay, oaiTarget);               
+               intervals.add(new OaiFromUntilInterval(fromFormattet, untilFormattet)); // Add the day
+             
+               dayStamp=nextDay;
+               nextDay=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(nextDay); //when null it will stop           
+            }            
+        }
+        else {
+            String fromFormatted = formatDateForOaiTarget(from, oaiTarget);
+            intervals.add(new OaiFromUntilInterval(fromFormatted, null)); // no until
+        }                
+        return intervals;
+        
+    }
+    
+    
+    /**
      * Return the next day. Return null if next day will be after tomorrow.  <br>
      * So if today is 2024-02-07, the last day that will be return is 2024-02-08. Else it will be null.
      * 
@@ -134,14 +178,15 @@ public class HarvestTimeUtil {
         
     	//return date format in yyyy-MM-dd
     	String nextDay=  simpleDateFormat.format(nextDayCal.getTime());
-    	return nextDay;    	    	
+    	System.out.println(day +">"+nextDay);
+        return nextDay;    	    	
     }
     
     protected static String loadLastHarvestTime(String oaiTargetNameFile ) throws Exception{                        
         Path oaiTargetFilePath = Paths.get( oaiTargetNameFile);
         if (!Files.exists(oaiTargetFilePath)) {            
-            log.info("OAI target: "+oaiTargetNameFile +" does not have a last harvest time. Using default:"+defaultStartDate);
-            return defaultStartDate;
+            log.info("OAI target: "+oaiTargetNameFile +" does not have a last harvest time. Using default:"+DEFAULT_START_DATE);
+            return DEFAULT_START_DATE;
         }
         else {                        
             String lastHarvestDate= getFirstLineFromFile(oaiTargetNameFile);
@@ -199,6 +244,25 @@ public class HarvestTimeUtil {
         }
      }
 
+    /**
+     * Some OAI servers only support day yyyy-MM-dd format and UTC format will be reduced to day 
+     * 
+     * @param date in UTC format
+     * @param oaiTarget The oai target that has the datestamp format
+     * @return date in UTC format or date in day format
+     */
+    private static String formatDateForOaiTarget(String date, OaiTargetDto oaiTarget) {
+        if (oaiTarget.getDateStampFormat().equals(DateStampFormatEnum.DATE)) {
+            if(date.length()==10) {
+                date=date+"T00:00:00Z";// expand if not already date
+            }
+            return date;
+        }
+        else {
+            return date.substring(0,10); //reduce
+        }                
+    }
+   
     
 
 }
