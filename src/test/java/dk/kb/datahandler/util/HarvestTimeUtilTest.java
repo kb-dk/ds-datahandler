@@ -10,8 +10,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.Year;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -22,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
 import dk.kb.datahandler.oai.OaiFromUntilInterval;
-import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 
 public class HarvestTimeUtilTest {
 
@@ -79,11 +82,8 @@ public class HarvestTimeUtilTest {
     	    	
     	assertEquals("2020-01-02",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("2020-01-01")); //1 day
     	assertEquals("2021-01-01",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("2020-12-31")); //new year        
-        assertEquals("2022-02-01",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("2022-01-31")); //new year 
-      //assertEquals("2022-11-01",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("2022-10-30")); //new year
-
-        
-//      assertEquals("1942-11-03",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("1942-11-02")); //new year
+        assertEquals("2022-02-01",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("2022-01-31")); //new month      
+        assertEquals("2022-10-31",HarvestTimeUtil.getNextDayIfNot2DaysInFuture("2022-10-30")); //troublesome day with summer/winter time        
         
         
         
@@ -104,9 +104,14 @@ public class HarvestTimeUtilTest {
     @Test
     void testGenerateDayIntervals() throws Exception {    
         OaiTargetDto target = getDayOnlyTarget();
-        ArrayList<OaiFromUntilInterval> intervals= HarvestTimeUtil.generateFromUntilIntervalForFullIngest(target);
-        System.out.println(intervals);
+        ArrayList<OaiFromUntilInterval> intervals= HarvestTimeUtil.generateFromUntilInterval(target,null);                
+        OaiFromUntilInterval last = intervals.get(intervals.size()-1);        
+        //'from' attribute in last interval must be today
+        String mustBeToday = last.getFrom().substring(0,10);//Get day part
+        String today=HarvestTimeUtil.formatDate2Day(new Date());
+        assertEquals(today,mustBeToday);        
     }
+    
     
     
     @Test
@@ -152,16 +157,14 @@ public class HarvestTimeUtilTest {
     }
     
     
-    private OaiTargetDto getDayOnlyTarget()  {
-        
+    private OaiTargetDto getDayOnlyTarget()  {        
         OaiTargetDto target= new OaiTargetDto();
         target.setDayOnly(true);
         target.setName("test day only target");
-        target.setDateStampFormat(DateStampFormatEnum.DATE);
-        target.setStartDay("2022-01-15");
-        return target;
-        
-        
+        target.setDateStampFormat(DateStampFormatEnum.DATE);        
+        int year =  LocalDate.now(ZoneId.of("Z")).getYear();        
+        target.setStartDay(year+"-01-01"); //Jan 1 this year
+        return target;                
         
     }
     

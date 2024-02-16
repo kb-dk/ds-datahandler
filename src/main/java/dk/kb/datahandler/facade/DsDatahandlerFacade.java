@@ -20,7 +20,6 @@ import org.w3c.dom.Node;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
 import dk.kb.datahandler.oai.OaiFromUntilInterval;
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiJobCache;
@@ -131,27 +130,19 @@ public class DsDatahandlerFacade {
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
-     * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job.
-     * After full ingest ds-storage will be called again and all older recorders from before the ingest fill be deleted. 
+     * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job. 
      *  
      * @param  oaiTargetName the location of the image, relative to the url argument
      * @return Number of harvested records.
      */        
-    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
-    
+    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {           
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
-       if (oaiTargetDto.getDayOnly()) {
-       //Integer delta= oaiIngestDeltaImplByDay(oaiTargetName); //even if full, it will be split into many delta's
-       //return delta;
-       return null;
-       }
-       else {
-       //Integer delta = oaiIngestFullImpl(oaiTargetName);
-       //return delta;
-       return null;
-       }    
-    
-    
+        
+        //Will be 1 interval for OAI targets that does not need to split into days
+        ArrayList<OaiFromUntilInterval>  intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, null); // from == null, use default start day for OAI target instead
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);                     
+        log.info("Full ingest of target={} completed with records={}",oaiTargetName,totalHarvested);
+        return totalHarvested;            
     }
    
     
@@ -161,21 +152,18 @@ public class DsDatahandlerFacade {
      * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
      *  
-     * @param  oaiTargetName the location of the image, relative to the url argument
+     * @param  oaiTargetName The name for the OAI target in the configuration
      * @return Number of harvested records.
      */    
     public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {   
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
-    	if (oaiTargetDto.getDayOnly()) {
-    		//Integer delta=oaiIngestDeltaImplByDay(oaiTargetName); 
-    		//return delta;
-        return null;
-    	}
-    	else {
-    		//Integer delta = oaiIngestDeltaImpl(oaiTargetName);	o
-    		//return delta;
-        return null;
-    	}    	
+        String lastHarvestTime = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
+
+        //Will be 1 interval for OAI targets that does not need to split into days
+        ArrayList<OaiFromUntilInterval>  intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, lastHarvestTime);
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);                     
+        log.info("Delta ingest of target={} completed with records={}",oaiTargetName,totalHarvested);
+        return totalHarvested;    	    	
     }
     
   
@@ -196,9 +184,10 @@ public class DsDatahandlerFacade {
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *      
      */
-     protected static Integer oaiIngestWrapper(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {                
+     protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {                
          int totalNumber=0;
                   
+         log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size());
          for (OaiFromUntilInterval fromUntil: fromUntilList) {         
              //Test no job is running before starting new for same target
              validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
@@ -235,7 +224,7 @@ public class DsDatahandlerFacade {
 
     /**
      *  Gives a ist of both completed and running jobs with status. Jobs still running will be first.
-     *  The completed jobs will only contain last 1000 completed jobs
+     *  The completed jobs will only contain last 10000 completed jobs
      *  
      * @return List of jobs with status
      */    
@@ -250,16 +239,17 @@ public class DsDatahandlerFacade {
 
 
     /**
-     * This method will be called by the {@link #oaiIngestWrapper() oaiIngestWrapper method}<br>
-     * The wrapper method will setup the job and responsible for status of the job. <br>
-     * The target will be harvest full for this interval using the resumptionToken from the reponse and call recursively.<br>
-     * For each succesful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
+     * This method will be called by the {@link #oaiIngestJobScheduler()  oaiIngestJobScheduler method}<br>
+     * The scheduler method will setup the job and responsible for status of the job. <br>
+     * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
+     * For each successful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
      *      
      * @param job The configured OAI target
      * @param from Datestamp format that will be accepted for that OAI target
      * @param until Datestamp format that will be accepted for that OAI target
      *  
-     * @return Number of harvested records for this date interval. Records discarded by filter etc. will not counted. 
+     * @return Number of harvested records for this date interval. Records discarded by filter etc. will not counted.
+     * @throws Exception If anything expected happens. OAI target does not respond, invalid xml, XSTL (filtering) failed etc.  
      */
      private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws Exception {
 

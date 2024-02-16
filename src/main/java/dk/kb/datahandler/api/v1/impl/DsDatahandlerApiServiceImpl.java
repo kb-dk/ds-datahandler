@@ -86,7 +86,8 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }
 
     }
-
+    
+    @Override
     public Integer oaiIngestDelta(String oaiTarget){
         log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
