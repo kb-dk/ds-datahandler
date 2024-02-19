@@ -115,7 +115,7 @@ public class ServiceConfig {
 
     
     private static void loadOaiTargets() {
-        List<YAML> targets = serviceConfig.getYAMLList("oai_targets");
+        List<YAML> targets = serviceConfig.getYAMLList("oaiTargets");
         for (YAML target: targets) {
             String name = target.getString("name");
             String url = target.getString("url");
@@ -126,8 +126,8 @@ public class ServiceConfig {
             String user=target.getString("user",null);
             String password=target.getString("password",null);
             String filterStr = target.getString("filter","direct");
-            Boolean dayOnly = target.getBoolean("day_only",Boolean.FALSE);
-            String startDay = target.getString("start_day",null);            
+            Boolean dayOnly = target.getBoolean("dayOnly",Boolean.FALSE);
+            String startDay = target.getString("startDay",null);            
             String dateStampFormat = target.getString("dateStampFormat");           
             if (dayOnly) { //startDay must be defined for dayOnly strategy                        	      
                 boolean validStartDay=HarvestTimeUtil.validateDayFormat(startDay);

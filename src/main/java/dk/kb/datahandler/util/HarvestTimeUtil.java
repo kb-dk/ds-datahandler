@@ -94,18 +94,6 @@ public class HarvestTimeUtil {
 
     }
 
-    /**
-     * 
-     * From a java date format yyyy-MM-dd
-     * 
-     * @param date  Java date object
-     */
-    public static String formatDate2Day(Date date) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN,Locale.ROOT);    	    	    	
-        String day = simpleDateFormat.format(date);    	       	    
-        return day;			    	    
-    }
-
 
     /**
      * Some OAI targets needs to be split into days instead of a full date interval. 
@@ -164,6 +152,7 @@ public class HarvestTimeUtil {
      * 
      * 
      * For input 2024-02-07 the output will be 2024-02-08  
+     * If today is 2024-02-19. Input of 2024-02-19 will give 2024-02-20. But 2024-02-20 will give null.  
      * 
      * @param day day in format yyyy-MM.dd
      */
@@ -177,7 +166,7 @@ public class HarvestTimeUtil {
             throw new InvalidArgumentServiceException("Not valid day:"+day);
         }
 
-        LocalDate nextDayLocal = LocalDate.parse(day).plusDays(1);
+        LocalDate nextDayLocal = LocalDate.parse(day).plusDays(1); //add 1 day to input day        
         String nextDay=nextDayLocal.toString();        
 
         if (nextDay.equals(day)) {//Sanity check. 
@@ -185,14 +174,14 @@ public class HarvestTimeUtil {
         }
 
         //Check if the following day is 2 days in future.
-        LocalDate nextNextDayLocal = LocalDate.parse(day);
-        long nextNextDayMillis=nextNextDayLocal.toEpochSecond(LocalTime.parse("00:00:01"), ZoneOffset.UTC);
-
-        //more than 1 day in future. 1 day + 1sec enough 
-        if (nextNextDayMillis >= System.currentTimeMillis()/1000){  //Seconds so have to divide by 1000              	
+        LocalDate twoDaysFromToday=LocalDate.now().plusDays(2);//Must not return value if we over this date
+        
+        //Count days since 1970. ( 2024-01-01 is about 19700 days etc.)
+        long daysNext=nextDayLocal.toEpochDay();
+        long daysTwoDaysFromToday=twoDaysFromToday.toEpochDay();
+        if (daysNext >= daysTwoDaysFromToday) {
             return null;
-        }
-
+        }                
         return nextDay;    	    	
     }
 
@@ -266,7 +255,7 @@ public class HarvestTimeUtil {
      * @return date in UTC format or date in day format
      */
     private static String formatDateForOaiTarget(String date, OaiTargetDto oaiTarget) {
-        if (oaiTarget.getDateStampFormat().equals(DateStampFormatEnum.DATE)) {
+        if (oaiTarget.getDateStampFormat().equals(DateStampFormatEnum.DATETIME)) {
             if(date.length()==10) {
                 date=date+"T00:00:00Z";// expand if not already date
             }
@@ -277,6 +266,6 @@ public class HarvestTimeUtil {
         }                
     }
 
-
+    
 
 }

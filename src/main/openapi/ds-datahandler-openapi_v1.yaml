@@ -320,11 +320,11 @@ components:
           default: 'direct'
         dateStampFormat:
           type: string
-          enum:  ['day', 'date']
+          enum:  ['date', 'datetime']
           description: |
             Special handling of record. Possible value are
-            * `day`:     Only use format yyyy-MM-dd as from/until parameters
-            * `date`:    Use UTC format yyyy-MM-ddThh:mm:ssZ as from/until parameters. This is default.                        
+            * `date`:     Only use format yyyy-MM-dd as from/until parameters
+            * `datetime`:    Use UTC format yyyy-MM-ddThh:mm:ssZ as from/until parameters. This is default.                        
           example: 'date'
           default: 'date'
         day_only:

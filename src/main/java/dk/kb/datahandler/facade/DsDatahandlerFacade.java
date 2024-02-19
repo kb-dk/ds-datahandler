@@ -3,6 +3,7 @@ package dk.kb.datahandler.facade;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Target;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -187,7 +188,7 @@ public class DsDatahandlerFacade {
      protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {                
          int totalNumber=0;
                   
-         log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size());
+         log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size() +" for target:"+oaiTargetName);
          for (OaiFromUntilInterval fromUntil: fromUntilList) {         
              //Test no job is running before starting new for same target
              validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
@@ -259,21 +260,6 @@ public class DsDatahandlerFacade {
         //Dirty but quick solution fix. Best would be if COP could fix it
 
         OaiTargetDto oaiTargetDto = job.getDto();
-
-        // A little custom tweaking because none of our the OAI servers seems to follow full spec for datestamp format
-        if (from != null && oaiTargetDto.getUrl().indexOf("kb.dk/cop/")> 0) {
-            from = from.substring(0,10);               
-        }
-        else { //For preservica. Enforce UTC but still allowing yyyy-MM-dd as input and fix behind the scenes.
-            
-            if (from != null && from.length() ==10) {
-                from=from+"T00:00:00Z";
-            }
-            if (until != null && until.length() ==10) {
-                until=until+"T00:00:00Z";
-            }            
-        }
-        
 
         // TODO: Change this to datasource in the OpenAPI specification
         String origin=oaiTargetDto.getDatasource();
