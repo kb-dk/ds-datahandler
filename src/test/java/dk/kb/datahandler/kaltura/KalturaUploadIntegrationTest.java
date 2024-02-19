@@ -2,7 +2,7 @@ package dk.kb.datahandler.kaltura;
 
 import com.kaltura.client.enums.KalturaMediaType;
 
-public class KalturaIUploadIntegrationTest {
+public class KalturaUploadIntegrationTest {
 
     /**
      * This will upload a file to kaltura. 
