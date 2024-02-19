@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
@@ -30,7 +31,8 @@ import dk.kb.datahandler.oai.OaiFromUntilInterval;
 public class HarvestTimeUtilTest {
 
     private static final Logger log = LoggerFactory.getLogger(HarvestTimeUtilTest.class);
-
+    private static final String DAY_PATTERN = "yyyy-MM-dd";
+    
     @Test
     void filePersistenceTest() throws Exception {
 
@@ -77,6 +79,7 @@ public class HarvestTimeUtilTest {
     	
     }
 
+     
     @Test
     void testGetNextDay() throws Exception {    	
     	    	
@@ -90,7 +93,7 @@ public class HarvestTimeUtilTest {
         //Test 2 days in future
     	//Construct today in format yyyy-MM-dd
     	Calendar cal = Calendar.getInstance(TimeZone.getDefault(),Locale.getDefault());
-    	String today = HarvestTimeUtil.formatDate2Day(cal.getTime());
+    	String today = formatDate2Day(cal.getTime());
     	
     	//Next day must be returned
     	String tomorrow=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(today);    	
@@ -108,7 +111,7 @@ public class HarvestTimeUtilTest {
         OaiFromUntilInterval last = intervals.get(intervals.size()-1);        
         //'from' attribute in last interval must be today
         String mustBeToday = last.getFrom().substring(0,10);//Get day part
-        String today=HarvestTimeUtil.formatDate2Day(new Date());
+        String today=formatDate2Day(new Date());
         assertEquals(today,mustBeToday);        
     }
     
@@ -167,6 +170,16 @@ public class HarvestTimeUtilTest {
         return target;                
         
     }
-    
+    /**
+     * 
+     * From a java date format yyyy-MM-dd
+     * 
+     * @param date  Java date object
+     */
+    public static String formatDate2Day(Date date) {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN,Locale.ROOT);            
+        String day = simpleDateFormat.format(date);               
+        return day;        
+    }
     
 }
