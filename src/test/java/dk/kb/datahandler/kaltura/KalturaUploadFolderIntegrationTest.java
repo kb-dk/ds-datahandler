@@ -33,7 +33,7 @@ public class KalturaUploadFolderIntegrationTest {
     public static void main(String[] args)  {
 
         String kalturaUrl= "https://kmc.kaltura.nordu.net";        
-        String adminSecret = "f171b1cc0e06b9f565c0f362e5a23aed"; 
+        String adminSecret = "XXXXXXXXXXXXXXXXXXXXXXxxx"; 
         Integer partnerId = 380; // Use this partner ID for DS project 
         String userId = "teg@kb.dk"; //User must exist in kaltura.                 
 
