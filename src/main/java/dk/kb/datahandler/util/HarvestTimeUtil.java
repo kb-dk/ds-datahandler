@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
@@ -173,8 +174,8 @@ public class HarvestTimeUtil {
             throw new InternalServiceException("Could not calculate next day for:"+nextDay);            
         }
 
-        //Check if the following day is 2 days in future.
-        LocalDate twoDaysFromToday=LocalDate.now().plusDays(2);//Must not return value if we over this date
+        //Check if the following day is 2 days in future. 
+        LocalDate twoDaysFromToday=LocalDate.now(Clock.systemUTC()).plusDays(2);//Must not return value if we over this date
         
         //Count days since 1970. ( 2024-01-01 is about 19700 days etc.)
         long daysNext=nextDayLocal.toEpochDay();
