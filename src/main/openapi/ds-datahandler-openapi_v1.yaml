@@ -327,14 +327,14 @@ components:
             * `datetime`:    Use UTC format yyyy-MM-ddThh:mm:ssZ as from/until parameters. This is default.                        
           example: 'date'
           default: 'date'
-        day_only:
+        dayOnly:
           type: boolean          
           description: 'OAI harvest will fetch by day using from until. This is required for OAI servers that does not scale'                        
           example: true
           default: false        
-        start_day: 
+        startDay: 
           type: string
-          description: 'Date of format yyyy-MM-dd. Only used if day_only attribute is true'                        
+          description: 'Date of format yyyy-MM-dd. Only used if dayOnly attribute is true'                        
           example: '2020-01-01'
          
           
