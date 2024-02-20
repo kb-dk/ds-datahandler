@@ -10,7 +10,7 @@
 #
 
 # List of oai targets
-oai_targets:
+oaiTargets:
   - name: kb.letters.judsam.dsa
     datasource: kb.letters.judsam.dsa
     url: http://www5.kb.dk/cop/oai/
@@ -140,7 +140,7 @@ oai_targets:
     metadataPrefix: XIP_full_schema
     description: Radio- og TV-udsendelser
     filter: preservica
-    oai_daily: true
+    oaiDaily: true
 
 
 
