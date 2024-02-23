@@ -199,6 +199,27 @@ paths:
               schema:
                 type: string
 
+
+  /monitor/jobs:
+    get:
+      tags:
+        - Service
+      summary: 'List of running and past jobs'
+      operationId: jobs
+      responses:
+        '200':
+          description: 'List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OaiJobList'
+        '500':
+          description: 'Internal Error'
+          content:
+            text/plain:
+              schema:
+                type: string
+
 components:
   schemas:
 
@@ -238,8 +259,6 @@ components:
           type: string
           description: 'Self diagnosed health'
           example: 'ok'
-        jobs:
-          $ref: '#/components/schemas/OaiJobList'
         gitCommitChecksum:
           type: string
           description: 'The checksum of the deployed commit.'
