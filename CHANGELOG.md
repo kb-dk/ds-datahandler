@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Moved OAI job list out into a new method '/monitor/jobs' It was part of the 'monitor/status' method before.
-
+- Bumb sb-parent to v.25
+- Added 'integration' tag to some unittests.
 
 ### Added
 

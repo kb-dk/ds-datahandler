@@ -2,6 +2,7 @@ package dk.kb.datahandler.kaltura;
 
 import com.kaltura.client.enums.KalturaMediaType;
 
+
 public class KalturaUploadIntegrationTest {
 
     /**
@@ -10,7 +11,8 @@ public class KalturaUploadIntegrationTest {
      * It can take up to 10 minutes before the upload has been transcoded and can be streamed.
      * 
      * To stream the uploaded file change the reference id in this html-file: src/test/resources/kaltura_test_play.html
-     * 
+     *
+     * This can not be changed to a unittest since it will modify Kaltura
      */
     public static void main(String[] args)  {
         try {
@@ -18,7 +20,7 @@ public class KalturaUploadIntegrationTest {
             String kalturaUrl= "https://kmc.kaltura.nordu.net";        
             String adminSecret = "XXXXXXXXXXXXXXXXXXXXXXXXX"; 
             Integer partnerId = 380; // Use this partner ID for DS project 
-            String userId = "teg@kb.dk"; //User must exist in kaltura.                 
+            String userId = "XXX@kb.dk"; //User must exist in kaltura.                 
             KalturaUploadClient client = new KalturaUploadClient(kalturaUrl,userId,partnerId,adminSecret);
 
             //Upload a file

@@ -6,10 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.StringReader;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -26,7 +24,6 @@ public class InvalidXmlTest {
 
     @Test
     void simpleInvalidXmlTest() throws Exception {
-
         //Loads a miminal xml with 1 invalid xml encoding character (decimal encoding)
         //This is already test in the KB-util, but seems important enough for a test to see you use it correct
         
@@ -54,9 +51,6 @@ public class InvalidXmlTest {
         }                 
         assertEquals("test!", text.trim()); //invalid encoding removed
     }
-
-    
-    
     
     /*
      * Parse the XML as UTF-8 (in header of XML samples).
@@ -81,5 +75,4 @@ public class InvalidXmlTest {
         return textElement.getTextContent();
     }
   
-
 }
