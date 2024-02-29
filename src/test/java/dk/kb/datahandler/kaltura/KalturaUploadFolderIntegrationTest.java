@@ -29,17 +29,18 @@ public class KalturaUploadFolderIntegrationTest {
      *
      * Before running this method, change log-level to warn i logback.test.xml to avoid spamming.
      *  
+     *    *
+     * This can not be changed to a unittest since it will modify Kaltura
      */
     public static void main(String[] args)  {
 
         String kalturaUrl= "https://kmc.kaltura.nordu.net";        
         String adminSecret = "XXXXXXXXXXXXXXXXXXXXXXxxx"; 
         Integer partnerId = 380; // Use this partner ID for DS project 
-        String userId = "teg@kb.dk"; //User must exist in kaltura.                 
+        String userId = "XXX@kb.dk"; //User must exist in kaltura.                 
 
         try {
             KalturaUploadClient client = new KalturaUploadClient(kalturaUrl,userId,partnerId,adminSecret);
-
 
            // String uploadFolder="/home/teg/kaltura_files/video/";
             //KalturaMediaType mediaType = KalturaMediaType.VIDEO;
