@@ -45,8 +45,8 @@ public class ServiceConfig {
      * @param configFile the configuration to load.
      * @throws IOException if the configuration could not be loaded or parsed.
      */
-    public static synchronized void initialize(String configFile) throws IOException {
-        serviceConfig = YAML.resolveLayeredConfigs(configFile);
+    public static synchronized void initialize(String... configFiles) throws IOException {
+        serviceConfig = YAML.resolveLayeredConfigs(configFiles);
         loadOaiTargets();
         
         oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
@@ -58,7 +58,7 @@ public class ServiceConfig {
 
         log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
                 "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}'",
-                configFile, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl);
+                configFiles, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl);
 
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
@@ -128,7 +128,7 @@ public class ServiceConfig {
             String filterStr = target.getString("filter","direct");
             Boolean dayOnly = target.getBoolean("dayOnly",Boolean.FALSE);
             String startDay = target.getString("startDay",null);            
-            String dateStampFormat = target.getString("dateStampFormat", null);
+            String dateStampFormat = target.getString("dateStampFormat","date");
             if (dayOnly) { //startDay must be defined for dayOnly strategy                        	      
                 boolean validStartDay=HarvestTimeUtil.validateDayFormat(startDay);
                 if (!validStartDay) {
