@@ -87,7 +87,8 @@ public class SolrUtils {
         while (hasMore) {
             try (ContinuationInputStream<Long> solrDocsStream =
                          presentClient.getRecordsJSON(origin, sinceTime,batchSize, FormatDto.SOLRJSON)) {
-                log.info("Indexing {} records from DS-storage origin '{}' to solr.", solrDocsStream.getRecordCount(), origin);
+                log.info("Indexing {} records from DS-storage origin '{}' to solr. '{}' records have been indexed through this request.",
+                        solrDocsStream.getRecordCount(), origin, documents);
 
                 //POST request to Solr using the inputstream
                 HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();

@@ -128,7 +128,7 @@ public class ServiceConfig {
             String filterStr = target.getString("filter","direct");
             Boolean dayOnly = target.getBoolean("dayOnly",Boolean.FALSE);
             String startDay = target.getString("startDay",null);            
-            String dateStampFormat = target.getString("dateStampFormat","date");           
+            String dateStampFormat = target.getString("dateStampFormat","date");
             if (dayOnly) { //startDay must be defined for dayOnly strategy                        	      
                 boolean validStartDay=HarvestTimeUtil.validateDayFormat(startDay);
                 if (!validStartDay) {
