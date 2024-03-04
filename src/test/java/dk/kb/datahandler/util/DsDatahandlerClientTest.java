@@ -15,29 +15,47 @@
 package dk.kb.datahandler.util;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.invoker.v1.ApiException;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+
 
 /**
  * Simple verification of client code generation. Integration test, will not be run by automatic build flow
  */
+@Tag("integration")
 public class DsDatahandlerClientTest {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerClientTest.class);
        
-    @Tag("integration")
+    private static String dsDatahandlerDevel=null;
+        
+    @BeforeAll
+    static void setup() {
+        try {
+            ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml","ds-datahandler-integration-test.yaml");                        
+            dsDatahandlerDevel= ServiceConfig.getConfig().getString("integration.devel.datahandler");        
+        } catch (IOException e) {          
+          e.printStackTrace();
+            log.error("Integration yaml 'ds-datahandler-integration-test.yaml' file most be present. Call 'kb init'");            
+            fail();
+        }
+    }
+        
     @Test
     public void testInstantiation() throws ApiException{
-        String backendURIString = "http://devel11:10001/ds-datahandler/v1";
-        log.debug("Creating inactive client for ds-datahandler with URI '{}'", backendURIString);
-        DsDatahandlerClient dsDatahandlerClient = new DsDatahandlerClient(backendURIString);
+        log.debug("Creating inactive client for ds-datahandler with URI '{}'",dsDatahandlerDevel);
+        DsDatahandlerClient dsDatahandlerClient = new DsDatahandlerClient(dsDatahandlerDevel);
         List<OaiTargetDto> targets = dsDatahandlerClient.getOaiTargetsConfiguration();
         log.info("Integrationtest called oaiTargets on devel11. Number of targets:"+targets.size());
         assertTrue(targets.size() >0);                
