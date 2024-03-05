@@ -121,7 +121,6 @@ paths:
           schema:
             type: string
             example: ${present_origin_example}
-            enum: [${present_origins}]
         - name: mTimeFrom
           in: query
           description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
