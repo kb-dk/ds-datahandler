@@ -5,11 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.7.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7) - 2024-03-05
+### Added
 - Moved OAI job list out into a new method '/monitor/jobs' It was part of the 'monitor/status' method before.
 - Bumb sb-parent to v.25
 - Added 'integration' tag to some unittests.
 
-### Added
+### Removed
+- Removed origin enum from openAPI specification.
 
 ## [1.6.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.6) - 2024-02-20
 - Added git information to the status endpoint. It now delivers, deployed branch name, commit hash, time of latest commit and closest tag
