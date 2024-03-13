@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- Removed origin enum from openAPI specification.
+- Removed 'spellcheck.maxCollationTries' parameter since it crashed solr when reloading configuration.
+
+
 ## [1.7.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7) - 2024-03-05
 ### Added
 - Moved OAI job list out into a new method '/monitor/jobs' It was part of the 'monitor/status' method before.
