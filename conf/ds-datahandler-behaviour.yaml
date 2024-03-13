@@ -146,7 +146,7 @@ oaiTargets:
 
 # Save timestamps of last OAI harvest for each target in this folder. This is used for incremental delta-imports.                
 timestamps:
- folder: /home/teg/oai.timestamps/
+ folder: /home/xxx/oai.timestamps/
 
 # The ds-storage server to ingest data into 
 storage:
