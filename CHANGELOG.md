@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Updated injection-maven-plugin version and configuration
+
 ### Removed
 - Removed origin enum from openAPI specification.
 
