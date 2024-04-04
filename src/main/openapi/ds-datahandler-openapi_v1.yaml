@@ -11,7 +11,7 @@ info:
     url: '${license.url}'
 servers:
   #  /api must match servlet-mapping in web.xml
-  - url: '/${project.artifactId}/v1'
+  - url: '${config:openapi.serverurl}'
     description: 'Version 1'
 
 paths:
@@ -120,7 +120,7 @@ paths:
           required: true
           schema:
             type: string
-            example: ${present_origin_example}
+            example: ${config:present.origins[0]}
         - name: mTimeFrom
           in: query
           description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'

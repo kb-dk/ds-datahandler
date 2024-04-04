@@ -18,7 +18,8 @@ public class Application_v1 extends javax.ws.rs.core.Application {
                 JacksonJsonProvider.class,
                 DsDatahandlerApiServiceImpl.class,
                 ServiceApiServiceImpl.class,
-                ServiceExceptionMapper.class
+                ServiceExceptionMapper.class,
+                OpenApiResource.class
         ));
     }
 

@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added 
+- Added support for dynamically updating the OpenAPI specification with config values.
+
 ### Removed
 - Removed origin enum from openAPI specification.
 
