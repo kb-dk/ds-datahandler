@@ -9,6 +9,9 @@
 #
 #
 
+openapi:
+  serverurl: http://localhost:9071/ds-datahandler/v1
+
 # List of oai targets
 oaiTargets:
   - name: kb.letters.judsam.dsa

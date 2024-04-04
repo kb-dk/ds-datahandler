@@ -24,14 +24,6 @@
             <param-value>org.apache.cxf.jaxrs.openapi.OpenApiFeature</param-value>
         </init-param>
 
-        <init-param>
-            <!--Here we override openapi.json and openapi.yaml from the above feature, to serve the static files-->
-            <!--THIS IS A HACK. But it seems like the simplest way to recover the original specs-->
-            <param-name>static-resources-list</param-name>
-            <param-value>
-                /ds-datahandler-openapi_.*\..+
-            </param-value>
-        </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>

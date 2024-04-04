@@ -105,7 +105,7 @@
         <dependency>
             <groupId>dk.kb.util</groupId>
             <artifactId>kb-util</artifactId>
-            <version>1.4.26</version>
+            <version>1.5.2</version>
             <exclusions>
                 <exclusion>
                     <!-- kb-util has 2.3.3, but transitive resolving has 2.4.0 somewhere-->
@@ -648,34 +648,6 @@
                             <value>unknown</value>
                         </replacementProperty>
                     </replacementProperties>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>dk.kb.util</groupId>
-                <artifactId>injection-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>read-yaml-properties</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <filePath>conf/ds-datahandler-behaviour.yaml</filePath>
-                    <yamlResolvers>                    
-                        <yamlResolver>
-                            <yamlType>List</yamlType>
-                            <yamlPath>present.origins</yamlPath>
-                            <destinationKey>present_origins</destinationKey>
-                            <createEnum>true</createEnum>
-                        </yamlResolver>
-                        <yamlResolver>
-                            <yamlType>Single-value</yamlType>
-                            <yamlPath>present.origins[0]</yamlPath>
-                            <destinationKey>present_origin_example</destinationKey>
-                        </yamlResolver>
-                    </yamlResolvers>
                 </configuration>
             </plugin>
         </plugins>
