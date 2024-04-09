@@ -6,9 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+
 ### Removed
 - Removed origin enum from openAPI specification.
-
+- Kaltura client implementation. Using ds-kaltura client as dependency instead.
 
 ## [1.7.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7) - 2024-03-05
 ### Added
