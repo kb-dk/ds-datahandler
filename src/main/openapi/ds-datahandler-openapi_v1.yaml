@@ -74,6 +74,7 @@ paths:
           required: true
           schema:
             type: string
+            enum: ["${config:oaiTargets[*].name}"]
       responses:
         '200':
           description: OK. Returns total number of records ingested.
@@ -96,6 +97,7 @@ paths:
           required: true
           schema:            
             type: string
+            enum: ["${config:oaiTargets[*].name}"]
       responses:
         '200':
           description: OK. Returns total number of records ingested.
@@ -120,7 +122,7 @@ paths:
           required: true
           schema:
             type: string
-            example: ${config:present.origins[0]}
+            enum: ["${config:present.origins[*]}"]
         - name: mTimeFrom
           in: query
           description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
