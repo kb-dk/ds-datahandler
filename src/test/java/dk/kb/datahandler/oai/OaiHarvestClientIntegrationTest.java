@@ -3,6 +3,8 @@ package dk.kb.datahandler.oai;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.util.yaml.YAML;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -57,6 +59,44 @@ public class OaiHarvestClientIntegrationTest {
         //Fetch next 1000        
         OaiResponse r2= client.next();
         assertEquals(1000, r2.getRecords().size());
+    }
+
+
+    @Tag("integration")
+    @Test
+    void testPreservicaSevenAuth() throws Exception {
+
+        ServiceConfig.initialize("conf/ds-datahandler-local.yaml");
+        YAML conf = ServiceConfig.getConfig();
+
+        String set="test";
+        //String set="oai:kb.dk:images:billed:2014:jun:hca";
+
+        OaiTargetDto oaiTarget = new OaiTargetDto();
+        oaiTarget.setUrl(conf.getString("oaiTargets[1].url")); //Public KB service
+        oaiTarget.setMetadataprefix(conf.getString("oaiTargets[1].metadataPrefix"));
+        oaiTarget.setSet(set);
+        oaiTarget.setUsername(conf.getString("oaiTargets[1].user"));
+        oaiTarget.setPassword(conf.getString("oaiTargets[1].password"));;
+        oaiTarget.setDatasource(conf.getString("oaiTargets[1].datasource"));
+        oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
+        oaiTarget.setDayOnly(true);
+        oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
+        oaiTarget.setStartDay("2021-03-05");
+        String from=null;
+
+        OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);
+
+        OaiHarvestClient client = new OaiHarvestClient(job,from,null);
+        OaiResponse r1 = client.next();
+        assertEquals(200, r1.getRecords().size());
+        assertNotNull(r1.getResumptionToken());
+
+        System.out.println(r1.getRecords().get(0).getMetadata());
+
+        /*//Fetch next 1000
+        OaiResponse r2= client.next();
+        assertEquals(200, r2.getRecords().size());*/
     }
 
 }
