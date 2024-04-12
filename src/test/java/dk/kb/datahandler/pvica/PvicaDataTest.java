@@ -18,7 +18,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -41,7 +40,7 @@ public class PvicaDataTest {
         String xml = Resolver.resolveUTF8String(xmlFile);
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         String parent = oaiFilter.getParentID(record,"ds.radiotv");
         assertEquals("ds.radiotv:oai:du:9d9785a8-71f4-4b34-9a0e-1c99c13b001b", parent);        
     }
@@ -53,7 +52,7 @@ public class PvicaDataTest {
 
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         String origin = oaiFilter.getOrigin(record, "preservica");
         assertEquals("ds.radio", origin);
     }
@@ -64,7 +63,7 @@ public class PvicaDataTest {
 
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         String origin = oaiFilter.getOrigin(record, "preservica");
         assertEquals("ds.radio", origin);
     }
@@ -75,7 +74,7 @@ public class PvicaDataTest {
 
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         String origin = oaiFilter.getOrigin(record, "preservica");
         assertEquals("ds.tv", origin);
     }
@@ -86,7 +85,7 @@ public class PvicaDataTest {
 
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         String origin = oaiFilter.getOrigin(record, "preservica");
         assertEquals("ds.tv", origin);
     }
@@ -119,7 +118,7 @@ public class PvicaDataTest {
         OaiResponse testResponse = new OaiResponse();
         testResponse.setRecords(oaiRecords);
 
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica("preservica", mockedStorage);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive("preservica", mockedStorage);
 
         oaiFilter.addToStorage(testResponse);
         assertEquals(2, oaiFilter.getProcessed());
@@ -137,7 +136,7 @@ public class PvicaDataTest {
     public void testRecordTypeCol() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:col:232234234");
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
         assertEquals(RecordTypeDto.COLLECTION, resolvedType);
@@ -146,7 +145,7 @@ public class PvicaDataTest {
     public void testRecordTypeDU() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:du:232234234");
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
         assertEquals(RecordTypeDto.DELIVERABLEUNIT, resolvedType);
@@ -155,7 +154,7 @@ public class PvicaDataTest {
     public void testRecordTypeMan() {
         DsRecordDto collectionRecord = new DsRecordDto();
         collectionRecord.setId("ds.test:oai:man:232234234");
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
 
         assertEquals(RecordTypeDto.MANIFESTATION, resolvedType);
@@ -183,7 +182,7 @@ public class PvicaDataTest {
         dsRecord.setOrigin("ds.test");
         dsRecord.setData(oaiRecord.getMetadata());
 
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservica(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
         RecordTypeDto resolvedType = oaiFilter.getRecordType(dsRecord, testStorageId);
 
         //Tests

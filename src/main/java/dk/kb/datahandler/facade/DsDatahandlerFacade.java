@@ -3,7 +3,6 @@ package dk.kb.datahandler.facade;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.annotation.Target;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -11,6 +10,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import dk.kb.datahandler.oai.OaiResponseFilterPreserviceSeven;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -27,7 +27,6 @@ import dk.kb.datahandler.oai.OaiJobCache;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiResponseFilter;
-import dk.kb.datahandler.oai.OaiResponseFilterPreservica;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.SolrUtils;
@@ -278,7 +277,7 @@ public class DsDatahandlerFacade {
                 oaiFilter = new OaiResponseFilter(origin, dsAPI);
                 break;
             case PRESERVICA:
-                oaiFilter = new OaiResponseFilterPreservica(origin, dsAPI);
+                oaiFilter = new OaiResponseFilterPreserviceSeven(origin, dsAPI);
                 break;
             default: throw new UnsupportedOperationException(
                     "Unknown filter '" + oaiTargetDto.getFilter() + "' for target '" + targetName + "'");
