@@ -41,7 +41,7 @@ public class OaiHarvestClient {
     private String from;
     private String until;
 
-    public OaiHarvestClient (OaiTargetJob oaiTargetJob,String from, String until){
+    public OaiHarvestClient(OaiTargetJob oaiTargetJob, String from, String until){
         this.oaiTargetJob=oaiTargetJob;
         this.oaiTarget=oaiTargetJob.getDto();
         this.from=from;
@@ -65,13 +65,13 @@ public class OaiHarvestClient {
         String metadataPrefix= oaiTarget.getMetadataprefix();
 
         uri=addQueryParamsToUri(uri, set, resumptionToken,metadataPrefix,from, until);
-         log.info("calling uri:"+uri);
+        log.info("calling uri:"+uri);
         //log.info("resumption token at:"+resumptionToken);
-        String xmlResponse=getHttpResponse(uri,oaiTarget.getUsername(),oaiTarget.getPassword()); 
+        String xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());
 
-        Document document =sanitizeXml(xmlResponse,uri);
+        Document document = sanitizeXml(xmlResponse,uri);
 
-        String errorMessage=getErrorMessage(document);
+        String errorMessage = getErrorMessage(document);
          if (errorMessage != null && errorMessage.trim().length() >1) {                       
             log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
             oaiTargetJob.setCompletedTime(System.currentTimeMillis());            
@@ -84,9 +84,9 @@ public class OaiHarvestClient {
         String  resumptionToken=  getResumptionToken(document);
         oaiResponse.setTotalRecords(getResumptionTotalSize(document));        
 
-        if (resumptionToken != null && !resumptionToken.equals("")) {
+        if (resumptionToken != null && !resumptionToken.isEmpty()) {
             this.resumptionToken = resumptionToken;  
-      log.info("next resumption token:"+resumptionToken);
+            log.info("next resumption token:"+resumptionToken);
             oaiResponse.setResumptionToken(resumptionToken);
         }
         else {
@@ -119,10 +119,9 @@ public class OaiHarvestClient {
         if (from != null && resumptionToken == null) {
             uri += "&from="+from;            
         }
-        /*if (until != null && resumptionToken == null) {
+        if (until != null && resumptionToken == null) {
             uri += "&until="+until;            
-        }*/
-        
+        }
         
         if (metadataPrefix != null && resumptionToken == null) {
             uri +="&metadataPrefix="+metadataPrefix;            
