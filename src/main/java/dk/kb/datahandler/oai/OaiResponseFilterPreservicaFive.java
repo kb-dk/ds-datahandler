@@ -25,11 +25,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Filtering and delivery of Preservica OAI records. Generates {@code datasource} prefixed IDs,
+ * Filtering and delivery of Preservica OAI records from Preservica 5. Generates {@code datasource} prefixed IDs,
  * derives type from {@link DsRecordDto#getId()} and resolves {@code parent} from content.
  */
-public class OaiResponseFilterPreservica extends OaiResponseFilter {
-    private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterPreservica.class);
+public class OaiResponseFilterPreservicaFive extends OaiResponseFilter {
+    private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterPreservicaFive.class);
 
     private static final Pattern PARENT_PATTERN = Pattern.compile(
             "<DeliverableUnitRef>([^<]+)</DeliverableUnitRef>");
@@ -55,7 +55,7 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
             "<ManifestationRelRef>1</ManifestationRelRef>");
 
     private static final Pattern METADATA_PATTERN = Pattern.compile(
-            "<Metadata schemaURI=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">");
+            "<Metadata\\s+schemaUri=\"http://www\\.pbcore\\.org/PBCore/PBCoreNamespace\\.html\">");
 
     protected int emptyMetadataRecords = 0;
 
@@ -63,7 +63,7 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
      * @param datasource source for records. Currently used for {@code origin}.
      * @param storage    destination for records.
      */
-    public OaiResponseFilterPreservica(String datasource, DsStorageClient storage) {
+    public OaiResponseFilterPreservicaFive(String datasource, DsStorageClient storage) {
         super(datasource, storage);
     }
 

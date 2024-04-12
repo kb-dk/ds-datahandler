@@ -11,7 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Filtering mechanism for records form Preservica 7
+ * Filtering and delivery of Preservica OAI records from Preservica 7. Generates {@code datasource} prefixed IDs,
+ * derives type from {@link DsRecordDto#getId()} and resolves {@code parent} from content.
  */
 public class OaiResponseFilterPreserviceSeven extends OaiResponseFilter{
     private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterPreserviceSeven.class);
