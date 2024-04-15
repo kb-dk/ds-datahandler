@@ -330,7 +330,7 @@ components:
           example: 'H.C. Andersen'
         filter:
           type: string
-          enum:  ['direct', 'preservica']
+          enum:  ['direct', 'preservica', 'preservica5']
           description: |
             Special handling of record. Possible value are
             * `direct`:     No special handling
