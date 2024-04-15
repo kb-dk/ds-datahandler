@@ -71,7 +71,6 @@ public class OaiHarvestClient {
         log.info("calling uri:"+uri);
         //log.info("resumption token at:"+resumptionToken);
         String xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());
-        log.info("Does the test get here");
 
         Document document = sanitizeXml(xmlResponse,uri);
 
@@ -90,7 +89,7 @@ public class OaiHarvestClient {
 
         if (resumptionToken != null && !resumptionToken.isEmpty()) {
             this.resumptionToken = resumptionToken;  
-            log.info("next resumption token:"+resumptionToken);
+            log.debug("next resumption token:"+resumptionToken);
             oaiResponse.setResumptionToken(resumptionToken);
         }
         else {
@@ -232,20 +231,8 @@ public class OaiHarvestClient {
 
                 }).build();
 
-
-        /* The Preservica 7 OAI-PMH endpoint is acting up. Per their documentation they say that they follow the standard
-            and makes Basic authorixation possible. However, the response does not contain a WWW-Authenticate header, when queried.
-
-            If using their acces endpoint to get an access-token then the service works. I got an access token by calling the following:
-            curl -X 'POST'   'DEVELSERVER'   -H 'accept: application/json'   -H 'Content-Type: application/x-www-form-urlencoded'   -d 'username=USERNAME&password=PASSWORD&cookie=false&includeUserDetails=false'
-            Changing DEVELSERVER, USERNAME and PASSWORD
-
-            I've written the integration test dk.kb.datahandler.oai.OaiHarvestClientIntegrationTest.testPreservicaSevenAuth
-            which makes it seem like this might be a problem in our end as the test parses.
-         */
         HttpRequest request = HttpRequest.newBuilder()                          
                 .uri(URI.create(uri))
-                //.header("Preservica-Access-Token", "b8844076-d96d-4fe1-b8fe-e0dd6bee5bbc")
                 .header("User-Agent", "Java 11 HttpClient Bot")
                 .header("Authorization", getBasicAuthenticationHeader(user, password))
                 .build();
