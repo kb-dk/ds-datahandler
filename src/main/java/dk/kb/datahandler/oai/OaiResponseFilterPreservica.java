@@ -55,7 +55,7 @@ public class OaiResponseFilterPreservica extends OaiResponseFilter {
             "<ManifestationRelRef>1</ManifestationRelRef>");
 
     private static final Pattern METADATA_PATTERN = Pattern.compile(
-            "<Metadata schemaURI=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">");
+            "<Metadata\\s+schemaUri=\"http://www\\.pbcore\\.org/PBCore/PBCoreNamespace\\.html\">");
 
     protected int emptyMetadataRecords = 0;
 
