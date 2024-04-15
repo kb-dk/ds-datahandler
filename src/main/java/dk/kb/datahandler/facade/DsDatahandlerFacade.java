@@ -11,7 +11,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
-import dk.kb.datahandler.oai.OaiResponseFilterPreserviceSeven;
+import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -278,7 +278,7 @@ public class DsDatahandlerFacade {
                 oaiFilter = new OaiResponseFilter(origin, dsAPI);
                 break;
             case PRESERVICA:
-                oaiFilter = new OaiResponseFilterPreserviceSeven(origin, dsAPI);
+                oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);
                 break;
             case PRESERVICA5:
                 oaiFilter = new OaiResponseFilterPreservicaFive(origin, dsAPI);

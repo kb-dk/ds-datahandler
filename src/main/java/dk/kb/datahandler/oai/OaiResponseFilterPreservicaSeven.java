@@ -14,8 +14,8 @@ import java.util.regex.Pattern;
  * Filtering and delivery of Preservica OAI records from Preservica 7. Generates {@code datasource} prefixed IDs,
  * derives type from {@link DsRecordDto#getId()} and resolves {@code parent} from content.
  */
-public class OaiResponseFilterPreserviceSeven extends OaiResponseFilter{
-    private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterPreserviceSeven.class);
+public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
+    private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterPreservicaSeven.class);
 
     private static final Pattern PARENT_PATTERN = Pattern.compile(
             "<DeliverableUnitRef>([^<]+)</DeliverableUnitRef>");
@@ -53,7 +53,7 @@ public class OaiResponseFilterPreserviceSeven extends OaiResponseFilter{
      * @param datasource source for records. Default implementation uses this for {@code origin}.
      * @param storage    destination for records.
      */
-    public OaiResponseFilterPreserviceSeven(String datasource, DsStorageClient storage) {
+    public OaiResponseFilterPreservicaSeven(String datasource, DsStorageClient storage) {
         super(datasource, storage);
     }
 
