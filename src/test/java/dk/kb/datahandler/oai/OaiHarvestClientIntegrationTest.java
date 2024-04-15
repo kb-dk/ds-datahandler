@@ -2,14 +2,20 @@ package dk.kb.datahandler.oai;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.util.yaml.YAML;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 
 /**
@@ -18,6 +24,22 @@ import dk.kb.datahandler.model.v1.OaiTargetDto;
  * 
  */
 public class OaiHarvestClientIntegrationTest {
+
+    private static final Logger log = LoggerFactory.getLogger(OaiHarvestClientIntegrationTest.class);
+
+    private static String localStorage = null;
+
+    @BeforeAll
+    static void setup() {
+        try {
+            ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml", "conf/ds-datahandler-local.yaml", "ds-datahandler-integration-test.yaml");
+            localStorage = ServiceConfig.getConfig().getString("integration.local.storage");
+        } catch (IOException e) {
+            e.printStackTrace();
+            log.error("Integration yaml 'ds-datahandler-integration-test.yaml' file most be present. Call 'kb init'");
+            fail();
+        }
+    }
 
 
     @Tag("integration")
@@ -66,16 +88,12 @@ public class OaiHarvestClientIntegrationTest {
     @Test
     void testPreservicaSevenAuth() throws Exception {
 
-        ServiceConfig.initialize("conf/ds-datahandler-local.yaml");
         YAML conf = ServiceConfig.getConfig();
 
-        String set="test";
-        //String set="oai:kb.dk:images:billed:2014:jun:hca";
-
+        // name: pvica6.devel
         OaiTargetDto oaiTarget = new OaiTargetDto();
         oaiTarget.setUrl(conf.getString("oaiTargets[1].url")); //Public KB service
         oaiTarget.setMetadataprefix(conf.getString("oaiTargets[1].metadataPrefix"));
-        oaiTarget.setSet(set);
         oaiTarget.setUsername(conf.getString("oaiTargets[1].user"));
         oaiTarget.setPassword(conf.getString("oaiTargets[1].password"));;
         oaiTarget.setDatasource(conf.getString("oaiTargets[1].datasource"));
@@ -83,7 +101,6 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setDayOnly(true);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
         oaiTarget.setStartDay("2021-03-05");
-        String from=null;
 
         OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);
 
@@ -92,11 +109,16 @@ public class OaiHarvestClientIntegrationTest {
         assertEquals(200, r1.getRecords().size());
         assertNotNull(r1.getResumptionToken());
 
-        System.out.println(r1.getRecords().get(0).getMetadata());
+        //System.out.println(r1.getRecords().get(0).getMetadata());
 
-        /*//Fetch next 1000
+        /*
+        //Fetch next 200
         OaiResponse r2= client.next();
-        assertEquals(200, r2.getRecords().size());*/
+        assertEquals(200, r2.getRecords().size());
+        // and next
+        OaiResponse r3= client.next();
+        assertEquals(200, r3.getRecords().size());
+        */
     }
 
 }

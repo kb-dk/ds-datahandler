@@ -14,6 +14,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -68,6 +71,7 @@ public class OaiHarvestClient {
         log.info("calling uri:"+uri);
         //log.info("resumption token at:"+resumptionToken);
         String xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());
+        log.info("Does the test get here");
 
         Document document = sanitizeXml(xmlResponse,uri);
 

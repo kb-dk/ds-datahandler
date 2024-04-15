@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreserviceSeven;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -278,6 +279,9 @@ public class DsDatahandlerFacade {
                 break;
             case PRESERVICA:
                 oaiFilter = new OaiResponseFilterPreserviceSeven(origin, dsAPI);
+                break;
+            case PRESERVICA5:
+                oaiFilter = new OaiResponseFilterPreservicaFive(origin, dsAPI);
                 break;
             default: throw new UnsupportedOperationException(
                     "Unknown filter '" + oaiTargetDto.getFilter() + "' for target '" + targetName + "'");
