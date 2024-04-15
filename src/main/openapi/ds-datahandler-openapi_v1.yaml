@@ -332,10 +332,15 @@ components:
           type: string
           enum:  ['direct', 'preservica', 'preservica5']
           description: |
-            Special handling of record. Possible value are
+            Records from different OAI-PMH targets contain different kinds og metadata. Therefore some special handling
+            of records are required. Possible value are:
             * `direct`:     No special handling
-            * `preservica`: ID for the parent record, if present, is extracted from the 
-                            [Preservica](https://preservica.com/) XIP content of the record
+            * `preservica`: When a record is harvested from the newest version (7) of a Preservica system, this filter
+                            should be applied. Here, StructuralObjects are removed and InformationObjects need to have 
+                            a PBCore tag inside of them to be added to storage.
+            * `preservica5`: Backwards compatible filter extracting records from a Preservica system running version 5. 
+                             This filter removes collections from the result set and harvests DeliverableUnits and 
+                             Manifestations as individual records.
           example: 'direct'
           default: 'direct'
         dateStampFormat:
