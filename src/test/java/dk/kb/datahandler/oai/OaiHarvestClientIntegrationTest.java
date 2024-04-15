@@ -32,7 +32,7 @@ public class OaiHarvestClientIntegrationTest {
     @BeforeAll
     static void setup() {
         try {
-            ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml", "conf/ds-datahandler-local.yaml", "ds-datahandler-integration-test.yaml");
+            ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml", "ds-datahandler-integration-test.yaml");
             localStorage = ServiceConfig.getConfig().getString("integration.local.storage");
         } catch (IOException e) {
             e.printStackTrace();
@@ -92,11 +92,11 @@ public class OaiHarvestClientIntegrationTest {
 
         // name: pvica6.devel
         OaiTargetDto oaiTarget = new OaiTargetDto();
-        oaiTarget.setUrl(conf.getString("oaiTargets[1].url")); //Public KB service
-        oaiTarget.setMetadataprefix(conf.getString("oaiTargets[1].metadataPrefix"));
-        oaiTarget.setUsername(conf.getString("oaiTargets[1].user"));
-        oaiTarget.setPassword(conf.getString("oaiTargets[1].password"));;
-        oaiTarget.setDatasource(conf.getString("oaiTargets[1].datasource"));
+        oaiTarget.setUrl(conf.getString("integration.oaiTargets[1].url")); //Public KB service
+        oaiTarget.setMetadataprefix(conf.getString("integration.oaiTargets[1].metadataPrefix"));
+        oaiTarget.setUsername(conf.getString("integration.oaiTargets[1].user"));
+        oaiTarget.setPassword(conf.getString("integration.oaiTargets[1].password"));;
+        oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDayOnly(true);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
