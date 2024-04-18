@@ -31,8 +31,8 @@ oaiTargets:
 
 
 
-# Save timestamps of last OAI harvest for each target in this folder. 
-#This is used for incremental delta-imports and an important directory for the service.               
+# Save timestamps of last OAI harvest for each target in this folder.
+#This is used for incremental delta-imports and an important directory for the service.
 timestamps:
  folder: /home/xxx/oai.timestamps/
 
@@ -45,7 +45,7 @@ storage:
 # Batchsize 100 or 1000 does not increase performance much. May change with large scale data.
 # URLs should point to stage/production solr installation
 solr:
-  updateUrl:  http://localhost:10011/solr/ds/update
+  updateUrl:  http://localhost:10011/solr/ds-write/update
   queryUrl: http://localhost:10011/solr/ds
   batchSize: 500
 
