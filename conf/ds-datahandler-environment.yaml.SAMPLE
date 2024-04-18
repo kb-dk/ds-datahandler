@@ -1,0 +1,69 @@
+#
+# This config contains behaviour data: Thread allocation, allowed fields for lookup, limits for arguments etc.
+#
+# The behaviour config is normally controlled by developers and is part of the code repository.
+# Sensitive information such as machine names and user/passwords should not be part of this config.
+#
+# It will be automatically merged with the environment config when accessed through the
+# application config system.
+#
+#
+
+# Values in the openapi part of the configuration are expected to be overwritten with the actual values used for deployment.
+# These values are used to populate the OpenAPI specification without redeploying the service. They can be served by using the syntax ${config:yaml.path}.
+openapi:
+  # This is the URL where this service is deployed appended with /v1
+  serverurl: http://localhost:9071/ds-datahandler/v1
+
+# List of OAI-PMH targets
+# The only thing which should be configured here is user and password.
+oaiTargets:
+  - name: ds.radiotv
+    datasource: ds.radiotv
+    url: https://XXXXXXXXX.statsbiblioteket.dk/OAI-PMH/
+    # User and Password should be changed to the appropriate values for either stage or production
+    user: XXXXXXXXX
+    password: XXXXXXXXX
+    metadataPrefix: XIP_full_schema
+    description: Radio- og TV-udsendelser
+    filter: preservica
+    oaiDaily: true
+
+
+
+# Save timestamps of last OAI harvest for each target in this folder. 
+#This is used for incremental delta-imports and an important directory for the service.               
+timestamps:
+ folder: /home/xxx/oai.timestamps/
+
+# The ds-storage server to ingest data into 
+storage:
+  # URL pointing to the stage/production ds-storage
+  url: http://localhost:9072/ds-storage/v1    
+
+# solr. Used by workflow that extracts from storage, xslt and index into solr.
+# Batchsize 100 or 1000 does not increase performance much. May change with large scale data.
+# URLs should point to stage/production solr installation
+solr:
+  updateUrl:  http://localhost:10011/solr/ds/update
+  queryUrl: http://localhost:10011/solr/ds
+  batchSize: 500
+
+# The ds-present server used for xslt.
+# URL should point to stage/production ds-present
+present:
+  url: http://localhost:9073/ds-present/v1
+  # The following origins are available in ds-present. These values are used to define the list of available origins
+  # used when indexing through the '/solr/index'-endpoint. The first value in the list is used as example value for the
+  # endpoint as well.
+  origins:
+    - ds.tv
+    - ds.radio
+  headers:
+    # This is not security!
+    # This is used for establishing token flows using HTTP headers un preparation of OAuth2 support
+    # Set this to internal_service to bypass the ds-license based access server
+    - Simulated-OAuth2-Group: anonymous
+
+    
+      
