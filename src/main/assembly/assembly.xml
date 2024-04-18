@@ -4,6 +4,14 @@
     <format>tar.gz</format>
   </formats>
 
+  <files>
+    <file>
+      <source>conf/ocp/ds-datahandler.xml</source>
+      <outputDirectory>/</outputDirectory>
+      <destName>ds-datahandler.xml.SAMPLE</destName>
+    </file>
+  </files>
+
   <dependencySets>
     <dependencySet>
       <outputDirectory>lib</outputDirectory>
@@ -19,7 +27,7 @@
     <fileSet>
       <outputDirectory>conf</outputDirectory>
       <directoryMode>0755</directoryMode>
-      <fileMode>0744</fileMode>
+      <fileMode>0644</fileMode>
       <directory>conf</directory>
       <excludes>
 	      <exclude>ocp/</exclude>
@@ -32,6 +40,16 @@
       <fileMode>0744</fileMode>
       <includes>
           <include>CHANGELOG.md</include>
+          <include>README.md</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>target/ds-datahandler-${version}</directory>
+      <outputDirectory>.</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <fileMode>0644</fileMode>
+      <includes>
+        <include>ds-datahandler.build.properties</include>
       </includes>
     </fileSet>
   </fileSets>
