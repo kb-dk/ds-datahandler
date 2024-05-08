@@ -190,4 +190,35 @@ public class PvicaDataTest {
         assertEquals("ds.test", dsRecord.getOrigin());
     }
 
+    @Test
+    public void testManifestationPlugin() throws ApiException {
+        // We don't need a working storage to test this functionality. Therefore this mock
+        DsStorageClient mockedStorage = Mockito.mock(DsStorageClient.class);
+        // Create OAI-PMH test records.
+        OaiRecord deliverableUnit1 = new OaiRecord();
+        deliverableUnit1.setId("oai:io:12345678-test-test-test-testtest1111");
+        deliverableUnit1.setMetadata("<Metadata schemaUri=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
+                "<formatMediaType>Sound</formatMediaType>");
+        OaiRecord deliverableUnit2 = new OaiRecord();
+        deliverableUnit2.setId("oai:io:12345678-test-test-test-testtest2222");
+        deliverableUnit2.setMetadata("<Metadata schemaUri=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
+                "<formatMediaType>Sound</formatMediaType>");
+
+        ArrayList<OaiRecord> oaiRecords = new ArrayList<>();
+        oaiRecords.add(deliverableUnit1);
+        oaiRecords.add(deliverableUnit2);
+        // Create test OaiResponse.
+        OaiResponse testResponse = new OaiResponse();
+        testResponse.setRecords(oaiRecords);
+
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaSeven("preservica", mockedStorage);
+        TestPlugin testPlugin = new TestPlugin();
+        oaiFilter.addPlugin(testPlugin);
+        assertEquals("", testPlugin.getResultOftest());
+
+        oaiFilter.addToStorage(testResponse);
+        assertEquals("Test plugin has been activated.", testPlugin.getResultOftest());
+        assertEquals(2, oaiFilter.getProcessed());
+    }
+
 }
