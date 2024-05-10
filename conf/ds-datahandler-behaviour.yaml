@@ -164,10 +164,7 @@ solr:
 
 # Configuration of preservica endpoints. These are used to fetch IDs/filenames for presentation manifestations
 preservica:
-  baseUrl: preservicaUrl/api/
-  accessEndpoint: accesstoken/login
-  accessRefreshEndpoint: accesstoken/refresh
-  objectDetailsEndpoint: content/object-details
+  baseUrl: preservicaUrl/
   user: user
   password: password
 

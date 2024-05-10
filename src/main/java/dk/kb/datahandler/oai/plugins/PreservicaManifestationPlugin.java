@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.util.yaml.YAML;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,8 +13,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,12 +26,12 @@ import java.util.TimerTask;
  */
 public class PreservicaManifestationPlugin  implements Plugin{
 
-    private String baseUrl;
-    private String accessEndpoint;
-    private String accessRefreshEndpoint;
-    private String objectDetailsEndpoint;
-    private String user;
-    private String password;
+    private final String baseUrl;
+    private final List<String> accessEndpoint = List.of("api", "accesstoken", "login");
+    private final List<String> accessRefreshEndpoint = List.of("api", "accesstoken", "refresh");
+    private final List<String> objectDetailsEndpoint = List.of("api", "content", "object-details");
+    private final String user;
+    private final String password;
 
     private String accessToken;
     private String refreshToken;
@@ -53,9 +57,6 @@ public class PreservicaManifestationPlugin  implements Plugin{
     public PreservicaManifestationPlugin(){
         YAML preservicaConfig = ServiceConfig.getConfig().getSubMap("preservica");
         this.baseUrl = preservicaConfig.getString("baseUrl");
-        this.accessEndpoint = preservicaConfig.getString("accessEndpoint");
-        this.accessRefreshEndpoint = preservicaConfig.getString("accessRefreshEndpoint");
-        this.objectDetailsEndpoint = preservicaConfig.getString("objectDetailsEndpoint");
         this.user = preservicaConfig.getString("user");
         this.password = preservicaConfig.getString("password");
 
@@ -75,15 +76,14 @@ public class PreservicaManifestationPlugin  implements Plugin{
         try {
             // Create URLConnection for access endpoint
             HttpURLConnection connection = getPreservicaAccessConnection();
-
-            // Get response code and log a warning if not 200
             AccessResponseObject responseObject = getAccessResponseObject(connection);
+
             // Set accessToken and refreshToken from responseObject
             this.accessToken = responseObject.getToken();
             this.refreshToken = responseObject.getRefreshToken();
             // Close connection
             connection.disconnect();
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }
@@ -92,8 +92,11 @@ public class PreservicaManifestationPlugin  implements Plugin{
      * Create a POST {@link HttpURLConnection} to the backing Preservica Access API, posting username and password.
      * @return an open connection to the Preservica Access API.
      */
-    private HttpURLConnection getPreservicaAccessConnection() throws IOException {
-        URL url = new URL(baseUrl + accessEndpoint);
+    private HttpURLConnection getPreservicaAccessConnection() throws IOException, URISyntaxException {
+        URL url = new URIBuilder(baseUrl)
+                .setPathSegments(accessEndpoint)
+                .build()
+                .toURL();
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -120,8 +123,12 @@ public class PreservicaManifestationPlugin  implements Plugin{
      * parameter and setting the current access token as value for the header: {@code Preservica-Access-Token}.
      * @return an open connection, where a new accessToken can be extracted from. This new token should be valid for fifteen minutes.
      */
-    public HttpURLConnection refreshPreservicaAccessConnection() throws IOException {
-        URL url = new URL(baseUrl + accessRefreshEndpoint + "?refreshToken=" + refreshToken);
+    public HttpURLConnection refreshPreservicaAccessConnection() throws IOException, URISyntaxException {
+        URL url = new URIBuilder(baseUrl)
+                .setPathSegments(accessRefreshEndpoint)
+                .addParameter("refreshToken", refreshToken)
+                .build()
+                .toURL();
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -194,7 +201,8 @@ public class PreservicaManifestationPlugin  implements Plugin{
                 refreshToken = responseObject.getRefreshToken();
 
                 log.info("New accessToken is: '{}'", accessToken);
-            } catch (IOException e) {
+                connection.disconnect();
+            } catch (IOException | URISyntaxException e) {
                 throw new RuntimeException(e);
             }
         }
