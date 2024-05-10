@@ -14,6 +14,7 @@
  */
 package dk.kb.datahandler.oai;
 
+import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;

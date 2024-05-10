@@ -1,6 +1,8 @@
 package dk.kb.datahandler.oai;
 
-public class TestPlugin  implements Plugin{
+import dk.kb.datahandler.oai.plugins.Plugin;
+
+public class TestPlugin  implements Plugin {
     private String resultOftest = "";
     @Override
     public void apply() {
