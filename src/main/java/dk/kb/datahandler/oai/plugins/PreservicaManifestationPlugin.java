@@ -46,7 +46,9 @@ public class PreservicaManifestationPlugin  implements Plugin{
     }
 
     /**
-     *
+     * Initialize the Preservica Manifestation Plugin. This constructor extracts all needed endpoints from config files
+     * and gets the first accessToken from the backing preservica installation.
+     * Furthermore, it starts a timer, which updates the accesToken every 14th minute, by exchanging a refreshToken.
      */
     public PreservicaManifestationPlugin(){
         YAML preservicaConfig = ServiceConfig.getConfig().getSubMap("preservica");
@@ -66,7 +68,8 @@ public class PreservicaManifestationPlugin  implements Plugin{
     }
 
     /**
-     *
+     * Get initial accessToken from Preservica Access API. This method gets the accessToken by using user credentials.
+     * This should only be used for getting the initial accessToken. Subsequent refreshes should use the refreshToken.
      */
     private void getInitialAccess() {
         try {
@@ -86,9 +89,8 @@ public class PreservicaManifestationPlugin  implements Plugin{
     }
 
     /**
-     *
-     * @return
-     * @throws IOException
+     * Create a POST {@link HttpURLConnection} to the backing Preservica Access API, posting username and password.
+     * @return an open connection to the Preservica Access API.
      */
     private HttpURLConnection getPreservicaAccessConnection() throws IOException {
         URL url = new URL(baseUrl + accessEndpoint);
@@ -114,9 +116,9 @@ public class PreservicaManifestationPlugin  implements Plugin{
     }
 
     /**
-     *
-     * @return
-     * @throws IOException
+     * Create a POST {@link HttpURLConnection} to the backing Preservica Access API, sending refresh token as a query
+     * parameter and setting the current access token as value for the header: {@code Preservica-Access-Token}.
+     * @return an open connection, where a new accessToken can be extracted from. This new token should be valid for fifteen minutes.
      */
     public HttpURLConnection refreshPreservicaAccessConnection() throws IOException {
         URL url = new URL(baseUrl + accessRefreshEndpoint + "?refreshToken=" + refreshToken);
@@ -140,10 +142,20 @@ public class PreservicaManifestationPlugin  implements Plugin{
     }
 
     /**
-     *
-     * @param connection
-     * @return
-     * @throws IOException
+     * Convert JSON response from a {@link HttpURLConnection} to a {@link AccessResponseObject} JAVA-object. This method
+     * expects JSON in the following format:
+     * <pre>
+     *{
+     *   "success": true,
+     *   "token": "664c455f-59f2-4c83-9d7a-ddfe5e4b363d",
+     *   "refresh-token": "3bb58740-db8e-4332-bcff-7a7435f5686e",
+     *   "validFor": 15,
+     *   "user": "manager"
+     * }
+     * </pre>
+     * @param connection which delivers the response JSON. Most likely created by either
+     *                   {@link #getPreservicaAccessConnection()} or {@link #refreshPreservicaAccessConnection()}.
+     * @return an {@link AccessResponseObject} containing accessToken and refreshToken.
      */
     private static AccessResponseObject getAccessResponseObject(HttpURLConnection connection) throws IOException {
         // Check response code and log a warning if not 200
