@@ -75,10 +75,10 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
 
     @Override
-    public Integer oaiIngestFull(String oaiTarget){
+    public Integer oaiIngestFull(String oaiTarget, List<String> plugins){
         log.debug("oaiIngestFull(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);        
+            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget, plugins);
             return numberIngested;
 
         } catch (Exception e){
@@ -88,10 +88,10 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
     
     @Override
-    public Integer oaiIngestDelta(String oaiTarget){
+    public Integer oaiIngestDelta(String oaiTarget, List<String> plugins){
         log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget);
+            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget, plugins);
             return numberIngested;
 
         } catch (Exception e){

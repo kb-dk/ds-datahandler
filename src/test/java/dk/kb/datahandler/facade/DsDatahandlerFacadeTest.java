@@ -29,7 +29,7 @@ public class DsDatahandlerFacadeTest {
 
         // Try add another
         try {
-            DsDatahandlerFacade.oaiIngestFull(oaiTarget.getName());
+            DsDatahandlerFacade.oaiIngestFull(oaiTarget.getName(), null);
             fail("Two jobs with same name was started");
         } catch (Exception e) {
             // ignore

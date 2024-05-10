@@ -12,6 +12,8 @@ import java.util.zip.ZipInputStream;
 
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
+import dk.kb.datahandler.oai.plugins.Plugin;
+import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -136,12 +138,12 @@ public class DsDatahandlerFacade {
      * @param  oaiTargetName the location of the image, relative to the url argument
      * @return Number of harvested records.
      */        
-    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {           
+    public static Integer oaiIngestFull(String oaiTargetName, List<String> plugins) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
         
         //Will be 1 interval for OAI targets that does not need to split into days
         ArrayList<OaiFromUntilInterval>  intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, null); // from == null, use default start day for OAI target instead
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);                     
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals, plugins);
         log.info("Full ingest of target={} completed with records={}",oaiTargetName,totalHarvested);
         return totalHarvested;            
     }
@@ -156,13 +158,13 @@ public class DsDatahandlerFacade {
      * @param  oaiTargetName The name for the OAI target in the configuration
      * @return Number of harvested records.
      */    
-    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {   
+    public static Integer oaiIngestDelta(String oaiTargetName, List<String> plugins) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
         String lastHarvestTime = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
 
         //Will be 1 interval for OAI targets that does not need to split into days
         ArrayList<OaiFromUntilInterval>  intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, lastHarvestTime);
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);                     
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals, plugins);
         log.info("Delta ingest of target={} completed with records={}",oaiTargetName,totalHarvested);
         return totalHarvested;    	    	
     }
@@ -185,7 +187,7 @@ public class DsDatahandlerFacade {
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *      
      */
-     protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {                
+     protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList, List<String> plugins) throws Exception {
          int totalNumber=0;
                   
          log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size() +" for target:"+oaiTargetName);
@@ -204,7 +206,7 @@ public class DsDatahandlerFacade {
              OaiJobCache.addNewJob(job);
               
              try {                       
-                int number= oaiIngestPerform(job , fromUntil.getFrom(),fromUntil.getUntil());
+                int number= oaiIngestPerform(job , fromUntil.getFrom(),fromUntil.getUntil(), plugins);
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
              }
@@ -252,7 +254,7 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not counted.
      * @throws Exception If anything expected happens. OAI target does not respond, invalid xml, XSTL (filtering) failed etc.  
      */
-     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws Exception {
+     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until, List<String> plugins) throws Exception {
 
         //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)               
         //But COP only supports the short version. So when this is called use short format
@@ -290,6 +292,16 @@ public class DsDatahandlerFacade {
         while (response.getRecords().size() >0) {
 
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
+
+            /* EXAMPLE OF IMPLEMENTING A SPEECH-TO-TEXT PLUGIN
+            if (plugins.contains("speechToText")){
+                Plugin aiPlugin = new SpeechToTextPlugin();
+                oaiFilter.addPlugin();
+            }*/
+            if (plugins.contains("fetchManifestation")) {
+                Plugin preservicaManifestationPlugin = new PreservicaManifestationPlugin();
+                oaiFilter.addPlugin(preservicaManifestationPlugin);
+            }
 
             oaiFilter.addToStorage(response);
 
