@@ -162,6 +162,16 @@ solr:
   queryUrl: http://localhost:10011/solr/ds
   batchSize: 500
 
+# Configuration of preservica endpoints. These are used to fetch IDs/filenames for presentation manifestations
+preservica:
+  baseUrl: preservicaUrl/api/
+  accessEndpoint: accesstoken/login
+  accessRefreshEndpoint: accesstoken/refresh
+  objectDetailsEndpoint: content/object-details
+  user: user
+  password: password
+
+
 # The ds-present server used for xslt
 present:
   url: http://localhost:9073/ds-present/v1
