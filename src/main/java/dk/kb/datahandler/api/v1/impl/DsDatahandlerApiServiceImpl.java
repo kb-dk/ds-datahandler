@@ -120,6 +120,10 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }
     }
 
+    /**
+     * SAMPLE ENDPOINT, NOT CORRECTLY IMPLEMENTED YET
+     * @return will always return 1, as this is just a sample endpoint.
+     */
     @Override
     public Integer getPreservicaManifestation() {
         Plugin getManifestation = new PreservicaManifestationPlugin();
