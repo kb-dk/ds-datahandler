@@ -171,6 +171,20 @@ paths:
                     status: 0
                     QTime: 1200
 
+  /enrichment/manifestations:
+    get:
+      tags:
+        - '${project.name}'
+      summary: 'Will fetch records from storage without child ID and fetch the ID from preservica.'
+      operationId: getPreservicaManifestation
+      responses:
+        '200':
+          description: OK. Returns total number of records updated
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int32
   # The ping service should be in all projects, should not do any advanced processing
   # and should respond quickly with a simple message, e.g. "pong".
   #

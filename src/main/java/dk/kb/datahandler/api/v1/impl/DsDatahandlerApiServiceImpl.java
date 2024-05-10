@@ -5,6 +5,8 @@ import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.oai.plugins.Plugin;
+import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
 import dk.kb.util.webservice.ImplBase;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
@@ -116,6 +118,13 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         } catch (Exception e){
             throw handleException(e);
         }
+    }
+
+    @Override
+    public Integer getPreservicaManifestation() {
+        Plugin getManifestation = new PreservicaManifestationPlugin();
+        getManifestation.apply();
+        return 1;
     }
 
     @Override
