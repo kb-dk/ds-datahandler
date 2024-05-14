@@ -120,7 +120,7 @@
       <dependency>
         <groupId>dk.kb.storage</groupId>
         <artifactId>ds-storage</artifactId>
-          <version>1.16</version>
+          <version>1.19</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
@@ -135,7 +135,7 @@
       <dependency>
         <groupId>dk.kb.present</groupId>
         <artifactId>ds-present</artifactId>
-          <version>1.7</version>
+          <version>1.7.4</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
