@@ -5,6 +5,7 @@ import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
 import dk.kb.util.webservice.ImplBase;
@@ -127,7 +128,8 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     @Override
     public Integer getPreservicaManifestation() {
         Plugin getManifestation = new PreservicaManifestationPlugin();
-        getManifestation.apply();
+        OaiRecord testRecord = new OaiRecord();
+        getManifestation.apply(testRecord);
         return 1;
     }
 

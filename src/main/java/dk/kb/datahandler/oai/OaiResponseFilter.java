@@ -67,7 +67,7 @@ public class OaiResponseFilter {
     public void addToStorage(OaiRecord oaiRecord) throws ApiException {
         // Apply all plugins
         for (Plugin plugin : plugins) {
-            plugin.apply();
+            plugin.apply(oaiRecord);
         }
 
         String origin = getOrigin(oaiRecord, datasource);

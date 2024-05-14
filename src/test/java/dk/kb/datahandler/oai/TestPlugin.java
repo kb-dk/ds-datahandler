@@ -5,7 +5,7 @@ import dk.kb.datahandler.oai.plugins.Plugin;
 public class TestPlugin  implements Plugin {
     private String resultOftest = "";
     @Override
-    public void apply() {
+    public void apply(OaiRecord oaiRecord) {
         resultOftest = "Test plugin has been activated.";
     }
 
