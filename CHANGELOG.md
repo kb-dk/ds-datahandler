@@ -6,10 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [1.7.1](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7.1) - 2024-05-14
 ### Added 
 - Added support for dynamically updating the OpenAPI specification with config values.
 - Added individual OaiResponseFilters for preservica 5 and preservica 7. [DRA-400](https://kb-dk.atlassian.net/browse/DRA-400)
 - Added sample config files and documentation to distribution tar archive. [DRA-422](https://kb-dk.atlassian.net/browse/DRA-422)
+
+### Changed
+- Changed parent POM for deployment to internal nexus [DTA-590]()https://kb-dk.atlassian.net/browse/DRA-591
 
 ### Removed
 - Removed origin enum from openAPI specification.
