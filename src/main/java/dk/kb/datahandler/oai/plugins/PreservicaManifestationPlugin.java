@@ -1,5 +1,7 @@
 package dk.kb.datahandler.oai.plugins;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.preservica.AccessResponseObject;
@@ -8,18 +10,24 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.StreamingOutput;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -46,6 +54,11 @@ public class PreservicaManifestationPlugin  implements Plugin{
         log.info("Preservica Manifestation Plugin has been applied.");
         log.info("Access Token is: '{}'", accessToken);
 
+        try {
+            getManifestationFileName();
+        } catch (URISyntaxException | IOException e) {
+            log.warn("Manifestation could not be extracted.");
+        }
 
     }
 
@@ -66,6 +79,65 @@ public class PreservicaManifestationPlugin  implements Plugin{
 
         // Call method to get first accesToken and refreshToken.
         getInitialAccess();
+    }
+
+    private void getManifestationFileName() throws URISyntaxException, IOException {
+        String id = "8eeaa66d-91b5-45d1-bc38-7fb86149b20c";
+        HttpURLConnection connection = getPreservicaObjectDetails(id);
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) { // success
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+
+
+            // IMPLEMENT PARSING OF RESPONSE
+            // Create ObjectMapper instance with buffering enabled
+            ObjectMapper mapper = new ObjectMapper().enable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
+                    .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+
+            // Parse JSON array
+            JsonNode rootNode = mapper.readTree(in);
+
+            // Iterate over each JSON object in the array
+            Iterator<JsonNode> it = rootNode.elements();
+            while (it.hasNext()) {
+                JsonNode node = it.next();
+
+                JsonNode properties = node.get("properties");
+
+                System.out.println(properties);
+                /*// Access and print JSON object fields
+                String name = node.get("name").asText();
+                int age = node.get("age").asInt();
+                System.out.println("Name: " + name);
+                System.out.println("Age: " + age);*/
+            }
+
+            // Close the reader
+            in.close();
+        } else {
+            System.out.println("GET request failed");
+        }
+    }
+
+    private boolean findFileName(Map.Entry<String, JsonNode> entry) {
+        return entry.getKey().equals("cmis:contentStreamFileName");
+    }
+
+    private HttpURLConnection getPreservicaObjectDetails(String id) throws URISyntaxException, IOException {
+        URL url = new URIBuilder(baseUrl)
+                .setPathSegments(objectDetailsEndpoint)
+                // This ID needs to be prefixed with the string: sdb:IO|
+                .addParameter("id", "sdb:IO|"+id)
+                .build()
+                .toURL();
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("accept", "application/json");
+        connection.setRequestProperty("Preservica-Access-Token", accessToken);
+
+        return connection;
     }
 
     /**
