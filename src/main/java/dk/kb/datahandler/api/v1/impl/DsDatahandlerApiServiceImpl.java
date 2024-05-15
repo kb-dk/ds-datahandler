@@ -5,9 +5,6 @@ import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.OaiRecord;
-import dk.kb.datahandler.oai.plugins.Plugin;
-import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
 import dk.kb.util.webservice.ImplBase;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
@@ -25,6 +22,7 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -122,17 +120,18 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     /**
-     * SAMPLE ENDPOINT, NOT CORRECTLY IMPLEMENTED YET
-     * @return will always return 1, as this is just a sample endpoint.
+     * Update manifestations for records in an origin. This endpoint is used with origins originating from Preservica 7.
+     * @param origin to update records in.
+     * @param mTimeFrom time to update records from.
+     * @return the amount of records that have been updated.
      */
     @Override
-    public Integer getPreservicaManifestation() {
-        Plugin getManifestation = new PreservicaManifestationPlugin();
-        OaiRecord testRecord = new OaiRecord();
-        testRecord.setId("8eeaa66d-91b5-45d1-bc38-7fb86149b20c");
-        getManifestation.apply(testRecord);
-        log.info("ManifestationId is: '{}'", testRecord.getManifestationId());
-        return 0;
+    public Long updatePreservicaManifestation(String origin, Long mTimeFrom) {
+        try {
+            return DsDatahandlerFacade.updateManifestationForRecords(origin, mTimeFrom);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

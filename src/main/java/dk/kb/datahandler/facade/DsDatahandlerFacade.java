@@ -14,6 +14,8 @@ import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
+import dk.kb.datahandler.util.PreservicaUtils;
+import dk.kb.util.webservice.stream.ContinuationStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -385,4 +387,21 @@ public class DsDatahandlerFacade {
         }
     }
 
+    /**
+     * Method to update records in Preservica 7 related origins in backing {@code DsStorage} with children IDs.
+     * The method filters incoming records on IDs representing InformationObjects from Preservica 7, then tries to fetch
+     * a manifestation for the record and updates the storage record with the manifestation as a childrenID.
+     * @param origin to update records in.
+     * @param mTimeFrom to update records from.
+     * @return a count of records that have been updated.
+     */
+    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException {
+        DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+        ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, (long) -1);
+        return recordStream
+                .filter(PreservicaUtils::isInformationObject)
+                .map(PreservicaUtils::fetchManifestation)
+                .map(record -> PreservicaUtils.safeRecordPost(storageClient, record))
+                .count();
+    }
 }
