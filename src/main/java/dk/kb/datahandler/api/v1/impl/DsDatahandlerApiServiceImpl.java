@@ -129,8 +129,10 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public Integer getPreservicaManifestation() {
         Plugin getManifestation = new PreservicaManifestationPlugin();
         OaiRecord testRecord = new OaiRecord();
+        testRecord.setId("8eeaa66d-91b5-45d1-bc38-7fb86149b20c");
         getManifestation.apply(testRecord);
-        return 1;
+        log.info("ManifestationId is: '{}'", testRecord.getManifestationId());
+        return 0;
     }
 
     @Override
