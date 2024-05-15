@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.preservica.AccessResponseObject;
+import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.util.yaml.YAML;
 import org.apache.http.client.utils.URIBuilder;
@@ -70,7 +71,9 @@ public class PreservicaManifestationPlugin  implements Plugin{
         log.info("Access Token is: '{}'", accessToken);
 
         try {
-            String filename = getManifestationFileName(dsRecord.getId());
+            String preservicaID = PreservicaUtils.getPreservicaIoId(dsRecord);
+
+            String filename = getManifestationFileName(preservicaID);
             List<String> singletonFilename = Collections.singletonList(filename);
             dsRecord.setChildrenIds(singletonFilename);
             log.info("Filename is: '{}'", filename);

@@ -1,24 +1,12 @@
 package dk.kb.datahandler.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
-import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.util.DsStorageClient;
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 public class PreservicaUtils {
 
@@ -61,5 +49,18 @@ public class PreservicaUtils {
             throw new RuntimeException(e);
         }
         return record;
+    }
+
+    /**
+     * Extract Preservica ID for an InformationObject from {@link DsRecordDto} ID.
+     * @param dsRecord with an ID in the format ds.tv:oai:io:3006e2f8-3f73-477a-a504-4d7cb1ae1e1c
+     * @return a
+     */
+    public static String getPreservicaIoId(DsRecordDto dsRecord) {
+        String prefix = ":oai:io:";
+        int lengthOfPrefix = prefix.length();
+        int endOfPrefix = dsRecord.getId().lastIndexOf(prefix);
+
+        return dsRecord.getId().substring(endOfPrefix + lengthOfPrefix);
     }
 }
