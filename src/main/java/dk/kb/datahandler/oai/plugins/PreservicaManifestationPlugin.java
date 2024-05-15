@@ -4,30 +4,28 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.util.yaml.YAML;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.StreamingOutput;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  *
@@ -50,14 +48,16 @@ public class PreservicaManifestationPlugin  implements Plugin{
      *
      */
     @Override
-    public void apply() {
+    public void apply(OaiRecord oaiRecord) {
         log.info("Preservica Manifestation Plugin has been applied.");
         log.info("Access Token is: '{}'", accessToken);
 
         try {
-            getManifestationFileName();
+            String filename = getManifestationFileName(oaiRecord.getId());
+            oaiRecord.setManifestationId(filename);
+            log.info("Filename is: '{}'", filename);
         } catch (URISyntaxException | IOException e) {
-            log.warn("Manifestation could not be extracted.");
+            log.warn("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
         }
 
     }
@@ -81,46 +81,58 @@ public class PreservicaManifestationPlugin  implements Plugin{
         getInitialAccess();
     }
 
-    private void getManifestationFileName() throws URISyntaxException, IOException {
-        String id = "8eeaa66d-91b5-45d1-bc38-7fb86149b20c";
+    private String getManifestationFileName(String id) throws URISyntaxException, IOException {
         HttpURLConnection connection = getPreservicaObjectDetails(id);
 
-        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) { // success
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
-
 
             // IMPLEMENT PARSING OF RESPONSE
             // Create ObjectMapper instance with buffering enabled
-            ObjectMapper mapper = new ObjectMapper().enable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
+            ObjectMapper jsonMapper = new ObjectMapper()
+                    .enable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
                     .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
             // Parse JSON array
-            JsonNode rootNode = mapper.readTree(in);
-
+            JsonNode rootNode = jsonMapper.readTree(in);
             // Iterate over each JSON object in the array
-            Iterator<JsonNode> it = rootNode.elements();
-            while (it.hasNext()) {
-                JsonNode node = it.next();
-
-                JsonNode properties = node.get("properties");
-
-                System.out.println(properties);
-                /*// Access and print JSON object fields
-                String name = node.get("name").asText();
-                int age = node.get("age").asInt();
-                System.out.println("Name: " + name);
-                System.out.println("Age: " + age);*/
+            Iterator<JsonNode> rootIterator = rootNode.elements();
+            JsonNode properties = null;
+            while (rootIterator.hasNext()) {
+                JsonNode node = rootIterator.next();
+                properties = node.get("properties");
             }
+
+            if (properties == null){
+                throw new IOException("Expected to receive properties from call to Preservica Object Details endpoint for record with id: '" + id + "'.");
+            }
+
+            String filename = streamJsonNodes(properties)
+                    .filter(this::filterByPropName)
+                    .map(this::getStringValue)
+                    .collect(Collectors.joining());
 
             // Close the reader
             in.close();
+            return filename;
         } else {
-            System.out.println("GET request failed");
+            throw new IOException("Expected to receive HTTP 200 from call to Preservica Object Details endpoint " +
+                    "for record with id: '" + id + "', but got: '" + connection.getResponseCode()+ "' instead.");
         }
     }
 
-    private boolean findFileName(Map.Entry<String, JsonNode> entry) {
-        return entry.getKey().equals("cmis:contentStreamFileName");
+    private String getStringValue(JsonNode prop) {
+        return prop.get("value").asText();
+    }
+
+    private boolean filterByPropName(JsonNode prop) {
+        return prop.get("name").asText().equals("cmis:contentStreamFileName");
+    }
+
+    // Method to stream JsonNodes from a JsonNode
+    private static Stream<JsonNode> streamJsonNodes(JsonNode jsonNode) {
+        Iterable<JsonNode> iterable = jsonNode::elements;
+        return StreamSupport.stream(iterable.spliterator(), false);
     }
 
     private HttpURLConnection getPreservicaObjectDetails(String id) throws URISyntaxException, IOException {
