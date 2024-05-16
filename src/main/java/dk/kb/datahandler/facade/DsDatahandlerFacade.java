@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -14,6 +15,7 @@ import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
+import dk.kb.datahandler.util.LoggingUtils;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.util.webservice.stream.ContinuationStream;
 import org.apache.commons.io.IOUtils;
@@ -41,6 +43,8 @@ import dk.kb.storage.model.v1.OriginCountDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
+
+import static java.lang.Thread.sleep;
 
 
 public class DsDatahandlerFacade {
@@ -323,7 +327,7 @@ public class DsDatahandlerFacade {
      * @param plugins list of plugins that are to be added to the OAI-PMH workflow.
      * @param oaiFilter the filter used to handle the OAI-PMH response.
      */
-    private static void handlePlugins(List<String> plugins, OaiResponseFilter oaiFilter) {
+    private static void handlePlugins(List<String> plugins, OaiResponseFilter oaiFilter) throws IOException {
         if (plugins.contains("fetchManifestation")) {
             Plugin preservicaManifestationPlugin = new PreservicaManifestationPlugin();
             oaiFilter.addPlugin(preservicaManifestationPlugin);
@@ -345,7 +349,7 @@ public class DsDatahandlerFacade {
 
         long id = System.currentTimeMillis();
         try {
-            Thread.sleep(1); // So next ID is different.
+            sleep(1); // So next ID is different.
         }
         catch(Exception e) {
             //can not happen, noone will interrupt.            
@@ -395,13 +399,37 @@ public class DsDatahandlerFacade {
      * @param mTimeFrom to update records from.
      * @return a count of records that have been updated.
      */
-    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException {
-        DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
-        ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, (long) -1);
-        return recordStream
-                .filter(PreservicaUtils::isInformationObject)
-                .map(PreservicaUtils::fetchManifestation)
-                .map(record -> PreservicaUtils.safeRecordPost(storageClient, record))
-                .count();
+    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException, InterruptedException {
+        AtomicInteger count = new AtomicInteger(0);
+        long processedRecords= 0L;
+        log.info("STARTED MANIFESTATION PLUGIN");
+        LoggingUtils.writeToFile("STARTED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
+        try {
+            DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+            ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, (long) -1);
+            Plugin manifestationPlugin = new PreservicaManifestationPlugin();
+            processedRecords = recordStream
+                    .filter(PreservicaUtils::isInformationObject)
+                    .filter(PreservicaUtils::needsChildrenIds)
+                    .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin))
+                    .map(record -> PreservicaUtils.safeRecordPost(storageClient, record))
+                    .map(record -> counter(record, count))
+                    .count();
+
+        } catch (IOException e) {
+            log.warn("Sleeping 20 seconds. Caught IOException: ", e);
+            sleep(20000);
+            throw new RuntimeException(e);
+        }
+
+        log.info("FINISHED MANIFESTATION PLUGIN");
+        LoggingUtils.writeToFile("FINISHED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
+        return processedRecords;
+    }
+
+    private static DsRecordDto counter(DsRecordDto record, AtomicInteger count) {
+        count.incrementAndGet();
+        log.debug("Count is '{}'", count);
+        return record;
     }
 }

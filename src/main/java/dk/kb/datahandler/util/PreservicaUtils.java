@@ -29,10 +29,8 @@ public class PreservicaUtils {
      * @param record to get manifestation for
      * @return the updated record with the manifestationID as a childrenId of the record.
      */
-    public static DsRecordDto fetchManifestation(DsRecordDto record) {
-        Plugin manifestationPlugin = new PreservicaManifestationPlugin();
-        manifestationPlugin.apply(record);
-        log.info("Record was updated with childID: '{}'", record.getChildren());
+    public static DsRecordDto fetchManifestation(DsRecordDto record, Plugin plugin) {
+        plugin.apply(record);
         return record;
     }
 
@@ -62,5 +60,9 @@ public class PreservicaUtils {
         int endOfPrefix = dsRecord.getId().lastIndexOf(prefix);
 
         return dsRecord.getId().substring(endOfPrefix + lengthOfPrefix);
+    }
+
+    public static boolean needsChildrenIds(DsRecordDto dsRecordDto) {
+        return dsRecordDto.getChildrenIds() == null || dsRecordDto.getChildrenIds().isEmpty() || dsRecordDto.getChildrenIds().get(0) == null;
     }
 }
