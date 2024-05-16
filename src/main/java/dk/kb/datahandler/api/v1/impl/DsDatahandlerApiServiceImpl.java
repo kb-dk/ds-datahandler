@@ -129,7 +129,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public Long updatePreservicaManifestation(String origin, Long mTimeFrom) {
         try {
             return DsDatahandlerFacade.updateManifestationForRecords(origin, mTimeFrom);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }

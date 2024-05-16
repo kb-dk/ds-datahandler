@@ -399,7 +399,7 @@ public class DsDatahandlerFacade {
      * @param mTimeFrom to update records from.
      * @return a count of records that have been updated.
      */
-    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException, InterruptedException {
+    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws InterruptedException, IOException {
         AtomicInteger count = new AtomicInteger(0);
         long processedRecords= 0L;
         log.info("STARTED MANIFESTATION PLUGIN");
@@ -419,7 +419,6 @@ public class DsDatahandlerFacade {
         } catch (IOException e) {
             log.warn("Sleeping 20 seconds. Caught IOException: ", e);
             sleep(20000);
-            throw new RuntimeException(e);
         }
 
         log.info("FINISHED MANIFESTATION PLUGIN");

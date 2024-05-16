@@ -3,11 +3,16 @@ package dk.kb.datahandler.preservica.jobs;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 
-import java.io.IOException;
-
+/**
+ * JobsBase which should be extended with Jobs running against the Preservica Client.
+ */
 public abstract class JobsBase {
 
-    public static DsPreservicaClient getPreservicaClient() throws IOException {
+    /**
+     * Get Preservica Client for use
+     * @return the {@link DsPreservicaClient}.
+     */
+    public static DsPreservicaClient getPreservicaClient() {
         
         String preservicaUrl = ServiceConfig.getConfig().getString("preservica.baseUrl");
         String user = ServiceConfig.getConfig().getString("preservica.user");
