@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.preservica.AccessResponseObject;
+import dk.kb.datahandler.preservica.client.DsPreservicaClient;
+import dk.kb.datahandler.preservica.jobs.JobsBase;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.util.yaml.YAML;
@@ -33,28 +35,17 @@ import java.util.stream.StreamSupport;
 /**
  *
  */
-public class PreservicaManifestationPlugin  implements Plugin{
-
-    private static final List<String> accessEndpoint = List.of("api", "accesstoken", "login");
-    private static final List<String> accessRefreshEndpoint = List.of("api", "accesstoken", "refresh");
-    private static final List<String> objectDetailsEndpoint = List.of("api", "content", "object-details");
-    private static String baseUrl = "";
-    private static String user = "";
-    private static String password = "";
-
-    private static String accessToken;
-    private static String refreshToken;
+public class PreservicaManifestationPlugin  implements Plugin {
 
     private static final Logger log = LoggerFactory.getLogger(PreservicaManifestationPlugin.class);
+
+    private DsPreservicaClient client;
 
     /**
      *
      */
     @Override
     public void apply(OaiRecord oaiRecord) {
-        log.info("Preservica Manifestation Plugin has been applied.");
-        log.info("Access Token is: '{}'", accessToken);
-
         try {
             String filename = getManifestationFileName(oaiRecord.getId());
             oaiRecord.setManifestationId(filename);
@@ -67,16 +58,17 @@ public class PreservicaManifestationPlugin  implements Plugin{
 
     @Override
     public void apply(DsRecordDto dsRecord) {
-        log.info("Preservica Manifestation Plugin has been applied.");
-        log.info("Access Token is: '{}'", accessToken);
 
         try {
             String preservicaID = PreservicaUtils.getPreservicaIoId(dsRecord);
 
             String filename = getManifestationFileName(preservicaID);
-            List<String> singletonFilename = Collections.singletonList(filename);
-            dsRecord.setChildrenIds(singletonFilename);
-            log.info("Filename is: '{}'", filename);
+
+            if (!filename.isEmpty() ){
+                List<String> singletonFilename = Collections.singletonList(filename);
+                dsRecord.setChildrenIds(singletonFilename);
+                log.info("Filename is: '{}'", filename);
+            }
         } catch (URISyntaxException | IOException e) {
             log.warn("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
         }
@@ -88,22 +80,16 @@ public class PreservicaManifestationPlugin  implements Plugin{
      * and gets the first accessToken from the backing preservica installation.
      * Furthermore, it starts a timer, which updates the accesToken every 14th minute, by exchanging a refreshToken.
      */
-    public PreservicaManifestationPlugin(){
-        YAML preservicaConfig = ServiceConfig.getConfig().getSubMap("preservica");
-        baseUrl = preservicaConfig.getString("baseUrl");
-        user = preservicaConfig.getString("user");
-        password = preservicaConfig.getString("password");
-
-        // Schedule a task to refresh the token every 14 minutes. As the first accessToken can be used the delay is also 14 minutes.
-        Timer timer = new Timer();
-        timer.schedule(new RefreshTokenTask(), 14 * 60 * 1000, 14 * 60 * 1000);
-
-        // Call method to get first accesToken and refreshToken.
-        getInitialAccess();
+    public PreservicaManifestationPlugin() throws IOException {
+        client = JobsBase.getPreservicaClient();
     }
 
     private String getManifestationFileName(String id) throws URISyntaxException, IOException {
-        HttpURLConnection connection = getPreservicaObjectDetails(id);
+        HttpURLConnection connection = client.getPreservicaObjectDetails(id);
+
+        if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND){
+            log.warn("Object Details API responded with HTTP 400 for id: '{}'", id);
+        }
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
@@ -133,8 +119,13 @@ public class PreservicaManifestationPlugin  implements Plugin{
                     .map(this::getStringValue)
                     .collect(Collectors.joining());
 
+            if (filename.isEmpty()){
+                log.debug("No filename was extracted for InformationObject: '{}'", id);
+            }
+
             // Close the reader
             in.close();
+            connection.disconnect();
             return filename;
         } else {
             throw new IOException("Expected to receive HTTP 200 from call to Preservica Object Details endpoint " +
@@ -154,163 +145,6 @@ public class PreservicaManifestationPlugin  implements Plugin{
     private static Stream<JsonNode> streamJsonNodes(JsonNode jsonNode) {
         Iterable<JsonNode> iterable = jsonNode::elements;
         return StreamSupport.stream(iterable.spliterator(), false);
-    }
-
-    /**
-     * Get initial accessToken from Preservica Access API. This method gets the accessToken by using user credentials.
-     * This should only be used for getting the initial accessToken. Subsequent refreshes should use the refreshToken.
-     */
-    private void getInitialAccess() {
-        try {
-            // Create URLConnection for access endpoint
-            HttpURLConnection connection = getPreservicaAccessConnection();
-            AccessResponseObject responseObject = getAccessResponseObject(connection);
-
-            // Set accessToken and refreshToken from responseObject
-            accessToken = responseObject.getToken();
-            refreshToken = responseObject.getRefreshToken();
-            // Close connection
-            connection.disconnect();
-        } catch (IOException | URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    /**
-     * Inner class representing the task to refresh the token
-     */
-    static class RefreshTokenTask extends TimerTask {
-        @Override
-        public void run() {
-            // Create URL for access endpoint
-            try {
-                HttpURLConnection connection = refreshPreservicaAccessConnection();
-                AccessResponseObject responseObject = getAccessResponseObject(connection);
-
-                accessToken = responseObject.getToken();
-                refreshToken = responseObject.getRefreshToken();
-
-                log.info("New accessToken is: '{}'", accessToken);
-                connection.disconnect();
-            } catch (IOException | URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    /**
-     * Create a POST {@link HttpURLConnection} to the backing Preservica Access API, posting username and password.
-     * @return an open connection to the Preservica Access API.
-     */
-    public static HttpURLConnection getPreservicaAccessConnection() throws IOException, URISyntaxException {
-        URL url = new URIBuilder(PreservicaManifestationPlugin.baseUrl)
-                .setPathSegments(PreservicaManifestationPlugin.accessEndpoint)
-                .build()
-                .toURL();
-
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("accept", "application/json");
-        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-        // Set POST data
-        String postData = "username=" + PreservicaManifestationPlugin.user +
-                "&password=" + PreservicaManifestationPlugin.password +
-                "&cookie=false" +
-                "&includeUserDetails=false";
-        connection.setDoOutput(true);
-        try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
-            byte[] postDataBytes = postData.getBytes(StandardCharsets.UTF_8);
-            wr.write(postDataBytes);
-            wr.flush();
-        }
-        return connection;
-    }
-
-    /**
-     * Create a POST {@link HttpURLConnection} to the backing Preservica Access API, sending refresh token as a query
-     * parameter and setting the current access token as value for the header: {@code Preservica-Access-Token}.
-     * @return an open connection, where a new accessToken can be extracted from. This new token should be valid for fifteen minutes.
-     */
-    public static HttpURLConnection refreshPreservicaAccessConnection() throws IOException, URISyntaxException {
-        URL url = new URIBuilder(PreservicaManifestationPlugin.baseUrl)
-                .setPathSegments(PreservicaManifestationPlugin.accessRefreshEndpoint)
-                .addParameter("refreshToken", PreservicaManifestationPlugin.refreshToken)
-                .build()
-                .toURL();
-
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("accept", "application/json");
-        connection.setRequestProperty("Content-Type", "undefined");
-        connection.setRequestProperty("Preservica-Access-Token", PreservicaManifestationPlugin.accessToken);
-
-        // Set POST data
-        String postData = "cookie=false";
-        connection.setDoOutput(true);
-        try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
-            byte[] postDataBytes = postData.getBytes(StandardCharsets.UTF_8);
-            wr.write(postDataBytes);
-            wr.flush();
-        }
-        return connection;
-    }
-
-    public static HttpURLConnection getPreservicaObjectDetails(String id) throws URISyntaxException, IOException {
-        URL url = new URIBuilder(PreservicaManifestationPlugin.baseUrl)
-                .setPathSegments(PreservicaManifestationPlugin.objectDetailsEndpoint)
-                // This ID needs to be prefixed with the string: sdb:IO|
-                .addParameter("id", "sdb:IO|"+id)
-                .build()
-                .toURL();
-
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("accept", "application/json");
-        connection.setRequestProperty("Preservica-Access-Token", PreservicaManifestationPlugin.accessToken);
-
-        return connection;
-    }
-
-    /**
-     * Convert JSON response from a {@link HttpURLConnection} to a {@link AccessResponseObject} JAVA-object. This method
-     * expects JSON in the following format:
-     * <pre>
-     *{
-     *   "success": true,
-     *   "token": "664c455f-59f2-4c83-9d7a-ddfe5e4b363d",
-     *   "refresh-token": "3bb58740-db8e-4332-bcff-7a7435f5686e",
-     *   "validFor": 15,
-     *   "user": "manager"
-     * }
-     * </pre>
-     * @param connection which delivers the response JSON. Most likely created by either
-     *                   {@link PreservicaManifestationPlugin#getPreservicaAccessConnection()} or {@link #refreshPreservicaAccessConnection()}.
-     * @return an {@link AccessResponseObject} containing accessToken and refreshToken.
-     */
-    public static AccessResponseObject getAccessResponseObject(HttpURLConnection connection) throws IOException {
-        // Check response code and log a warning if not 200
-        if (connection.getResponseCode() != 200){
-            PreservicaManifestationPlugin.log.warn("Response Code was '{}' with the following message: '{}'", connection.getResponseCode(), connection.getResponseMessage());
-        }
-
-        // Read response
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
-        String inputLine;
-        StringBuilder response = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        // Create AccessResponseObject from response
-        ObjectMapper objectMapper = new ObjectMapper();
-        AccessResponseObject responseObject = objectMapper.readValue(response.toString(), AccessResponseObject.class);
-        return responseObject;
     }
 
 }
