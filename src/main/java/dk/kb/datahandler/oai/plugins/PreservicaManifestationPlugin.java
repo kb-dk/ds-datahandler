@@ -68,11 +68,11 @@ public class PreservicaManifestationPlugin  implements Plugin {
             //log.debug("Preservica ID has been resolved to: '{}'", preservicaID);
 
             String filename = getManifestationFileName(preservicaID);
+            String prefixedFilename = dsRecord.getOrigin() + ":" + filename;
 
             if (!filename.isEmpty() ){
-                List<String> singletonFilename = Collections.singletonList(filename);
+                List<String> singletonFilename = Collections.singletonList(prefixedFilename);
                 dsRecord.setChildrenIds(singletonFilename);
-                //log.info("Filename is: '{}'", filename);
             }
         } catch (URISyntaxException | IOException e) {
             log.warn("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
@@ -100,10 +100,10 @@ public class PreservicaManifestationPlugin  implements Plugin {
             String filename;
             String objectDetails = convertStreamToString(connection.getInputStream());
 
-            boolean containsFilename = objectDetails.contains(filenameField);
+            /*boolean containsFilename = objectDetails.contains(filenameField);
             if (containsFilename){
                 log.info("ObjectDetail contains filename: '{}'", containsFilename);
-            }
+            }*/
 
             int indexOfContentStreamStart = objectDetails.indexOf(filenameField);
             int lengthOfContentStreamPrefix = filenameField.length();
@@ -114,10 +114,10 @@ public class PreservicaManifestationPlugin  implements Plugin {
 
             filename = semiParsedObject.substring(0, lastIndexOfFileName);
 
-            if (!filename.isEmpty()){
-                log.info("Filename is: '{}'", filename);
+            // TERACOM files are not presentation copies.
+            if (filename.endsWith(".ts")){
+                filename = "";
             }
-
 
 
             /*BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
