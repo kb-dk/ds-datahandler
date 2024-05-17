@@ -410,27 +410,7 @@ public class DsDatahandlerFacade {
         LoggingUtils.writeToFile("STARTED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
         try {
             DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
-            Plugin manifestationPlugin = new PreservicaManifestationPlugin();
-
-
-           /* List<DsRecordDto> listOfRecords = storageClient.getRecordsModifiedAfter(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, -1L);
-            long currentTime = System.currentTimeMillis();
-            int count = 0;
-            for (DsRecordDto record : listOfRecords) {
-                count += 1;
-                if (count % 10 == 0){
-                    log.info("10 Records have been updated in '{}' milliseconds.", currentTime - System.currentTimeMillis());
-                    currentTime = System.currentTimeMillis();
-                }
-                manifestationPlugin.apply(record);
-
-                if (record.getChildrenIds() != null && !record.getChildrenIds().isEmpty()){
-                    log.info("Posting record with id: '{}'", record.getId());
-                    log.warn("Record has childrenIds '{}'", record.getChildrenIds());
-                    storageClient.recordPost(record);
-                    //PreservicaUtils.safeRecordPost(storageClient, record);
-                }
-            }*/
+            PreservicaManifestationPlugin manifestationPlugin = new PreservicaManifestationPlugin();
 
             AtomicInteger counter = new AtomicInteger(0);
             AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
@@ -445,10 +425,7 @@ public class DsDatahandlerFacade {
 
             ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, maxRecords);
             recordStream
-                    .parallel() // Parallelize stream for performance boost.
-                    /*.map(DsDatahandlerFacade::logContent)
-                    .filter(PreservicaUtils::isInformationObject)
-                    .filter(PreservicaUtils::needsChildrenIds)*/
+                    //.parallel() // Parallelize stream for performance boost.
                     .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin))
                     .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record, counter, currentTime));
         } catch (IOException e) {
@@ -461,16 +438,5 @@ public class DsDatahandlerFacade {
         log.info("FINISHED MANIFESTATION PLUGIN");
         LoggingUtils.writeToFile("FINISHED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
         return processedRecords;
-    }
-
-    private static DsRecordDto logContent(DsRecordDto record) {
-        log.debug("Streaming record with id: '{}'", record.getId());
-        return record;
-    }
-
-    private static DsRecordDto counter(DsRecordDto record, AtomicInteger count) {
-        count.incrementAndGet();
-        log.debug("Count is '{}'", count);
-        return record;
     }
 }
