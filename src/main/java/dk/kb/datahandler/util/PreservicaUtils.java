@@ -1,12 +1,14 @@
 package dk.kb.datahandler.util;
 
-import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.util.DsStorageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class PreservicaUtils {
 
@@ -25,13 +27,14 @@ public class PreservicaUtils {
 
     /**
      * Initialize a {@link PreservicaManifestationPlugin} which fetches a presentation manifestation through the
-     * Preservica 7 APIs.
-     * @param record to get manifestation for
-     * @return the updated record with the manifestationID as a childrenId of the record.
+     * Preservica 7 APIs and creates a DsRecord for it with the original record as its parent record.
+     * @param record to get manifestation for.
+     * @return the newly created child record with the ID of the original record as its parent.
      */
-    public static DsRecordDto fetchManifestation(DsRecordDto record, Plugin plugin) {
+    public static DsRecordDto fetchManifestation(DsRecordDto record, PreservicaManifestationPlugin plugin) {
         plugin.apply(record);
-        return record;
+
+        return PreservicaManifestationPlugin.createdRecord;
     }
 
     /**
@@ -40,7 +43,14 @@ public class PreservicaUtils {
      * @param record to post.
      * @return the posted record for further streaming.
      */
-    public static DsRecordDto safeRecordPost(DsStorageClient storageClient, DsRecordDto record) {
+    public static DsRecordDto safeRecordPost(DsStorageClient storageClient, DsRecordDto record, AtomicInteger counter, AtomicLong currentTime) {
+        counter.getAndIncrement();
+
+        if (counter.get() % 10 == 0){
+            log.info("10 Records have been updated in '{}' milliseconds.", System.currentTimeMillis() - currentTime.get());
+            currentTime.set(System.currentTimeMillis());
+        }
+
         try {
             storageClient.recordPost(record);
         } catch (ApiException e) {

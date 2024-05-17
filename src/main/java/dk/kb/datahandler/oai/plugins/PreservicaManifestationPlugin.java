@@ -10,6 +10,7 @@ import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.preservica.jobs.JobsBase;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.yaml.YAML;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ import java.util.stream.StreamSupport;
  *
  */
 public class PreservicaManifestationPlugin  implements Plugin {
+    public static DsRecordDto createdRecord = new DsRecordDto();
 
     private static final Logger log = LoggerFactory.getLogger(PreservicaManifestationPlugin.class);
     private final String filenameField = "\"cmis:contentStreamFileName\",\"value\":\"";
@@ -63,6 +65,7 @@ public class PreservicaManifestationPlugin  implements Plugin {
     public void apply(DsRecordDto dsRecord) {
         //log.debug("Applying plugin to record with ID: '{}'", dsRecord.getId());
 
+
         try {
             String preservicaID = PreservicaUtils.getPreservicaIoId(dsRecord);
             //log.debug("Preservica ID has been resolved to: '{}'", preservicaID);
@@ -70,10 +73,20 @@ public class PreservicaManifestationPlugin  implements Plugin {
             String filename = getManifestationFileName(preservicaID);
             String prefixedFilename = dsRecord.getOrigin() + ":" + filename;
 
-            if (!filename.isEmpty() ){
+            if (!filename.isEmpty()){
+                createdRecord.setParentId(dsRecord.getId());
+                createdRecord.setOrigin(dsRecord.getOrigin());
+                createdRecord.setParent(dsRecord);
+                createdRecord.setData(filename);
+                createdRecord.setId(prefixedFilename);
+                createdRecord.setRecordType(RecordTypeDto.MANIFESTATION);
+            }
+
+
+            /*if (!filename.isEmpty() ){
                 List<String> singletonFilename = Collections.singletonList(prefixedFilename);
                 dsRecord.setChildrenIds(singletonFilename);
-            }
+            }*/
         } catch (URISyntaxException | IOException e) {
             log.warn("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
         }
