@@ -97,13 +97,13 @@ public class PreservicaManifestationPlugin  implements Plugin {
         }
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            String filename;
+            /*String filename;
             String objectDetails = convertStreamToString(connection.getInputStream());
 
-            /*boolean containsFilename = objectDetails.contains(filenameField);
+            *//*boolean containsFilename = objectDetails.contains(filenameField);
             if (containsFilename){
                 log.info("ObjectDetail contains filename: '{}'", containsFilename);
-            }*/
+            }*//*
 
             int indexOfContentStreamStart = objectDetails.indexOf(filenameField);
             int lengthOfContentStreamPrefix = filenameField.length();
@@ -117,10 +117,10 @@ public class PreservicaManifestationPlugin  implements Plugin {
             // TERACOM files are not presentation copies.
             if (filename.endsWith(".ts")){
                 filename = "";
-            }
+            }*/
 
 
-            /*BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
 
 
             // IMPLEMENT PARSING OF RESPONSE
@@ -146,7 +146,7 @@ public class PreservicaManifestationPlugin  implements Plugin {
             String filename = streamJsonNodes(properties)
                     .filter(this::filterByPropName)
                     .map(this::getStringValue)
-                    .collect(Collectors.joining());*/
+                    .collect(Collectors.joining());
 
             /*if (filename.isEmpty()){
                 log.debug("No filename was extracted for InformationObject: '{}'", id);
@@ -157,7 +157,7 @@ public class PreservicaManifestationPlugin  implements Plugin {
             }
 
             // Close the reader
-            //in.close();
+            in.close();
 
             return filename;
         } else {
@@ -167,7 +167,12 @@ public class PreservicaManifestationPlugin  implements Plugin {
     }
 
     private String getStringValue(JsonNode prop) {
-        return prop.get("value").asText();
+        String filename = prop.get("value").asText();
+        if (filename.endsWith(".ts")){
+            return "";
+        } else {
+            return filename;
+        }
     }
 
     private boolean filterByPropName(JsonNode prop) {
