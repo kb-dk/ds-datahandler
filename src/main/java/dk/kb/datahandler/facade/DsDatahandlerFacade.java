@@ -8,11 +8,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
+import dk.kb.datahandler.oai.plugins.AllowedPlugins;
 import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
 import dk.kb.datahandler.util.LoggingUtils;
@@ -331,12 +333,12 @@ public class DsDatahandlerFacade {
      * @param oaiFilter the filter used to handle the OAI-PMH response.
      */
     private static void handlePlugins(List<String> plugins, OaiResponseFilter oaiFilter) throws IOException {
-        if (plugins.contains("fetchManifestation")) {
+        if (plugins.contains(AllowedPlugins.FETCH_MANIFESTATION.getName())) {
             Plugin preservicaManifestationPlugin = new PreservicaManifestationPlugin();
             oaiFilter.addPlugin(preservicaManifestationPlugin);
         }
         /* EXAMPLE OF IMPLEMENTING A SPEECH-TO-TEXT PLUGIN
-        if (plugins.contains("speechToText")){
+        if (plugins.contains(AllowedPlugins.FETCH_MANIFESTATION.getName())){
             Plugin aiPlugin = new SpeechToTextPlugin();
             oaiFilter.addPlugin();
         }*/
@@ -403,7 +405,6 @@ public class DsDatahandlerFacade {
      * @return a count of records that have been updated.
      */
     public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws InterruptedException, IOException {
-        //AtomicInteger count = new AtomicInteger(0);
         long processedRecords= 0L;
         log.info("STARTED MANIFESTATION PLUGIN");
         LoggingUtils.writeToFile("STARTED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
@@ -412,10 +413,8 @@ public class DsDatahandlerFacade {
             Plugin manifestationPlugin = new PreservicaManifestationPlugin();
 
 
-            List<DsRecordDto> listOfRecords = storageClient.getRecordsModifiedAfter(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, -1L);
-
+           /* List<DsRecordDto> listOfRecords = storageClient.getRecordsModifiedAfter(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, -1L);
             long currentTime = System.currentTimeMillis();
-
             int count = 0;
             for (DsRecordDto record : listOfRecords) {
                 count += 1;
@@ -423,29 +422,40 @@ public class DsDatahandlerFacade {
                     log.info("10 Records have been updated in '{}' milliseconds.", currentTime - System.currentTimeMillis());
                     currentTime = System.currentTimeMillis();
                 }
-
                 manifestationPlugin.apply(record);
 
                 if (record.getChildrenIds() != null && !record.getChildrenIds().isEmpty()){
                     log.info("Posting record with id: '{}'", record.getId());
-                    PreservicaUtils.safeRecordPost(storageClient, record);
+                    log.warn("Record has childrenIds '{}'", record.getChildrenIds());
+                    storageClient.recordPost(record);
+                    //PreservicaUtils.safeRecordPost(storageClient, record);
+                }
+            }*/
+
+            AtomicInteger counter = new AtomicInteger(0);
+            AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
+            long maxRecords = 0;
+
+            List<OriginCountDto> stats = storageClient.getOriginStatistics();
+            for (OriginCountDto originCount : stats) {
+                if (originCount.getOrigin().equals(origin)){
+                    maxRecords = originCount.getCount();
                 }
             }
 
-            /*ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, 5L);
-            *//*processedRecords =*//* recordStream
-                    *//*.map(DsDatahandlerFacade::logContent) *//*
+            ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, maxRecords);
+            recordStream
+                    .parallel() // Parallelize stream for performance boost.
+                    /*.map(DsDatahandlerFacade::logContent)
                     .filter(PreservicaUtils::isInformationObject)
-                    .filter(PreservicaUtils::needsChildrenIds)
+                    .filter(PreservicaUtils::needsChildrenIds)*/
                     .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin))
-                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
-                    *//*.map(record -> PreservicaUtils.safeRecordPost(storageClient, record))
-                    .map(record -> counter(record, count))
-                    .count();*//*
-*/
-        } catch (IOException | ApiException e) {
+                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record, counter, currentTime));
+        } catch (IOException e) {
             log.warn("Sleeping 20 seconds. Caught IOException: ", e);
             sleep(20000);
+        } catch (ApiException e) {
+            throw new RuntimeException(e);
         }
 
         log.info("FINISHED MANIFESTATION PLUGIN");
