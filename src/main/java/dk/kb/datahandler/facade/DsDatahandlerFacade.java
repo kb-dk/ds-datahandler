@@ -17,6 +17,9 @@ import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
 import dk.kb.datahandler.util.LoggingUtils;
 import dk.kb.datahandler.util.PreservicaUtils;
+import dk.kb.storage.invoker.v1.ApiException;
+import dk.kb.storage.model.v1.RecordTypeDto;
+import dk.kb.util.webservice.stream.ContinuationInputStream;
 import dk.kb.util.webservice.stream.ContinuationStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -400,23 +403,41 @@ public class DsDatahandlerFacade {
      * @return a count of records that have been updated.
      */
     public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws InterruptedException, IOException {
-        AtomicInteger count = new AtomicInteger(0);
+        //AtomicInteger count = new AtomicInteger(0);
         long processedRecords= 0L;
         log.info("STARTED MANIFESTATION PLUGIN");
         LoggingUtils.writeToFile("STARTED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
         try {
             DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
-            ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, (long) -1);
             Plugin manifestationPlugin = new PreservicaManifestationPlugin();
-            processedRecords = recordStream
+
+
+            List<DsRecordDto> listOfRecords = storageClient.getRecordsModifiedAfter(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, -1L);
+
+            int count;
+            for (DsRecordDto record : listOfRecords) {
+                count =+ 1;
+                log.info("Count is: '{}'", count);
+
+                PreservicaUtils.fetchManifestation(record, manifestationPlugin);
+                if (record.getChildrenIds() != null && !record.getChildrenIds().isEmpty()){
+                    log.info("Posting record with id: '{}'", record.getId());
+                    PreservicaUtils.safeRecordPost(storageClient, record);
+                }
+            }
+
+            /*ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, 5L);
+            *//*processedRecords =*//* recordStream
+                    *//*.map(DsDatahandlerFacade::logContent) *//*
                     .filter(PreservicaUtils::isInformationObject)
                     .filter(PreservicaUtils::needsChildrenIds)
                     .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin))
-                    .map(record -> PreservicaUtils.safeRecordPost(storageClient, record))
+                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
+                    *//*.map(record -> PreservicaUtils.safeRecordPost(storageClient, record))
                     .map(record -> counter(record, count))
-                    .count();
-
-        } catch (IOException e) {
+                    .count();*//*
+*/
+        } catch (IOException | ApiException e) {
             log.warn("Sleeping 20 seconds. Caught IOException: ", e);
             sleep(20000);
         }
@@ -424,6 +445,11 @@ public class DsDatahandlerFacade {
         log.info("FINISHED MANIFESTATION PLUGIN");
         LoggingUtils.writeToFile("FINISHED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
         return processedRecords;
+    }
+
+    private static DsRecordDto logContent(DsRecordDto record) {
+        log.debug("Streaming record with id: '{}'", record.getId());
+        return record;
     }
 
     private static DsRecordDto counter(DsRecordDto record, AtomicInteger count) {

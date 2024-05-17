@@ -1,4 +1,4 @@
-package dk.kb.datahandler.pvica;
+package dk.kb.datahandler.preservica;
 
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.*;
@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class PvicaDataTest {
+public class PreservicaDataTest {
     
     @Test
     public void testDeliverableUnitNameSpaceFix() throws Exception{

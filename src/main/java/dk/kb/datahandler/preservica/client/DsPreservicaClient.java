@@ -73,7 +73,7 @@ public class DsPreservicaClient {
                 accessToken = responseObject.getToken();
                 refreshToken = responseObject.getRefreshToken();
                 lastSessionStart=System.currentTimeMillis(); //Reset timer
-                log.info("Refreshed preservica access token");
+                log.info("Got initial Preservica access token.");
                 // Close connection
                 connection.disconnect();
             } catch (IOException | URISyntaxException e) {

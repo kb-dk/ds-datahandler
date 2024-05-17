@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
@@ -58,16 +59,18 @@ public class PreservicaManifestationPlugin  implements Plugin {
 
     @Override
     public void apply(DsRecordDto dsRecord) {
+        //log.debug("Applying plugin to record with ID: '{}'", dsRecord.getId());
 
         try {
             String preservicaID = PreservicaUtils.getPreservicaIoId(dsRecord);
+            //log.debug("Preservica ID has been resolved to: '{}'", preservicaID);
 
             String filename = getManifestationFileName(preservicaID);
 
             if (!filename.isEmpty() ){
                 List<String> singletonFilename = Collections.singletonList(filename);
                 dsRecord.setChildrenIds(singletonFilename);
-                log.info("Filename is: '{}'", filename);
+                //log.info("Filename is: '{}'", filename);
             }
         } catch (URISyntaxException | IOException e) {
             log.warn("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
@@ -92,7 +95,16 @@ public class PreservicaManifestationPlugin  implements Plugin {
         }
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            /*String filename ="";
+            String objectDetails = convertStreamToString(connection.getInputStream());
+            System.out.println(objectDetails);
+
+            boolean containsFilename = objectDetails.contains("cmis:contentStreamFileName");
+            log.info("ObjectDetail contains filename: '{}'", containsFilename);*/
+
+
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+
 
             // IMPLEMENT PARSING OF RESPONSE
             // Create ObjectMapper instance with buffering enabled
@@ -119,12 +131,17 @@ public class PreservicaManifestationPlugin  implements Plugin {
                     .map(this::getStringValue)
                     .collect(Collectors.joining());
 
-            if (filename.isEmpty()){
+            /*if (filename.isEmpty()){
                 log.debug("No filename was extracted for InformationObject: '{}'", id);
+            }*/
+
+            if (!filename.isEmpty()){
+                log.debug("File with filename: '{}' has been extracted for record: '{}'",filename, id);
             }
 
             // Close the reader
             in.close();
+
             connection.disconnect();
             return filename;
         } else {
@@ -147,4 +164,15 @@ public class PreservicaManifestationPlugin  implements Plugin {
         return StreamSupport.stream(iterable.spliterator(), false);
     }
 
+
+    /*public static String convertStreamToString(InputStream inputStream) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line).append("\n");
+            }
+        }
+        return stringBuilder.toString();
+    }*/
 }
