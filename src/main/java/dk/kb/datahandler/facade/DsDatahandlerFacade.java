@@ -414,12 +414,18 @@ public class DsDatahandlerFacade {
 
             List<DsRecordDto> listOfRecords = storageClient.getRecordsModifiedAfter(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, -1L);
 
-            int count;
-            for (DsRecordDto record : listOfRecords) {
-                count =+ 1;
-                log.info("Count is: '{}'", count);
+            long currentTime = System.currentTimeMillis();
 
-                PreservicaUtils.fetchManifestation(record, manifestationPlugin);
+            int count = 0;
+            for (DsRecordDto record : listOfRecords) {
+                count += 1;
+                if (count % 10 == 0){
+                    log.info("10 Records have been updated in '{}' milliseconds.", currentTime - System.currentTimeMillis());
+                    currentTime = System.currentTimeMillis();
+                }
+
+                manifestationPlugin.apply(record);
+
                 if (record.getChildrenIds() != null && !record.getChildrenIds().isEmpty()){
                     log.info("Posting record with id: '{}'", record.getId());
                     PreservicaUtils.safeRecordPost(storageClient, record);

@@ -39,8 +39,10 @@ import java.util.stream.StreamSupport;
 public class PreservicaManifestationPlugin  implements Plugin {
 
     private static final Logger log = LoggerFactory.getLogger(PreservicaManifestationPlugin.class);
-
+    private final String filenameField = "\"cmis:contentStreamFileName\",\"value\":\"";
     private DsPreservicaClient client;
+
+    private HttpURLConnection connection;
 
     /**
      *
@@ -88,22 +90,37 @@ public class PreservicaManifestationPlugin  implements Plugin {
     }
 
     private String getManifestationFileName(String id) throws URISyntaxException, IOException {
-        HttpURLConnection connection = client.getPreservicaObjectDetails(id);
+        connection = client.getPreservicaObjectDetails(id);
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND){
-            log.warn("Object Details API responded with HTTP 400 for id: '{}'", id);
+            log.warn("Object Details API responded with HTTP 404 for id: '{}'", id);
         }
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            /*String filename ="";
+            String filename;
             String objectDetails = convertStreamToString(connection.getInputStream());
-            System.out.println(objectDetails);
 
-            boolean containsFilename = objectDetails.contains("cmis:contentStreamFileName");
-            log.info("ObjectDetail contains filename: '{}'", containsFilename);*/
+            boolean containsFilename = objectDetails.contains(filenameField);
+            if (containsFilename){
+                log.info("ObjectDetail contains filename: '{}'", containsFilename);
+            }
+
+            int indexOfContentStreamStart = objectDetails.indexOf(filenameField);
+            int lengthOfContentStreamPrefix = filenameField.length();
+            int FilenameIndexStart = indexOfContentStreamStart + lengthOfContentStreamPrefix;
+
+            String semiParsedObject = objectDetails.substring(FilenameIndexStart);
+            int lastIndexOfFileName = semiParsedObject.indexOf("\"");
+
+            filename = semiParsedObject.substring(0, lastIndexOfFileName);
+
+            if (!filename.isEmpty()){
+                log.info("Filename is: '{}'", filename);
+            }
 
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+
+            /*BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
 
 
             // IMPLEMENT PARSING OF RESPONSE
@@ -129,7 +146,7 @@ public class PreservicaManifestationPlugin  implements Plugin {
             String filename = streamJsonNodes(properties)
                     .filter(this::filterByPropName)
                     .map(this::getStringValue)
-                    .collect(Collectors.joining());
+                    .collect(Collectors.joining());*/
 
             /*if (filename.isEmpty()){
                 log.debug("No filename was extracted for InformationObject: '{}'", id);
@@ -140,9 +157,8 @@ public class PreservicaManifestationPlugin  implements Plugin {
             }
 
             // Close the reader
-            in.close();
+            //in.close();
 
-            connection.disconnect();
             return filename;
         } else {
             throw new IOException("Expected to receive HTTP 200 from call to Preservica Object Details endpoint " +
@@ -165,14 +181,14 @@ public class PreservicaManifestationPlugin  implements Plugin {
     }
 
 
-    /*public static String convertStreamToString(InputStream inputStream) throws IOException {
+    public static String convertStreamToString(InputStream inputStream) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         String line;
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             while ((line = bufferedReader.readLine()) != null) {
                 stringBuilder.append(line).append("\n");
             }
         }
         return stringBuilder.toString();
-    }*/
+    }
 }
