@@ -7,6 +7,10 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
@@ -416,6 +420,7 @@ public class DsDatahandlerFacade {
             AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
             long maxRecords = 0;
 
+            // This should be replaced by getting records of type with a modified until field.
             List<OriginCountDto> stats = storageClient.getOriginStatistics();
             for (OriginCountDto originCount : stats) {
                 if (originCount.getOrigin().equals(origin)){
@@ -423,11 +428,14 @@ public class DsDatahandlerFacade {
                 }
             }
 
-            ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsModifiedAfterStream(origin, mTimeFrom, maxRecords);
+            ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeStream(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, maxRecords);
+
             recordStream
-                    //.parallel() // Parallelize stream for performance boost.
-                    .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin))
-                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record, counter, currentTime));
+                    .parallel() // Parallelize stream for performance boost.
+                    .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                    .filter(PreservicaUtils::validateRecord)
+                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
+
         } catch (IOException e) {
             log.warn("Sleeping 20 seconds. Caught IOException: ", e);
             sleep(20000);
