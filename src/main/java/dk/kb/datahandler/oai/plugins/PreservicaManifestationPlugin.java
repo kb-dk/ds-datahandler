@@ -1,38 +1,22 @@
 package dk.kb.datahandler.oai.plugins;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.oai.OaiRecord;
-import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.preservica.jobs.JobsBase;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
-import dk.kb.util.yaml.YAML;
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.StringJoiner;
 
 /**
  *
@@ -43,8 +27,6 @@ public class PreservicaManifestationPlugin  implements Plugin {
     private static final Logger log = LoggerFactory.getLogger(PreservicaManifestationPlugin.class);
     private final String filenameField = "\"cmis:contentStreamFileName\",\"value\":\"";
     private DsPreservicaClient client;
-
-    private HttpURLConnection connection;
 
     /**
      *
@@ -61,34 +43,38 @@ public class PreservicaManifestationPlugin  implements Plugin {
 
     }
 
+    /**
+     * Apply the plugin to a DsRecord.
+     * If the record is a DeliverableUnit (A record containing metadata) the ID of the manifestation, which the record
+     * is about will be resolved from the backing Preservica instance. The resolved child record can be accessed in the
+     * {@link #createdRecord}.
+     * @param dsRecord DeliverableUnit to fetch manifestation from.
+     */
     @Override
     public void apply(DsRecordDto dsRecord) {
-        //log.debug("Applying plugin to record with ID: '{}'", dsRecord.getId());
+        if (dsRecord.getRecordType() != RecordTypeDto.DELIVERABLEUNIT){
+            log.warn("Manifestation extraction plugin has been used on a record which cant have manifestations.");
+            return;
+        }
 
-
+        // Resets the output record.
+        resetInternalRecord();
         try {
+            // Get the clean Preservica InformationObject ID.
             String preservicaID = PreservicaUtils.getPreservicaIoId(dsRecord);
-            //log.debug("Preservica ID has been resolved to: '{}'", preservicaID);
 
+            // Extract filename from Preservica and create a prefixed version for DS.
             String filename = getManifestationFileName(preservicaID);
-            String prefixedFilename = dsRecord.getOrigin() + ":" + filename;
+            // Ensure that child records are added to the origin of the processed record.
+            StringJoiner joiner = new StringJoiner(":");
+            String prefixedFilename = joiner.add(dsRecord.getOrigin()).add(filename).toString();
 
+            // Update the record that is to be returned.
             if (!filename.isEmpty()){
-                createdRecord.setParentId(dsRecord.getId());
-                createdRecord.setOrigin(dsRecord.getOrigin());
-                createdRecord.setParent(dsRecord);
-                createdRecord.setData(filename);
-                createdRecord.setId(prefixedFilename);
-                createdRecord.setRecordType(RecordTypeDto.MANIFESTATION);
+                updateInternalRecord(dsRecord, filename, prefixedFilename);
             }
-
-
-            /*if (!filename.isEmpty() ){
-                List<String> singletonFilename = Collections.singletonList(prefixedFilename);
-                dsRecord.setChildrenIds(singletonFilename);
-            }*/
         } catch (URISyntaxException | IOException e) {
-            log.warn("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
+            log.error("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
         }
 
     }
@@ -100,23 +86,27 @@ public class PreservicaManifestationPlugin  implements Plugin {
      */
     public PreservicaManifestationPlugin() throws IOException {
         client = JobsBase.getPreservicaClient();
+        createdRecord.setRecordType(RecordTypeDto.MANIFESTATION);
     }
 
+    /**
+     * Resolve filename for a presentation copy given a Preservica 7 InformationObject ID. The filename is extracted
+     * from a bigger JSON response by string manipulation.
+     * @param id Preservica 7 InformationObject ID.
+     * @return the filename for the newest presentation copy for the given InformationObject.
+     */
     private String getManifestationFileName(String id) throws URISyntaxException, IOException {
-        connection = client.getPreservicaObjectDetails(id);
+        HttpURLConnection connection = client.getPreservicaObjectDetails(id);
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND){
-            log.warn("Object Details API responded with HTTP 404 for id: '{}'", id);
+            log.error("Object Details API responded with HTTP 404 for id: '{}'", id);
+            return "";
         }
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            /*String filename;
+            String filename;
+            // Get JSON response as string.
             String objectDetails = convertStreamToString(connection.getInputStream());
-
-            *//*boolean containsFilename = objectDetails.contains(filenameField);
-            if (containsFilename){
-                log.info("ObjectDetail contains filename: '{}'", containsFilename);
-            }*//*
 
             int indexOfContentStreamStart = objectDetails.indexOf(filenameField);
             int lengthOfContentStreamPrefix = filenameField.length();
@@ -127,50 +117,10 @@ public class PreservicaManifestationPlugin  implements Plugin {
 
             filename = semiParsedObject.substring(0, lastIndexOfFileName);
 
-            // TERACOM files are not presentation copies.
+            // TERACOM files are not presentation copies and should not be returned.
             if (filename.endsWith(".ts")){
-                filename = "";
-            }*/
-
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
-
-
-            // IMPLEMENT PARSING OF RESPONSE
-            // Create ObjectMapper instance with buffering enabled
-            ObjectMapper jsonMapper = new ObjectMapper()
-                    .enable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
-                    .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
-
-            // Parse JSON array
-            JsonNode rootNode = jsonMapper.readTree(in);
-            // Iterate over each JSON object in the array
-            Iterator<JsonNode> rootIterator = rootNode.elements();
-            JsonNode properties = null;
-            while (rootIterator.hasNext()) {
-                JsonNode node = rootIterator.next();
-                properties = node.get("properties");
+                return "";
             }
-
-            if (properties == null){
-                throw new IOException("Expected to receive properties from call to Preservica Object Details endpoint for record with id: '" + id + "'.");
-            }
-
-            String filename = streamJsonNodes(properties)
-                    .filter(this::filterByPropName)
-                    .map(this::getStringValue)
-                    .collect(Collectors.joining());
-
-            /*if (filename.isEmpty()){
-                log.debug("No filename was extracted for InformationObject: '{}'", id);
-            }*/
-
-            if (!filename.isEmpty()){
-                log.debug("File with filename: '{}' has been extracted for record: '{}'",filename, id);
-            }
-
-            // Close the reader
-            in.close();
 
             return filename;
         } else {
@@ -179,26 +129,37 @@ public class PreservicaManifestationPlugin  implements Plugin {
         }
     }
 
-    private String getStringValue(JsonNode prop) {
-        String filename = prop.get("value").asText();
-        if (filename.endsWith(".ts")){
-            return "";
-        } else {
-            return filename;
-        }
+    /**
+     * Reset {@link #createdRecord}.
+     */
+    private void resetInternalRecord() {
+        createdRecord.setParentId("");
+        createdRecord.setOrigin("");
+        createdRecord.setParent(null);
+        createdRecord.setData("");
+        createdRecord.setId("");
     }
 
-    private boolean filterByPropName(JsonNode prop) {
-        return prop.get("name").asText().equals("cmis:contentStreamFileName");
+    /**
+     * Update {@link #createdRecord}
+     * @param parent a {@link DsRecordDto} which the updated internal record is a presentation manifestation for.
+     * @param filename the name of the presentation manifestation file.
+     * @param prefixedFilename filename prefixed with origin from parent record.
+     */
+    private static void updateInternalRecord(DsRecordDto parent, String filename, String prefixedFilename) {
+        createdRecord.setParentId(parent.getId());
+        createdRecord.setOrigin(parent.getOrigin());
+        createdRecord.setParent(parent);
+        createdRecord.setData(filename);
+        createdRecord.setId(prefixedFilename);
     }
 
-    // Method to stream JsonNodes from a JsonNode
-    private static Stream<JsonNode> streamJsonNodes(JsonNode jsonNode) {
-        Iterable<JsonNode> iterable = jsonNode::elements;
-        return StreamSupport.stream(iterable.spliterator(), false);
-    }
-
-
+    /**
+     * Convert an InputStream to a String. Here it is used to deliver a JSON object, which the filename is then later
+     * extracted from.
+     * @param inputStream to convert to a string.
+     * @return the content of the input stream as a string.
+     */
     public static String convertStreamToString(InputStream inputStream) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         String line;
