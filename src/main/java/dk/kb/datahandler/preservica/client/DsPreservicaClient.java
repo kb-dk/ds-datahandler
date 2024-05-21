@@ -1,9 +1,7 @@
 package dk.kb.datahandler.preservica.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.preservica.AccessResponseObject;
-import dk.kb.util.yaml.YAML;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +31,8 @@ public class DsPreservicaClient {
     private String accessToken;
     private String refreshToken;
     private static final Logger log = LoggerFactory.getLogger(DsPreservicaClient.class);
+    private Thread timerThread;
+    private Timer tokenTimer;
 
     public DsPreservicaClient(String baseUrl, String username, String password, long sessionKeepAliveSeconds){
         if (sessionKeepAliveSeconds <600) { //Enforce some kind of reuse of session since authenticating sessions will accumulate at Kaltura.
@@ -43,11 +43,10 @@ public class DsPreservicaClient {
         this.password = password;
         this.sessionKeepAliveSeconds=sessionKeepAliveSeconds;
 
-        Thread timerThread = new Thread(() -> {
+        this.timerThread = new Thread(() -> {
             // Schedule a task to refresh the token every 14 minutes. As the first accessToken can be used the delay is also 14 minutes.
-            Timer timer = new Timer();
-            //timer.schedule(new RefreshTokenTask(), 14 * 60 * 1000, 14 * 60 * 1000);
-            timer.schedule(new RefreshTokenTask(), 14 * 30 * 1000, 14 * 30 * 1000);
+            tokenTimer = new Timer();
+            tokenTimer.schedule(new RefreshTokenTask(), 14 * 60 * 1000, 14 * 60 * 1000);
         });
 
         timerThread.start();
@@ -217,5 +216,16 @@ public class DsPreservicaClient {
         connection.setRequestProperty("Preservica-Access-Token", accessToken);
 
         return connection;
+    }
+
+    /**
+     * Interrupt the Timer, so that no more Preservica Tokens are resolved.
+     */
+    public void endTimer(){
+        timerThread.interrupt();
+        if (timerThread.isInterrupted()){
+            tokenTimer.cancel();
+        }
+        log.info("Interrupted TokenTimer");
     }
 }

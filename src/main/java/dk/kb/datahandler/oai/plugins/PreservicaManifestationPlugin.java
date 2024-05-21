@@ -170,4 +170,11 @@ public class PreservicaManifestationPlugin  implements Plugin {
         }
         return stringBuilder.toString();
     }
+
+    /**
+     * Stops the timer in the backing Preservica client, making the client usable for a maximum of 14 more minuts.
+     */
+    public void stopClient(){
+        client.endTimer();
+    }
 }

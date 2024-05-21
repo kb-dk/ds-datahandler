@@ -436,6 +436,7 @@ public class DsDatahandlerFacade {
                     .filter(PreservicaUtils::validateRecord)
                     .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
 
+            manifestationPlugin.stopClient();
         } catch (IOException e) {
             log.warn("Sleeping 20 seconds. Caught IOException: ", e);
             sleep(20000);
