@@ -31,7 +31,14 @@ public class PreservicaUtils {
      * @param record to get manifestation for.
      * @return the newly created child record with the ID of the original record as its parent.
      */
-    public static DsRecordDto fetchManifestation(DsRecordDto record, PreservicaManifestationPlugin plugin) {
+    public static DsRecordDto fetchManifestation(DsRecordDto record, PreservicaManifestationPlugin plugin, AtomicInteger counter, AtomicLong currentTime) {
+        counter.getAndIncrement();
+
+        if (counter.get() % 200 == 0){
+            log.info("200 Records have been updated in '{}' milliseconds. In total '{}' records have been processed.",
+                    System.currentTimeMillis() - currentTime.get(), counter.get());
+            currentTime.set(System.currentTimeMillis());
+        }
         plugin.apply(record);
 
         return PreservicaManifestationPlugin.createdRecord;
@@ -41,22 +48,13 @@ public class PreservicaUtils {
      * Streaming wrapper for the recordPost method of the {@link DsStorageClient}
      * @param storageClient to post the record to.
      * @param record to post.
-     * @return the posted record for further streaming.
      */
-    public static DsRecordDto safeRecordPost(DsStorageClient storageClient, DsRecordDto record, AtomicInteger counter, AtomicLong currentTime) {
-        counter.getAndIncrement();
-
-        if (counter.get() % 10 == 0){
-            log.info("10 Records have been updated in '{}' milliseconds.", System.currentTimeMillis() - currentTime.get());
-            currentTime.set(System.currentTimeMillis());
-        }
-
+    public static void safeRecordPost(DsStorageClient storageClient, DsRecordDto record) {
         try {
             storageClient.recordPost(record);
         } catch (ApiException e) {
-            throw new RuntimeException(e);
+            log.error("ApiException has been thrown. Record probably already exists.");
         }
-        return record;
     }
 
     /**
@@ -74,5 +72,20 @@ public class PreservicaUtils {
 
     public static boolean needsChildrenIds(DsRecordDto dsRecordDto) {
         return dsRecordDto.getChildrenIds() == null || dsRecordDto.getChildrenIds().isEmpty() || dsRecordDto.getChildrenIds().get(0) == null;
+    }
+
+    /**
+     * Filter records for validity.
+     * @param record to ensure has values correctly set.
+     * @return true if record is valid.
+     */
+    public static boolean validateRecord(DsRecordDto record) {
+        return !(record == null) &&
+                record.getOrigin() != null &&
+                record.getId() != null &&
+                record.getParentId() != null &&
+                !record.getOrigin().isEmpty() &&
+                !record.getId().isEmpty() &&
+                !record.getParentId().isEmpty();
     }
 }
