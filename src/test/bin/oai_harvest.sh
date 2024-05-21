@@ -28,7 +28,7 @@ fi
 SHOME=`pwd`
 : ${SERVER:=""} # https://example.com/OAI-PMH/
 : ${FROM:="$(date +%Y-%m-%d)"} # Today's date
-: ${UNTIL:="$(date +%Y-%m-%d)"}   # Also today's date
+# : ${UNTIL:="$(date +%Y-%m-%d)"}   # Also today's date. No longer default set
 : ${METADATA_PREFIX:="xip"}
 : ${CONTENT_TYPE:="application/xml"}
 : ${USER_PASS:=""} # user:password
@@ -46,6 +46,8 @@ Usage:
 
 Sample call:
   FROM=2021-12-04T00:00:00Z UNTIL=2021-12-04T25:59:59Z ./oai_harvest.sh
+
+UNTIL parameter is optional
 
 Basic setup:
   Create a file 'oai_harvest.conf' in the folder where oai_harvest.sh is called.
@@ -108,7 +110,14 @@ EOF
 harvest() {
     local RESUMPTION_TOKEN=""
     local COUNTER=1
-    local BASE="${SERVER}?verb=ListRecords&from=${FROM}&until=${UNTIL}&metadataPrefix=${METADATA_PREFIX}"
+    local BASE=""
+    if [[ ! -z "$UNTIL" ]]; then
+      BASE="${SERVER}?verb=ListRecords&from=${FROM}&until=${UNTIL}&metadataPrefix=${METADATA_PREFIX}"
+    else
+      BASE="${SERVER}?verb=ListRecords&from=${FROM}&metadataPrefix=${METADATA_PREFIX}"
+   
+    fi 
+    
     local START_TIME=$(date +%s)
     if [[ ! -z "$SET" ]]; then
         BASE="${BASE}&set=${SET}"
