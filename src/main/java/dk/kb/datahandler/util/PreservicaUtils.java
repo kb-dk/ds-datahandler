@@ -70,10 +70,6 @@ public class PreservicaUtils {
         return dsRecord.getId().substring(endOfPrefix + lengthOfPrefix);
     }
 
-    public static boolean needsChildrenIds(DsRecordDto dsRecordDto) {
-        return dsRecordDto.getChildrenIds() == null || dsRecordDto.getChildrenIds().isEmpty() || dsRecordDto.getChildrenIds().get(0) == null;
-    }
-
     /**
      * Filter records for validity.
      * @param record to ensure has values correctly set.

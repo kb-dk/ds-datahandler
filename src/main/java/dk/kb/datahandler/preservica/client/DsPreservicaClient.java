@@ -51,7 +51,6 @@ public class DsPreservicaClient {
 
         timerThread.start();
 
-
         // Call method to get first accesToken and refreshToken.
         getInitialAccess();
     }
@@ -163,7 +162,7 @@ public class DsPreservicaClient {
                 accessToken = responseObject.getToken();
                 refreshToken = responseObject.getRefreshToken();
 
-                log.info("Refreshed access token,: " + accessToken);
+                log.info("Refreshed access token.");
                 connection.disconnect();
             } catch (IOException | URISyntaxException e) {
                 throw new RuntimeException(e);
@@ -202,10 +201,12 @@ public class DsPreservicaClient {
     }
 
     public HttpURLConnection getPreservicaObjectDetails(String id) throws URISyntaxException, IOException {
+        StringBuilder idBuilder = new StringBuilder();
+
         URL url = new URIBuilder(baseUrl)
                 .setPathSegments(objectDetailsEndpoint)
                 // This ID needs to be prefixed with the string: sdb:IO|
-                .addParameter("id", "sdb:IO|"+id)
+                .addParameter("id", idBuilder.append("sdb:IO|").append(id).toString())
                 .build()
                 .toURL();
 
