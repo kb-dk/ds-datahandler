@@ -9,6 +9,10 @@ import dk.kb.datahandler.preservica.jobs.JobsBase;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
+import org.apache.http.client.utils.URIBuilder;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.Dsl;
+import org.asynchttpclient.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.StringJoiner;
@@ -103,52 +108,47 @@ public class PreservicaManifestationPlugin  implements Plugin {
      * @return the filename for the newest presentation copy for the given InformationObject.
      */
     private String getManifestationFileName(String id) throws URISyntaxException, IOException {
-        HttpURLConnection connection = client.getPreservicaObjectDetails(id);
+        InputStream objectDetails = client.getPreservicaObjectDetails(id);
 
-        if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND){
+        /*if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND){
             log.error("Object Details API responded with HTTP 404 for id: '{}'", id);
+            return "";
+        }*/
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(objectDetails, StandardCharsets.UTF_8));
+        // Create ObjectMapper instance with buffering enabled
+        ObjectMapper jsonMapper = new ObjectMapper()
+                .enable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
+                .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+
+        // Parse JSON array
+        JsonNode rootNode = jsonMapper.readTree(in);
+        // Iterate over each JSON object in the array
+        Iterator<JsonNode> rootIterator = rootNode.elements();
+        JsonNode properties = null;
+        while (rootIterator.hasNext()) {
+            JsonNode node = rootIterator.next();
+            properties = node.get("properties");
+        }
+
+        if (properties == null){
+            throw new IOException("Expected to receive properties from call to Preservica Object Details endpoint for record with id: '" + id + "'.");
+        }
+
+        String filename = streamJsonNodes(properties)
+                .filter(this::filterByPropName)
+                .map(this::getStringValue)
+                .collect(Collectors.joining());
+
+        // Close the reader
+        in.close();
+
+        // TERACOM files are not presentation copies and should not be returned.
+        if (filename.endsWith(".ts")){
             return "";
         }
 
-        if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
-            // Create ObjectMapper instance with buffering enabled
-            ObjectMapper jsonMapper = new ObjectMapper()
-                    .enable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
-                    .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
-
-            // Parse JSON array
-            JsonNode rootNode = jsonMapper.readTree(in);
-            // Iterate over each JSON object in the array
-            Iterator<JsonNode> rootIterator = rootNode.elements();
-            JsonNode properties = null;
-            while (rootIterator.hasNext()) {
-                JsonNode node = rootIterator.next();
-                properties = node.get("properties");
-            }
-
-            if (properties == null){
-                throw new IOException("Expected to receive properties from call to Preservica Object Details endpoint for record with id: '" + id + "'.");
-            }
-
-            String filename = streamJsonNodes(properties)
-                    .filter(this::filterByPropName)
-                    .map(this::getStringValue)
-                    .collect(Collectors.joining());
-
-            // Close the reader
-            in.close();
-
-            // TERACOM files are not presentation copies and should not be returned.
-            if (filename.endsWith(".ts")){
-                return "";
-            }
-
-            return filename;
-        } else {
-            throw new IOException("Expected to receive HTTP 200 from call to Preservica Object Details endpoint " +
-                    "for record with id: '" + id + "', but got: '" + connection.getResponseCode()+ "' instead.");
-        }
+        return filename;
     }
 
     /**

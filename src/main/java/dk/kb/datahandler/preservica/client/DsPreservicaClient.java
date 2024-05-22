@@ -3,12 +3,16 @@ package dk.kb.datahandler.preservica.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import org.apache.http.client.utils.URIBuilder;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.Dsl;
+import org.asynchttpclient.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
@@ -17,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CompletableFuture;
 
 public class DsPreservicaClient {
     private static final List<String> accessEndpoint = List.of("api", "accesstoken", "login");
@@ -200,23 +205,36 @@ public class DsPreservicaClient {
         return connection;
     }
 
-    public HttpURLConnection getPreservicaObjectDetails(String id) throws URISyntaxException, IOException {
-        StringBuilder idBuilder = new StringBuilder();
+    public InputStream getPreservicaObjectDetails(String id) {
+        try (AsyncHttpClient asyncHttpClient = Dsl.asyncHttpClient(Dsl.config())) {
+            StringBuilder idBuilder = new StringBuilder();
 
-        URL url = new URIBuilder(baseUrl)
-                .setPathSegments(objectDetailsEndpoint)
-                // This ID needs to be prefixed with the string: sdb:IO|
-                .addParameter("id", idBuilder.append("sdb:IO|").append(id).toString())
-                .build()
-                .toURL();
+            URL url = new URIBuilder(baseUrl)
+                    .setPathSegments(objectDetailsEndpoint)
+                    // This ID needs to be prefixed with the string: sdb:IO|
+                    .addParameter("id", idBuilder.append("sdb:IO|").append(id).toString())
+                    .build()
+                    .toURL();
 
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        /*HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
         connection.setRequestMethod("GET");
         connection.setRequestProperty("accept", "application/json");
-        connection.setRequestProperty("Preservica-Access-Token", accessToken);
+        connection.setRequestProperty("Preservica-Access-Token", accessToken);*/
 
-        return connection;
+            // Perform a GET request
+            CompletableFuture<Response> futureResponse = asyncHttpClient.prepareGet(url.toString())
+                    .setHeader("accept", "application/json")
+                    .setHeader("Preservica-Access-Token", accessToken)
+                    .execute()
+                    .toCompletableFuture();
+
+
+            return futureResponse.thenApply(Response::getResponseBodyAsStream).join();  // Wait for the request to complete
+        } catch ( Exception e) { // TODO: Update whicxh exception this throws
+            log.info("Logging: ", e);
+        }
+        return null;
     }
 
     /**
