@@ -17,7 +17,6 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -26,8 +25,6 @@ import java.util.stream.StreamSupport;
  *
  */
 public class PreservicaManifestationExtractor {
-    public static DsRecordDto createdRecord = new DsRecordDto();
-
     private static final Logger log = LoggerFactory.getLogger(PreservicaManifestationExtractor.class);
     private final String filenameField = "cmis:contentStreamFileName";
     private DsPreservicaClient client;
@@ -35,35 +32,30 @@ public class PreservicaManifestationExtractor {
     /**
      * Apply the extractor to a DsRecord.
      * If the record is a DeliverableUnit (A record containing metadata) the ID of the manifestation, which the record
-     * is about will be resolved from the backing Preservica instance. The resolved child record can be accessed in the
-     * {@link #createdRecord}.
+     * is about will be resolved from the backing Preservica instance and added as a referenceId in the record it has been applied to.
      * @param dsRecord DeliverableUnit to fetch manifestation from.
      */
-    public void apply(DsRecordDto dsRecord) {
+    public DsRecordDto apply(DsRecordDto dsRecord) {
         if (dsRecord.getRecordType() != RecordTypeDto.DELIVERABLEUNIT){
             log.warn("Manifestation extraction plugin has been used on a record which cant have manifestations.");
-            return;
+            return null;
         }
-
-        // Resets the output record.
-        resetInternalRecord();
         try {
             // Get the clean Preservica InformationObject ID.
             String preservicaID = PreservicaUtils.getPreservicaIoId(dsRecord);
 
             // Extract filename from Preservica and create a prefixed version for DS.
             String filename = getManifestationFileName(preservicaID);
-            // Ensure that child records are added to the origin of the processed record.
-            StringJoiner joiner = new StringJoiner(":");
-            String prefixedFilename = joiner.add(dsRecord.getOrigin()).add(filename).toString();
 
             // Update the record that is to be returned.
             if (!filename.isEmpty()){
-                updateInternalRecord(dsRecord, filename, prefixedFilename);
+                dsRecord.setReferenceId(filename);
             }
         } catch (URISyntaxException | IOException e) {
             log.error("Manifestation could not be extracted. PreservicaManifestationExtractor threw the following exception: ", e);
         }
+
+        return dsRecord;
 
     }
 
@@ -74,7 +66,6 @@ public class PreservicaManifestationExtractor {
      */
     public PreservicaManifestationExtractor() throws IOException {
         client = DsPreservicaClient.getPreservicaClient();
-        createdRecord.setRecordType(RecordTypeDto.MANIFESTATION);
     }
 
     /**
@@ -125,48 +116,6 @@ public class PreservicaManifestationExtractor {
         }
 
         return filename;
-    }
-
-    /**
-     * Reset {@link #createdRecord}.
-     */
-    private void resetInternalRecord() {
-        createdRecord.setParentId("");
-        createdRecord.setOrigin("");
-        createdRecord.setParent(null);
-        createdRecord.setData("");
-        createdRecord.setId("");
-    }
-
-    /**
-     * Update {@link #createdRecord}
-     * @param parent a {@link DsRecordDto} which the updated internal record is a presentation manifestation for.
-     * @param filename the name of the presentation manifestation file.
-     * @param prefixedFilename filename prefixed with origin from parent record.
-     */
-    private static void updateInternalRecord(DsRecordDto parent, String filename, String prefixedFilename) {
-        createdRecord.setParentId(parent.getId());
-        createdRecord.setOrigin(parent.getOrigin());
-        createdRecord.setParent(parent);
-        createdRecord.setData(filename);
-        createdRecord.setId(prefixedFilename);
-    }
-
-    /**
-     * Convert an InputStream to a String. Here it is used to deliver a JSON object, which the filename is then later
-     * extracted from.
-     * @param inputStream to convert to a string.
-     * @return the content of the input stream as a string.
-     */
-    public static String convertStreamToString(InputStream inputStream) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-        String line;
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            while ((line = bufferedReader.readLine()) != null) {
-                stringBuilder.append(line).append("\n");
-            }
-        }
-        return stringBuilder.toString();
     }
 
     /**

@@ -28,9 +28,9 @@ public class PreservicaUtils {
                     System.currentTimeMillis() - currentTime.get(), counter.get());
             currentTime.set(System.currentTimeMillis());
         }
-        plugin.apply(record);
+        record = plugin.apply(record);
 
-        return PreservicaManifestationExtractor.createdRecord;
+        return record;
     }
 
     /**
@@ -65,12 +65,6 @@ public class PreservicaUtils {
      * @return true if record is valid.
      */
     public static boolean validateRecord(DsRecordDto record) {
-        return !(record == null) &&
-                record.getOrigin() != null &&
-                record.getId() != null &&
-                record.getParentId() != null &&
-                !record.getOrigin().isEmpty() &&
-                !record.getId().isEmpty() &&
-                !record.getParentId().isEmpty();
+        return record.getReferenceId() != null && !record.getReferenceId().isEmpty();
     }
 }

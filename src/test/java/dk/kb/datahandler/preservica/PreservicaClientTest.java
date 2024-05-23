@@ -29,12 +29,8 @@ public class PreservicaClientTest {
         DsRecordDto record = new DsRecordDto();
         record.setRecordType(RecordTypeDto.DELIVERABLEUNIT);
         record.setId("ds.tv.devel7:oai:io:aeeb00c9-afd8-4940-8160-b6027c33df94");
-        manifestationPlugin.apply(record);
+        record = manifestationPlugin.apply(record);
 
-        DsRecordDto childRecord = PreservicaManifestationExtractor.createdRecord;
-
-        assertEquals(record.getId(), childRecord.getParentId());
-        assertEquals(RecordTypeDto.MANIFESTATION, childRecord.getRecordType());
-        assertEquals("aeeb00c9-afd8-4940-8160-b6027c33df94.mp4", childRecord.getData());
+        assertEquals("aeeb00c9-afd8-4940-8160-b6027c33df94.mp4", record.getReferenceId());
     }
 }
