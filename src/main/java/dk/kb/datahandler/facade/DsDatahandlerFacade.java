@@ -15,6 +15,7 @@ import java.util.zip.ZipInputStream;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
+import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.RecordTypeDto;
@@ -384,7 +385,6 @@ public class DsDatahandlerFacade {
         log.info("STARTED MANIFESTATION PLUGIN");
         try {
             DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
-            PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
 
             Long startTime = System.currentTimeMillis();
             AtomicInteger counter = new AtomicInteger(0);
@@ -401,13 +401,14 @@ public class DsDatahandlerFacade {
 
             ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeStream(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, maxRecords);
 
+            PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
+            log.info("Streaming records");
             recordStream
                     .parallel() // Parallelize stream for performance boost.
                     .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
                     .filter(PreservicaUtils::validateRecord)
                     .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
 
-            manifestationPlugin.stopClient();
             log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
 
         } catch (IOException e) {

@@ -43,7 +43,6 @@ public class PreservicaManifestationExtractor {
         try {
             // Get the clean Preservica InformationObject ID.
             String preservicaID = PreservicaUtils.getPreservicaIoId(dsRecord);
-
             // Extract filename from Preservica and create a prefixed version for DS.
             String filename = getManifestationFileName(preservicaID);
 
@@ -75,12 +74,8 @@ public class PreservicaManifestationExtractor {
      * @return the filename for the newest presentation copy for the given InformationObject.
      */
     private String getManifestationFileName(String id) throws URISyntaxException, IOException {
+        client.getClientInstance();
         InputStream objectDetails = client.getPreservicaObjectDetails(id);
-
-        /*if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND){
-            log.error("Object Details API responded with HTTP 404 for id: '{}'", id);
-            return "";
-        }*/
 
         BufferedReader in = new BufferedReader(new InputStreamReader(objectDetails, StandardCharsets.UTF_8));
         // Create ObjectMapper instance with buffering enabled
@@ -116,13 +111,6 @@ public class PreservicaManifestationExtractor {
         }
 
         return filename;
-    }
-
-    /**
-     * Stops the timer in the backing Preservica client, making the client usable for a maximum of 14 more minuts.
-     */
-    public void stopClient(){
-        client.endTimer();
     }
 
     private String getStringValue(JsonNode prop) {

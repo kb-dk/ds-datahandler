@@ -17,7 +17,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Timer;
 import java.util.TimerTask;
 
 public class DsPreservicaClient {
@@ -29,12 +28,11 @@ public class DsPreservicaClient {
     private String password;
     private long sessionKeepAliveSeconds;
     private long lastSessionStart = 0;
+    DsPreservicaClient client;
 
     private String accessToken;
     private String refreshToken;
     private static final Logger log = LoggerFactory.getLogger(DsPreservicaClient.class);
-    private Thread timerThread;
-    private Timer tokenTimer;
 
     public DsPreservicaClient(String baseUrl, String username, String password, long sessionKeepAliveSeconds){
         if (sessionKeepAliveSeconds <600) { //Enforce some kind of reuse of session since authenticating sessions will accumulate at Kaltura.
@@ -45,16 +43,8 @@ public class DsPreservicaClient {
         this.password = password;
         this.sessionKeepAliveSeconds=sessionKeepAliveSeconds;
 
-        this.timerThread = new Thread(() -> {
-            // Schedule a task to refresh the token every 14 minutes. As the first accessToken can be used the delay is also 14 minutes.
-            tokenTimer = new Timer();
-            tokenTimer.schedule(new RefreshTokenTask(), 14 * 60 * 1000, 14 * 60 * 1000);
-        });
-
-        timerThread.start();
-
         // Call method to get first accesToken and refreshToken.
-        getInitialAccess();
+        getAccess();
     }
 
     /**
@@ -62,7 +52,6 @@ public class DsPreservicaClient {
      * @return the {@link DsPreservicaClient}.
      */
     public static DsPreservicaClient getPreservicaClient() {
-
         String preservicaUrl = ServiceConfig.getConfig().getString("preservica.baseUrl");
         String user = ServiceConfig.getConfig().getString("preservica.user");
         String password =  ServiceConfig.getConfig().getString("preservica.password");
@@ -75,24 +64,38 @@ public class DsPreservicaClient {
      * Get initial accessToken from Preservica Access API. This method gets the accessToken by using user credentials.
      * This should only be used for getting the initial accessToken. Subsequent refreshes should use the refreshToken.
      */
-    private void getInitialAccess() {
-        //System.currentTimeMillis()-lastSessionStart >= sessionKeepAliveSeconds*1000
-        if (System.currentTimeMillis()-lastSessionStart >= sessionKeepAliveSeconds*1000) {
-            try {
-                // Create URLConnection for access endpoint
-                HttpURLConnection connection = getPreservicaAccessConnection();
-                AccessResponseObject responseObject = getAccessResponseObject(connection);
+    public void getAccess() {
+        try {
+            // Create URLConnection for access endpoint
+            HttpURLConnection connection = getPreservicaAccessConnection();
+            AccessResponseObject responseObject = getAccessResponseObject(connection);
 
-                // Set accessToken and refreshToken from responseObject
-                accessToken = responseObject.getToken();
-                refreshToken = responseObject.getRefreshToken();
+            // Set accessToken and refreshToken from responseObject
+            accessToken = responseObject.getToken();
+            refreshToken = responseObject.getRefreshToken();
+            lastSessionStart=System.currentTimeMillis(); //Reset timer
+            // Close connection
+            connection.disconnect();
+        } catch (IOException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public synchronized DsPreservicaClient getClientInstance() throws IOException{
+        try {
+            if (System.currentTimeMillis()-lastSessionStart >= sessionKeepAliveSeconds*100) {
+                DsPreservicaClient clientInstance = new DsPreservicaClient(baseUrl, user, password, sessionKeepAliveSeconds);
+                log.info("Refreshed Preservica client session.");
+                client=clientInstance;
                 lastSessionStart=System.currentTimeMillis(); //Reset timer
-                log.info("Got initial Preservica access token.");
-                // Close connection
-                connection.disconnect();
-            } catch (IOException | URISyntaxException e) {
-                throw new RuntimeException(e);
+                return client;
             }
+            return client; //Reuse existing connection.
+        }
+        catch (Exception e) {
+            log.warn("Connecting to Preservica failed.");
+            throw new IOException (e);
         }
     }
 
@@ -225,21 +228,6 @@ public class DsPreservicaClient {
                 .build()
                 .toURL();
 
-        /*try (AsyncHttpClient asyncHttpClient = Dsl.asyncHttpClient(Dsl.config())) {
-
-            // Perform a GET request
-            return asyncHttpClient.prepareGet(url.toString())
-                    .setHeader("accept", "application/json")
-                    .setHeader("Preservica-Access-Token", accessToken)
-                    .execute()
-                    .toCompletableFuture()
-                    .thenApply(Response::getResponseBodyAsStream)
-                    .join();   // Wait for the request to complete
-
-        } catch ( Exception e) { // TODO: Update whicxh exception this throws
-            log.info("Logging: ", e);
-        }*/
-
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
         connection.setRequestMethod("GET");
@@ -247,14 +235,6 @@ public class DsPreservicaClient {
         connection.setRequestProperty("Preservica-Access-Token", accessToken);
 
         return connection.getInputStream();
-        //return null;
     }
 
-    /**
-     * Interrupt the Timer, so that no more Preservica Tokens are resolved.
-     */
-    public void endTimer(){
-        tokenTimer.cancel();
-        log.info("Interrupted TokenTimer");
-    }
 }

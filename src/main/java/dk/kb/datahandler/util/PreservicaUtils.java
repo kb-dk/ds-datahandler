@@ -1,5 +1,6 @@
 package dk.kb.datahandler.util;
 
+import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
@@ -7,6 +8,9 @@ import dk.kb.storage.util.DsStorageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
