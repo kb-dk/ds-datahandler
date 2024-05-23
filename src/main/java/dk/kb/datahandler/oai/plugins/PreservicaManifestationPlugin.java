@@ -5,14 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
-import dk.kb.datahandler.preservica.jobs.JobsBase;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
-import org.apache.http.client.utils.URIBuilder;
-import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.Dsl;
-import org.asynchttpclient.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,9 +15,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.StringJoiner;
@@ -97,7 +90,7 @@ public class PreservicaManifestationPlugin  implements Plugin {
      * Furthermore, it starts a timer, which updates the accesToken every 14th minute, by exchanging a refreshToken.
      */
     public PreservicaManifestationPlugin() throws IOException {
-        client = JobsBase.getPreservicaClient();
+        client = DsPreservicaClient.getPreservicaClient();
         createdRecord.setRecordType(RecordTypeDto.MANIFESTATION);
     }
 

@@ -7,10 +7,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
@@ -21,11 +17,9 @@ import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.oai.plugins.AllowedPlugins;
 import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
-import dk.kb.datahandler.util.LoggingUtils;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.RecordTypeDto;
-import dk.kb.util.webservice.stream.ContinuationInputStream;
 import dk.kb.util.webservice.stream.ContinuationStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -411,11 +405,11 @@ public class DsDatahandlerFacade {
     public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws InterruptedException, IOException {
         long processedRecords= 0L;
         log.info("STARTED MANIFESTATION PLUGIN");
-        LoggingUtils.writeToFile("STARTED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
         try {
             DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
             PreservicaManifestationPlugin manifestationPlugin = new PreservicaManifestationPlugin();
 
+            Long startTime = System.currentTimeMillis();
             AtomicInteger counter = new AtomicInteger(0);
             AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
             long maxRecords = 0;
@@ -437,15 +431,15 @@ public class DsDatahandlerFacade {
                     .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
 
             manifestationPlugin.stopClient();
+            log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
+
         } catch (IOException e) {
-            log.warn("Sleeping 20 seconds. Caught IOException: ", e);
-            sleep(20000);
+            log.warn("Threw the following IO exception when getting manifestations: ", e);
         } catch (ApiException e) {
             throw new RuntimeException(e);
         }
 
         log.info("FINISHED MANIFESTATION PLUGIN");
-        LoggingUtils.writeToFile("FINISHED MANIFESTATION PLUGIN", "src/main/resources/manifestationTimes.txt");
         return processedRecords;
     }
 }

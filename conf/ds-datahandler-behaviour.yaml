@@ -177,7 +177,9 @@ present:
   # endpoint as well.
   origins:
     - ds.tv
+    - ds.tv.devel7
     - ds.radio
+    - ds.radio.devel7
     - ds.samlingsbilleder
     - ds.radiotv
     - kb.images.billed.hca

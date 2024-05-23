@@ -15,17 +15,6 @@ public class PreservicaUtils {
     private static final Logger log = LoggerFactory.getLogger(PreservicaUtils.class);
 
     /**
-     * Validate that the given record is a Preservica 7 InformationObject by ID.
-     * @param dsRecord to validate
-     * @return true if record is an InformationObject, otherwise return false.
-     */
-    public static boolean isInformationObject(DsRecordDto dsRecord) {
-        String id = dsRecord.getId();
-        // Check if the id contains ':oai:io:' as this is what characterises InformationObjects from Preservica 7.
-        return id != null && id.contains(":oai:io:");
-    }
-
-    /**
      * Initialize a {@link PreservicaManifestationPlugin} which fetches a presentation manifestation through the
      * Preservica 7 APIs and creates a DsRecord for it with the original record as its parent record.
      * @param record to get manifestation for.
