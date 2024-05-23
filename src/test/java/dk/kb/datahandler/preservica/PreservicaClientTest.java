@@ -18,7 +18,7 @@ public class PreservicaClientTest {
     @BeforeAll
     public static void setup() throws IOException {
         // TODO: Change local to integration-test from aegis
-        ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml" ,"conf/ds-datahandler-local.yaml");
+        ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml" ,"ds-datahandler-integration-test.yaml");
     }
 
     @Test
@@ -28,9 +28,9 @@ public class PreservicaClientTest {
         // When using the devel instance of preservica 7 this test should not fail. Just testing throughput here.
         DsRecordDto record = new DsRecordDto();
         record.setRecordType(RecordTypeDto.DELIVERABLEUNIT);
-        record.setId("ds.tv.devel7:oai:io:aeeb00c9-afd8-4940-8160-b6027c33df94");
+        record.setId("ds.tv:oai:io:9e081b87-66f4-4797-9cff-d2ce226ab300");
         record = manifestationPlugin.apply(record);
 
-        assertEquals("aeeb00c9-afd8-4940-8160-b6027c33df94.mp4", record.getReferenceId());
+        assertEquals("9e081b87-66f4-4797-9cff-d2ce226ab300.mp4", record.getReferenceId());
     }
 }
