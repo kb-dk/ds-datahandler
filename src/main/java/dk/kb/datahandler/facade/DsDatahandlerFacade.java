@@ -14,9 +14,7 @@ import java.util.zip.ZipInputStream;
 
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
-import dk.kb.datahandler.oai.plugins.AllowedPlugins;
-import dk.kb.datahandler.oai.plugins.Plugin;
-import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
+import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.RecordTypeDto;
@@ -145,15 +143,14 @@ public class DsDatahandlerFacade {
      * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job. 
      *  
      * @param oaiTargetName the location of the image, relative to the url argument
-     * @param plugins A list of plugins that can be configured to run during ingest from the OAI target.
      * @return Number of harvested records.
      */        
-    public static Integer oaiIngestFull(String oaiTargetName, List<String> plugins) throws Exception {
+    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
         
         //Will be 1 interval for OAI targets that does not need to split into days
         ArrayList<OaiFromUntilInterval> intervals = HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, null); // from == null, use default start day for OAI target instead
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals, plugins);
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);
         log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;            
     }
@@ -166,16 +163,15 @@ public class DsDatahandlerFacade {
      * The job will harvest records from the OAI server and ingest them into DS-storage  
      *  
      * @param oaiTargetName The name for the OAI target in the configuration
-     * @param plugins A list of plugins that can be configured to run during ingest from the OAI target.
      * @return Number of harvested records.
      */
-    public static Integer oaiIngestDelta(String oaiTargetName, List<String> plugins) throws Exception {
+    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
         String lastHarvestTime = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
 
         //Will be 1 interval for OAI targets that does not need to split into days
         ArrayList<OaiFromUntilInterval> intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, lastHarvestTime);
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals, plugins);
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);
         log.info("Delta ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;    	    	
     }
@@ -190,15 +186,14 @@ public class DsDatahandlerFacade {
      * The list of date-intervals must be ascending in time<br> 
      * The date intervals will be harvested in same order as in list. After each interval harvest they persistent last harvesttime will be updated for that OAI target.
      *  <p/>
-     * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform(OaiTargetJob, String, String, List)}-method}<br>
+     * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform(OaiTargetJob, String, String)}-method}<br>
      *  
      * @param oaiTargetName the name of the configured oai-target
      * @param fromUntilList List of date intervals. When calling this method the date formats must be in format accepted by the target.
-     * @param plugins A list of plugins that can be configured to run during ingest from the OAI target.
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *
      */
-     protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList, List<String> plugins) throws Exception {
+     protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {
          int totalNumber=0;
                   
          log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size() +" for target:"+oaiTargetName);
@@ -217,7 +212,7 @@ public class DsDatahandlerFacade {
              OaiJobCache.addNewJob(job);
               
              try {                       
-                int number= oaiIngestPerform(job , fromUntil.getFrom(),fromUntil.getUntil(), plugins);
+                int number= oaiIngestPerform(job , fromUntil.getFrom(),fromUntil.getUntil());
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
              }
@@ -253,7 +248,7 @@ public class DsDatahandlerFacade {
 
 
     /**
-     * This method will be called by the {@link #oaiIngestJobScheduler(String, ArrayList, List)}-method}<br>
+     * This method will be called by the {@link #oaiIngestJobScheduler(String, ArrayList)}-method}<br>
      * The scheduler method will setup the job and responsible for status of the job. <br>
      * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
      * For each successful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
@@ -261,11 +256,10 @@ public class DsDatahandlerFacade {
      * @param job The configured OAI target
      * @param from Datestamp format that will be accepted for that OAI target
      * @param until Datestamp format that will be accepted for that OAI target
-     * @param plugins A list of plugins that can be configured to run during ingest from the OAI target.
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws Exception If anything expected happens. OAI target does not respond, invalid xml, XSTL (filtering) failed etc.  
      */
-     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until, List<String> plugins) throws Exception {
+     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws Exception {
 
         //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)               
         //But COP only supports the short version. So when this is called use short format
@@ -304,7 +298,6 @@ public class DsDatahandlerFacade {
 
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
 
-            handlePlugins(plugins, oaiFilter);
             oaiFilter.addToStorage(response);
 
             log.info("Ingested '{}' records from origin: '{}' out of a total of '{}' records.",
@@ -325,22 +318,6 @@ public class DsDatahandlerFacade {
         return oaiFilter.getProcessed();
     }
 
-    /**
-     * Analyse which plugins have been selected and add correctly specified plugins to the OAI filter in use.
-     * @param plugins list of plugins that are to be added to the OAI-PMH workflow.
-     * @param oaiFilter the filter used to handle the OAI-PMH response.
-     */
-    private static void handlePlugins(List<String> plugins, OaiResponseFilter oaiFilter) throws IOException {
-        if (plugins.contains(AllowedPlugins.FETCH_MANIFESTATION.getName())) {
-            Plugin preservicaManifestationPlugin = new PreservicaManifestationPlugin();
-            oaiFilter.addPlugin(preservicaManifestationPlugin);
-        }
-        /* EXAMPLE OF IMPLEMENTING A SPEECH-TO-TEXT PLUGIN
-        if (plugins.contains(AllowedPlugins.FETCH_MANIFESTATION.getName())){
-            Plugin aiPlugin = new SpeechToTextPlugin();
-            oaiFilter.addPlugin();
-        }*/
-    }
 
     /**
      * Generates a {@link OaiTargetJob} from a {@link OaiTargetDto}.
@@ -407,7 +384,7 @@ public class DsDatahandlerFacade {
         log.info("STARTED MANIFESTATION PLUGIN");
         try {
             DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
-            PreservicaManifestationPlugin manifestationPlugin = new PreservicaManifestationPlugin();
+            PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
 
             Long startTime = System.currentTimeMillis();
             AtomicInteger counter = new AtomicInteger(0);

@@ -168,24 +168,6 @@ public class PreservicaDataTest {
         assertEquals("ds.test", dsRecord.getOrigin());
     }
 
-    @Test
-    public void testPluginFunctionality() throws ApiException {
-        // We don't need a working storage to test this functionality. Therefore, this mock
-        DsStorageClient mockedStorage = Mockito.mock(DsStorageClient.class);
-        OaiResponse testResponse = createTestOaiResponseWithIOs();
-
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaSeven("preservica", mockedStorage);
-        TestPlugin testPlugin = new TestPlugin();
-        oaiFilter.addPlugin(testPlugin);
-        // Assert that the plugin haven't been used yet.
-        assertEquals("", testPlugin.getResultOftest());
-
-        oaiFilter.addToStorage(testResponse);
-        // Assert that the plugin has been applied.
-        assertEquals("Test plugin has been activated.", testPlugin.getResultOftest());
-        assertEquals(2, oaiFilter.getProcessed());
-    }
-
     /**
      * Create an OAI test response containing two InformationObjects.
      * @return OAI Response with two fake IO records.

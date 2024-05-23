@@ -1,10 +1,12 @@
 package dk.kb.datahandler.oai;
 
+import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
+
 /**
  * Class representing a record extracted from an OAI-PMH call.
  * The object contains the standard fields: {@code id}, {@code metadata}, {@code dateStamp} and {@code deleted}.
  * Furthermore, a non-required and non-OAI attribute named {@code manifestationId} is included. This is used by the
- * {@link dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin} for extracting manifestations.
+ * {@link PreservicaManifestationExtractor} for extracting manifestations.
  */
 public class OaiRecord {
     private String id;

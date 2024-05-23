@@ -1,6 +1,6 @@
 package dk.kb.datahandler.util;
 
-import dk.kb.datahandler.oai.plugins.PreservicaManifestationPlugin;
+import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.util.DsStorageClient;
@@ -15,12 +15,12 @@ public class PreservicaUtils {
     private static final Logger log = LoggerFactory.getLogger(PreservicaUtils.class);
 
     /**
-     * Initialize a {@link PreservicaManifestationPlugin} which fetches a presentation manifestation through the
+     * Initialize a {@link PreservicaManifestationExtractor} which fetches a presentation manifestation through the
      * Preservica 7 APIs and creates a DsRecord for it with the original record as its parent record.
      * @param record to get manifestation for.
      * @return the newly created child record with the ID of the original record as its parent.
      */
-    public static DsRecordDto fetchManifestation(DsRecordDto record, PreservicaManifestationPlugin plugin, AtomicInteger counter, AtomicLong currentTime) {
+    public static DsRecordDto fetchManifestation(DsRecordDto record, PreservicaManifestationExtractor plugin, AtomicInteger counter, AtomicLong currentTime) {
         counter.getAndIncrement();
 
         if (counter.get() % 200 == 0){
@@ -30,7 +30,7 @@ public class PreservicaUtils {
         }
         plugin.apply(record);
 
-        return PreservicaManifestationPlugin.createdRecord;
+        return PreservicaManifestationExtractor.createdRecord;
     }
 
     /**

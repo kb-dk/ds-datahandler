@@ -14,14 +14,11 @@
  */
 package dk.kb.datahandler.oai;
 
-import dk.kb.datahandler.oai.plugins.Plugin;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.storage.util.DsStorageClient;
 
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Filtering and delivery of OAI records. public implementation generates {@code datasource} prefixed ID,
@@ -31,7 +28,6 @@ public class OaiResponseFilter {
     protected final DsStorageClient storage;
     protected final String datasource;
     protected int processed = 0;
-    private List<Plugin> plugins;
 
     /**
      * @param datasource source for records. Default implementation uses this for {@code origin}.
@@ -40,11 +36,6 @@ public class OaiResponseFilter {
     public OaiResponseFilter(String datasource, DsStorageClient storage) {
         this.storage = storage;
         this.datasource = datasource;
-        this.plugins = new ArrayList<>();
-    }
-
-    public void addPlugin(Plugin plugin) {
-        plugins.add(plugin);
     }
 
     /**
@@ -65,11 +56,6 @@ public class OaiResponseFilter {
      * @param oaiRecord     a record from an OAI-PMH response
      */
     public void addToStorage(OaiRecord oaiRecord) throws ApiException {
-        // Apply all plugins
-        for (Plugin plugin : plugins) {
-            plugin.apply(oaiRecord);
-        }
-
         String origin = getOrigin(oaiRecord, datasource);
         String storageId = origin + ":" + oaiRecord.getId();
         if (oaiRecord.isDeleted()) {

@@ -1,9 +1,8 @@
-package dk.kb.datahandler.oai.plugins;
+package dk.kb.datahandler.preservica;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
@@ -26,36 +25,20 @@ import java.util.stream.StreamSupport;
 /**
  *
  */
-public class PreservicaManifestationPlugin  implements Plugin {
+public class PreservicaManifestationExtractor {
     public static DsRecordDto createdRecord = new DsRecordDto();
 
-    private static final Logger log = LoggerFactory.getLogger(PreservicaManifestationPlugin.class);
+    private static final Logger log = LoggerFactory.getLogger(PreservicaManifestationExtractor.class);
     private final String filenameField = "cmis:contentStreamFileName";
     private DsPreservicaClient client;
 
     /**
-     *
-     */
-    @Override
-    public void apply(OaiRecord oaiRecord) {
-        try {
-            String filename = getManifestationFileName(oaiRecord.getId());
-            oaiRecord.setManifestationId(filename);
-            log.info("Filename is: '{}'", filename);
-        } catch (URISyntaxException | IOException e) {
-            log.warn("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
-        }
-
-    }
-
-    /**
-     * Apply the plugin to a DsRecord.
+     * Apply the extractor to a DsRecord.
      * If the record is a DeliverableUnit (A record containing metadata) the ID of the manifestation, which the record
      * is about will be resolved from the backing Preservica instance. The resolved child record can be accessed in the
      * {@link #createdRecord}.
      * @param dsRecord DeliverableUnit to fetch manifestation from.
      */
-    @Override
     public void apply(DsRecordDto dsRecord) {
         if (dsRecord.getRecordType() != RecordTypeDto.DELIVERABLEUNIT){
             log.warn("Manifestation extraction plugin has been used on a record which cant have manifestations.");
@@ -79,7 +62,7 @@ public class PreservicaManifestationPlugin  implements Plugin {
                 updateInternalRecord(dsRecord, filename, prefixedFilename);
             }
         } catch (URISyntaxException | IOException e) {
-            log.error("Manifestation could not be extracted. PreservicaManifestationPlugin threw the following exception: ", e);
+            log.error("Manifestation could not be extracted. PreservicaManifestationExtractor threw the following exception: ", e);
         }
 
     }
@@ -89,7 +72,7 @@ public class PreservicaManifestationPlugin  implements Plugin {
      * and gets the first accessToken from the backing preservica installation.
      * Furthermore, it starts a timer, which updates the accesToken every 14th minute, by exchanging a refreshToken.
      */
-    public PreservicaManifestationPlugin() throws IOException {
+    public PreservicaManifestationExtractor() throws IOException {
         client = DsPreservicaClient.getPreservicaClient();
         createdRecord.setRecordType(RecordTypeDto.MANIFESTATION);
     }

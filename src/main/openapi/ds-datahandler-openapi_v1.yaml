@@ -75,14 +75,6 @@ paths:
           schema:
             type: string
             enum: ["${config:oaiTargets[*].name}"]
-        - name: plugins
-          in: query
-          description: 'Plugins used to enrich the resulting storage records during harvesting.'
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
       responses:
         '200':
           description: OK. Returns total number of records ingested.
@@ -106,14 +98,6 @@ paths:
           schema:            
             type: string
             enum: ["${config:oaiTargets[*].name}"]
-        - name: plugins
-          in: query
-          description: 'Plugins used to enrich the resulting storage records during harvesting.'
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
       responses:
         '200':
           description: OK. Returns total number of records ingested.
