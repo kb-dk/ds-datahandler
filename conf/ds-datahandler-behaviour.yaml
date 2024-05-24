@@ -162,6 +162,14 @@ solr:
   queryUrl: http://localhost:10011/solr/ds
   batchSize: 500
 
+# Configuration of preservica endpoints. These are used to fetch IDs/filenames for presentation manifestations
+preservica:
+  baseUrl: preservicaUrl/
+  user: user
+  password: password
+  keepAliveSeconds: 840 # The access token is valid for 15 minuts. If this value is not set, 14 minuts is used as the default
+
+
 # The ds-present server used for xslt
 present:
   url: http://localhost:9073/ds-present/v1
@@ -170,7 +178,9 @@ present:
   # endpoint as well.
   origins:
     - ds.tv
+    - ds.tv.devel7
     - ds.radio
+    - ds.radio.devel7
     - ds.samlingsbilleder
     - ds.radiotv
     - kb.images.billed.hca

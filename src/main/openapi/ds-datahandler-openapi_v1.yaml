@@ -155,6 +155,35 @@ paths:
                     status: 0
                     QTime: 1200
 
+  /enrichment/manifestations:
+    get:
+      tags:
+        - '${project.name}'
+      summary: 'Will fetch records from storage without child ID and fetch the ID from preservica.'
+      operationId: updatePreservicaManifestation
+      parameters:
+        - name: origin
+          in: query
+          description: 'Origin to fetch manifestations for'
+          required: true
+          schema:
+            type: string
+            enum: [ "${config:present.origins[*]}" ]
+        - name: mTimeFrom
+          in: query
+          description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK. Returns total number of records updated
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
   # The ping service should be in all projects, should not do any advanced processing
   # and should respond quickly with a simple message, e.g. "pong".
   #

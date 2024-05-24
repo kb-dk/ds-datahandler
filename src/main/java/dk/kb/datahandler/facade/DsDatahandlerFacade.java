@@ -7,11 +7,19 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
+import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
+import dk.kb.datahandler.preservica.client.DsPreservicaClient;
+import dk.kb.datahandler.util.PreservicaUtils;
+import dk.kb.storage.invoker.v1.ApiException;
+import dk.kb.storage.model.v1.RecordTypeDto;
+import dk.kb.util.webservice.stream.ContinuationStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -37,6 +45,8 @@ import dk.kb.storage.model.v1.OriginCountDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
+
+import static java.lang.Thread.sleep;
 
 
 public class DsDatahandlerFacade {
@@ -133,16 +143,16 @@ public class DsDatahandlerFacade {
      * The job will harvest records from the OAI server and ingest them into DS-storage  
      * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job. 
      *  
-     * @param  oaiTargetName the location of the image, relative to the url argument
+     * @param oaiTargetName the location of the image, relative to the url argument
      * @return Number of harvested records.
      */        
-    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {           
+    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
         
         //Will be 1 interval for OAI targets that does not need to split into days
-        ArrayList<OaiFromUntilInterval>  intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, null); // from == null, use default start day for OAI target instead
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);                     
-        log.info("Full ingest of target={} completed with records={}",oaiTargetName,totalHarvested);
+        ArrayList<OaiFromUntilInterval> intervals = HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, null); // from == null, use default start day for OAI target instead
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);
+        log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;            
     }
    
@@ -153,17 +163,17 @@ public class DsDatahandlerFacade {
      * If OAI strategy for the target is dayOnly, the harvest process will be split into days instead of a single job.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
      *  
-     * @param  oaiTargetName The name for the OAI target in the configuration
+     * @param oaiTargetName The name for the OAI target in the configuration
      * @return Number of harvested records.
-     */    
-    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {   
+     */
+    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
         String lastHarvestTime = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
 
         //Will be 1 interval for OAI targets that does not need to split into days
-        ArrayList<OaiFromUntilInterval>  intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, lastHarvestTime);
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);                     
-        log.info("Delta ingest of target={} completed with records={}",oaiTargetName,totalHarvested);
+        ArrayList<OaiFromUntilInterval> intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, lastHarvestTime);
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);
+        log.info("Delta ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;    	    	
     }
     
@@ -176,16 +186,15 @@ public class DsDatahandlerFacade {
      * This method has no specific code for the different OAI targets. Dateformats must be set correct for the target when calling this method. <br>
      * The list of date-intervals must be ascending in time<br> 
      * The date intervals will be harvested in same order as in list. After each interval harvest they persistent last harvesttime will be updated for that OAI target.
-     *  
-     * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform()  oaiIngestPerform method}<br> 
+     *  <p/>
+     * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform(OaiTargetJob, String, String)}-method}<br>
      *  
      * @param oaiTargetName the name of the configured oai-target
      * @param fromUntilList List of date intervals. When calling this method the date formats must be in format accepted by the target.
-     * 
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
-     *      
+     *
      */
-     protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {                
+     protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {
          int totalNumber=0;
                   
          log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size() +" for target:"+oaiTargetName);
@@ -240,7 +249,7 @@ public class DsDatahandlerFacade {
 
 
     /**
-     * This method will be called by the {@link #oaiIngestJobScheduler()  oaiIngestJobScheduler method}<br>
+     * This method will be called by the {@link #oaiIngestJobScheduler(String, ArrayList)}-method}<br>
      * The scheduler method will setup the job and responsible for status of the job. <br>
      * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
      * For each successful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
@@ -248,8 +257,7 @@ public class DsDatahandlerFacade {
      * @param job The configured OAI target
      * @param from Datestamp format that will be accepted for that OAI target
      * @param until Datestamp format that will be accepted for that OAI target
-     *  
-     * @return Number of harvested records for this date interval. Records discarded by filter etc. will not counted.
+     * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws Exception If anything expected happens. OAI target does not respond, invalid xml, XSTL (filtering) failed etc.  
      */
      private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws Exception {
@@ -311,6 +319,7 @@ public class DsDatahandlerFacade {
         return oaiFilter.getProcessed();
     }
 
+
     /**
      * Generates a {@link OaiTargetJob} from a {@link OaiTargetDto}.
      * <p>
@@ -321,7 +330,7 @@ public class DsDatahandlerFacade {
 
         long id = System.currentTimeMillis();
         try {
-            Thread.sleep(1); // So next ID is different.
+            sleep(1); // So next ID is different.
         }
         catch(Exception e) {
             //can not happen, noone will interrupt.            
@@ -363,4 +372,52 @@ public class DsDatahandlerFacade {
         }
     }
 
+    /**
+     * Method to update records in Preservica 7 related origins in backing {@code DsStorage} with children IDs.
+     * The method filters incoming records on IDs representing InformationObjects from Preservica 7, then tries to fetch
+     * a manifestation for the record and updates the storage record with the manifestation as a childrenID.
+     * @param origin to update records in.
+     * @param mTimeFrom to update records from.
+     * @return a count of records that have been updated.
+     */
+    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws InterruptedException, IOException {
+        long processedRecords= 0L;
+        log.info("STARTED MANIFESTATION PLUGIN");
+        try {
+            DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+
+            Long startTime = System.currentTimeMillis();
+            AtomicInteger counter = new AtomicInteger(0);
+            AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
+            long maxRecords = 0;
+
+            // This should be replaced by getting records of type with a modified until field.
+            List<OriginCountDto> stats = storageClient.getOriginStatistics();
+            for (OriginCountDto originCount : stats) {
+                if (originCount.getOrigin().equals(origin)){
+                    maxRecords = originCount.getCount();
+                }
+            }
+
+            ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeStream(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, maxRecords);
+
+            PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
+            log.info("Streaming records");
+            recordStream
+                    .parallel() // Parallelize stream for performance boost.
+                    .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                    .filter(PreservicaUtils::validateRecord)
+                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
+
+            log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
+
+        } catch (IOException e) {
+            log.warn("Threw the following IO exception when getting manifestations: ", e);
+        } catch (ApiException e) {
+            throw new RuntimeException(e);
+        }
+
+        log.info("FINISHED MANIFESTATION PLUGIN");
+        return processedRecords;
+    }
 }

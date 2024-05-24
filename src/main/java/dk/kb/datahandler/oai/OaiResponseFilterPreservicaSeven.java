@@ -17,9 +17,6 @@ import java.util.regex.Pattern;
 public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
     private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterPreservicaSeven.class);
 
-    private static final Pattern PARENT_PATTERN = Pattern.compile(
-            "<DeliverableUnitRef>([^<]+)</DeliverableUnitRef>");
-
     /**
      * Pattern for determining if a InformationObject from Preservica 7
      * contains metadata about a radio resource.
@@ -33,13 +30,6 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      */
     private static final Pattern TV_PATTERN = Pattern.compile(
             "<formatMediaType>Moving\\sImage</formatMediaType>|<ComponentType>Video</ComponentType>");
-
-    /**
-     * TODO: We need data from preservica 7 with assets before we can see if the filtering of preservation assets is even needed.
-     * Pattern to match preservation manifestations from Preservica5 by type.
-     */
-    private static final Pattern PRESERVATION_MANIFESTATION_PATTERN = Pattern.compile(
-            "<ManifestationRelRef>1</ManifestationRelRef>");
 
     /**
      * Pattern used to check that records does in fact contain PBCore metadata.
@@ -73,9 +63,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
                 log.debug("Skipped Structural object with id: '{}'", recordId);
                 continue;
             }
-            // DeliverableUnits from preservica 5 and InformationObjects from preservcia 6/7 need to have the PBCore metadata tag.
-            // Manifestations from preservica 5 does not seem to have it.
-            // Therefore, we are checking the ID as well.
+            // InformationObjects from preservcia 6/7 need to have the PBCore metadata tag.
             Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
             if ((recordId.contains("oai:io")) && !metadataMatcher.find()) {
                 processed++;
@@ -85,15 +73,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
                         recordId, emptyMetadataRecords, processed);
                 continue;
             }
-            // TODO: This lookup might not be needed for preservica 7. We need a record with a presentation asset from
-            //  preservica 7 before this can be determined. Hopefully this comes with their stage env
-            // Manifestations can not be of type 1 as type 1 = preservation manifestations.
-            Matcher preservationMatcher = PRESERVATION_MANIFESTATION_PATTERN.matcher(xml);
-            if (recordId.contains("oai:man") && preservationMatcher.find()) {
-                log.debug("OAI-PMH record '{}' is a preservation manifestation and is not added to DS-storage.",
-                        recordId);
-                continue;
-            }
+
             addToStorage(oaiRecord);
             processed++;
         }
@@ -118,25 +98,6 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
         }
     }
 
-    @Override
-    public String getParentID(OaiRecord oaiRecord, String origin) {
-        String xml = oaiRecord.getMetadata();
-        if (!xml.contains("<xip:Manifestation")) {
-            return null;
-        }
-
-        Matcher m = PARENT_PATTERN.matcher(xml);
-        if (!m.find()) {
-            log.debug("Unable to resolve parent ID for record '{}'", oaiRecord.getId());
-            return null;
-        }
-        String parentID = m.group(1);
-        if (parentID.length() < 30 || parentID.length() > 40) {
-            log.warn("ParentID '{}' does not seem to have correct format for record '{}'",
-                    parentID, oaiRecord.getId());
-        }
-        return origin + ":oai:du:" + parentID;
-    }
 
     /**
      * Determine the type of record in hand. For preservica 7 all records injected are most likely InformationObjects

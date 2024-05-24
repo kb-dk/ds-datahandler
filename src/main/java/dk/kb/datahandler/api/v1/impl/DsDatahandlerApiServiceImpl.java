@@ -22,6 +22,7 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,7 +79,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public Integer oaiIngestFull(String oaiTarget){
         log.debug("oaiIngestFull(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);        
+            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);
             return numberIngested;
 
         } catch (Exception e){
@@ -91,7 +92,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public Integer oaiIngestDelta(String oaiTarget){
         log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested= DsDatahandlerFacade.oaiIngestDelta(oaiTarget);
+            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget);
             return numberIngested;
 
         } catch (Exception e){
@@ -115,6 +116,21 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
             return  targets;
         } catch (Exception e){
             throw handleException(e);
+        }
+    }
+
+    /**
+     * Update manifestations for records in an origin. This endpoint is used with origins originating from Preservica 7.
+     * @param origin to update records in.
+     * @param mTimeFrom time to update records from.
+     * @return the amount of records that have been updated.
+     */
+    @Override
+    public Long updatePreservicaManifestation(String origin, Long mTimeFrom) {
+        try {
+            return DsDatahandlerFacade.updateManifestationForRecords(origin, mTimeFrom);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
