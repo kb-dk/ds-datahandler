@@ -31,6 +31,10 @@ public class ServiceConfig {
     private static String solrQueryUrl = null;
     private static String dsPresentUrl = null;
     private static int solrBatchSize=100;
+    private static String preservicaUrl = null;
+    private static String preservicaUser = null;
+    private static String preservicaPassword = null;
+
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -55,6 +59,10 @@ public class ServiceConfig {
         solrQueryUrl = serviceConfig.getString("solr.queryUrl");
         solrBatchSize=  serviceConfig.getInteger("solr.batchSize");
         dsPresentUrl = serviceConfig.getString("present.url");
+
+        preservicaUrl = serviceConfig.getString("preservica.baseUrl");
+        preservicaUser = serviceConfig.getString("preservica.user");
+        preservicaPassword = serviceConfig.getString("preservica.password");
 
         log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
                 "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}'",
@@ -113,7 +121,18 @@ public class ServiceConfig {
         return oaiTargets;
     }
 
-    
+    public static String getPreservicaUrl() {
+        return preservicaUrl;
+    }
+
+    public static String getPreservicaUser() {
+        return preservicaUser;
+    }
+
+    public static String getPreservicaPassword() {
+        return preservicaPassword;
+    }
+
     private static void loadOaiTargets() {
         List<YAML> targets = serviceConfig.getYAMLList("oaiTargets");
         for (YAML target: targets) {

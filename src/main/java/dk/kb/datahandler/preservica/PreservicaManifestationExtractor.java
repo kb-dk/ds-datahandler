@@ -27,7 +27,6 @@ import java.util.stream.StreamSupport;
 public class PreservicaManifestationExtractor {
     private static final Logger log = LoggerFactory.getLogger(PreservicaManifestationExtractor.class);
     private final String filenameField = "cmis:contentStreamFileName";
-    private DsPreservicaClient client;
 
     /**
      * Apply the extractor to a DsRecord.
@@ -55,7 +54,6 @@ public class PreservicaManifestationExtractor {
         }
 
         return dsRecord;
-
     }
 
     /**
@@ -64,7 +62,7 @@ public class PreservicaManifestationExtractor {
      * Furthermore, it starts a timer, which updates the accesToken every 14th minute, by exchanging a refreshToken.
      */
     public PreservicaManifestationExtractor() throws IOException {
-        client = DsPreservicaClient.getPreservicaClient();
+        DsPreservicaClient.getInstance();
     }
 
     /**
@@ -74,8 +72,7 @@ public class PreservicaManifestationExtractor {
      * @return the filename for the newest presentation copy for the given InformationObject.
      */
     private String getManifestationFileName(String id) throws URISyntaxException, IOException {
-        client.getClientInstance();
-        InputStream objectDetails = client.getPreservicaObjectDetails(id);
+        InputStream objectDetails = DsPreservicaClient.getInstance().getPreservicaObjectDetails(id);
 
         BufferedReader in = new BufferedReader(new InputStreamReader(objectDetails, StandardCharsets.UTF_8));
         // Create ObjectMapper instance with buffering enabled
