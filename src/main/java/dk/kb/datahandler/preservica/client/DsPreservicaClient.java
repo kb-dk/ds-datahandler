@@ -90,7 +90,7 @@ public class DsPreservicaClient {
     public static synchronized DsPreservicaClient getInstance() throws IOException{
         try {
             if (System.currentTimeMillis()-lastSessionStart >= sessionKeepAliveSeconds * 1000) {
-                DsPreservicaClient.init(baseUrl, user, password, 600);
+                DsPreservicaClient.init(baseUrl, user, password, sessionKeepAliveSeconds);
                 log.info("Refreshed Preservica client session.");
                 lastSessionStart=System.currentTimeMillis(); //Reset timer
                 return client;

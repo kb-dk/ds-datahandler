@@ -167,6 +167,7 @@ preservica:
   baseUrl: preservicaUrl/
   user: user
   password: password
+  keepAliveSeconds: 840 # The access token is valid for 15 minuts. If this value is not set, 14 minuts is used as the default
 
 
 # The ds-present server used for xslt

@@ -69,7 +69,10 @@ public class ContextListener implements ServletContextListener {
             //TODO this should not refer to something in template. Should we perhaps use reflection here?
             ServiceConfig.initialize(configFile);
             // Early initialization of preservica client.
-            DsPreservicaClient.init(ServiceConfig.getPreservicaUrl(), ServiceConfig.getPreservicaUser(), ServiceConfig.getPreservicaPassword(), 600);
+            DsPreservicaClient.init(ServiceConfig.getPreservicaUrl(), ServiceConfig.getPreservicaUser(),
+                    ServiceConfig.getPreservicaPassword(), ServiceConfig.getPreservicaKeepAliveSeconds());
+            log.info("Initialized Preservica Client to the following URL: '{}' for the user: '{}'",
+                    ServiceConfig.getPreservicaUrl(), ServiceConfig.getPreservicaUser());
         } catch (NamingException e) {
             throw new RuntimeException("Failed to lookup settings", e);
         } catch (IOException e) {

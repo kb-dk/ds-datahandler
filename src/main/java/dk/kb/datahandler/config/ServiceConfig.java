@@ -34,6 +34,7 @@ public class ServiceConfig {
     private static String preservicaUrl = null;
     private static String preservicaUser = null;
     private static String preservicaPassword = null;
+    private static int preservicaKeepAliveSeconds = 600;
 
     
     /**
@@ -63,6 +64,7 @@ public class ServiceConfig {
         preservicaUrl = serviceConfig.getString("preservica.baseUrl");
         preservicaUser = serviceConfig.getString("preservica.user");
         preservicaPassword = serviceConfig.getString("preservica.password");
+        preservicaKeepAliveSeconds = serviceConfig.getInteger("preservica.keepAliveSeconds", 840); // Defaulting to 14 minuts
 
         log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
                 "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}'",
@@ -131,6 +133,10 @@ public class ServiceConfig {
 
     public static String getPreservicaPassword() {
         return preservicaPassword;
+    }
+
+    public static int getPreservicaKeepAliveSeconds() {
+        return preservicaKeepAliveSeconds;
     }
 
     private static void loadOaiTargets() {
