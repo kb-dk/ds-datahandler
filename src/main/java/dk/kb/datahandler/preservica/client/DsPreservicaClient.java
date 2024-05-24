@@ -58,8 +58,8 @@ public class DsPreservicaClient {
      */
     public static void getAccess() {
         try {
-                        HttpURLConnection connection;
-            if (refreshToken == null){
+            HttpURLConnection connection;
+            if (refreshToken == null || System.currentTimeMillis()-lastSessionStart > sessionKeepAliveSeconds * 1000){
                 // Create URLConnection for access endpoint
                 log.debug("Getting Preservica Access");
                 connection = getPreservicaAccessConnection();
