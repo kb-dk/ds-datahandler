@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.7.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7.2) - 2024-05-27
 ###
 - Added endpoint for enriching preservica 7 records with manifestations extracted through the preservica 7 REST API. [DRA-500](https://kb-dk.atlassian.net/browse/DRA-503)
 
