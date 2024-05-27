@@ -15,11 +15,9 @@ import java.util.zip.ZipInputStream;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
-import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
-import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.RecordTypeDto;
-import dk.kb.util.webservice.stream.ContinuationStream;
+import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -386,35 +384,39 @@ public class DsDatahandlerFacade {
         try {
             DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
 
-            Long startTime = System.currentTimeMillis();
+            long startTime = System.currentTimeMillis();
+            long startTimeWithExtraZeros = startTime * 1000;
             AtomicInteger counter = new AtomicInteger(0);
             AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
-            long maxRecords = 0;
-
-            // This should be replaced by getting records of type with a modified until field.
-            List<OriginCountDto> stats = storageClient.getOriginStatistics();
-            for (OriginCountDto originCount : stats) {
-                if (originCount.getOrigin().equals(origin)){
-                    maxRecords = originCount.getCount();
-                }
-            }
-
-            ContinuationStream<DsRecordDto, Long> recordStream = storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeStream(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, maxRecords);
 
             PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
+            boolean hasMore = true;
             log.info("Streaming records");
-            recordStream
-                    .parallel() // Parallelize stream for performance boost.
-                    .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                    .filter(PreservicaUtils::validateRecord)
-                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
+
+            while (hasMore) {
+                try (ContinuationInputStream<Long> dsDocsStream =
+                             storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, 1000L)) {
+                    log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
+                            dsDocsStream.getRecordCount(), origin, counter.get());
+
+                    dsDocsStream.stream(DsRecordDto.class)
+                            .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
+                            .parallel() // Parallelize stream for performance boost.
+                            .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                            .filter(PreservicaUtils::validateRecord)
+                            .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
+
+                    hasMore = dsDocsStream.hasMore();
+                    if (hasMore) {
+                        mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
+                    }
+                }
+            }
 
             log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
 
         } catch (IOException e) {
             log.warn("Threw the following IO exception when getting manifestations: ", e);
-        } catch (ApiException e) {
-            throw new RuntimeException(e);
         }
 
         log.info("FINISHED MANIFESTATION PLUGIN");
