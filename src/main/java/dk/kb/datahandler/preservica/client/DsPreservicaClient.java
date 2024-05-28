@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import javax.xml.stream.XMLStreamException;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -236,24 +237,29 @@ public class DsPreservicaClient {
      */
     public String getFileRefFromInformationObject(String id){
         InputStream accesRepresentationXml;
-        String contentObjectId;
+        String contentObjectId = "";
 
         try {
             accesRepresentationXml = getAccessRepresentationForIO(id);
             contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accesRepresentationXml);
+        } catch (FileNotFoundException e){
+            log.info("No Access Content Object has been found for InformationObject: '{}'", id);
+            return "";
         } catch (XMLStreamException | IOException | URISyntaxException e) {
             log.error("Error getting or parsing ContentObject for InformationObject: '{}'", id, e);
-            throw new RuntimeException(e);
         }
 
         InputStream fileRefXml;
-        String fileRef;
+        String fileRef = "";
         try {
             fileRefXml = getFileRefForContentObject(contentObjectId);
             fileRef = PreservicaUtils.parseIdentifierResponseForFileRef(fileRefXml);
+        } catch (FileNotFoundException e){
+            // Should not happen
+            log.error("No fileRef has been found for ContentObject: '{}'", contentObjectId);
+            return "";
         } catch (XMLStreamException | IOException | URISyntaxException e) {
             log.error("Error getting or parsing fileRef for ContentObject: '{}'", contentObjectId, e);
-            throw new RuntimeException(e);
         }
 
         return fileRef;
@@ -272,12 +278,19 @@ public class DsPreservicaClient {
                 .build()
                 .toURL();
 
-        log.debug("Opening connection to url: '{}'", url);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        HttpURLConnection connection = null;
+        try {
+            log.debug("Opening connection to url: '{}'", url);
+            connection = (HttpURLConnection) url.openConnection();
 
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("accept", "application/xml");
-        connection.setRequestProperty("Preservica-Access-Token", accessToken);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("accept", "application/xml");
+            connection.setRequestProperty("Preservica-Access-Token", accessToken);
+
+        } catch (FileNotFoundException e){
+            log.warn("No Access Content Object was found for InformationObject: '{}'", id);
+            return null;
+        }
 
         return connection.getInputStream();
     }

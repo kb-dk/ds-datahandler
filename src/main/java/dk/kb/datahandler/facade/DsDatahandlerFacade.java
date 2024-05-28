@@ -380,7 +380,6 @@ public class DsDatahandlerFacade {
      */
     public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws InterruptedException, IOException {
         long processedRecords= 0L;
-        log.info("STARTED MANIFESTATION PLUGIN");
         try {
             DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
 
@@ -419,7 +418,6 @@ public class DsDatahandlerFacade {
             log.warn("Threw the following IO exception when getting manifestations: ", e);
         }
 
-        log.info("FINISHED MANIFESTATION PLUGIN");
         return processedRecords;
     }
 }
