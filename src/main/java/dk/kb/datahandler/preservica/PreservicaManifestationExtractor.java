@@ -41,15 +41,15 @@ public class PreservicaManifestationExtractor {
         }
         try {
             // Get the clean Preservica InformationObject ID.
-            String preservicaID = PreservicaUtils.getPreservicaIoId(dsRecord);
+            String preservicaIoID = PreservicaUtils.getPreservicaIoId(dsRecord);
             // Extract filename from Preservica and create a prefixed version for DS.
-            String filename = getManifestationFileName(preservicaID);
+            String filename = DsPreservicaClient.getInstance().getFileRefFromInformationObject(preservicaIoID);
 
             // Update the record that is to be returned.
             if (!filename.isEmpty()){
                 dsRecord.setReferenceId(filename);
             }
-        } catch (URISyntaxException | IOException e) {
+        } catch (IOException e) {
             log.error("Manifestation could not be extracted. PreservicaManifestationExtractor threw the following exception: ", e);
         }
 
@@ -63,69 +63,6 @@ public class PreservicaManifestationExtractor {
      */
     public PreservicaManifestationExtractor() throws IOException {
         DsPreservicaClient.getInstance();
-    }
-
-    /**
-     * Resolve filename for a presentation copy given a Preservica 7 InformationObject ID. The filename is extracted
-     * from a bigger JSON response by string manipulation.
-     * @param id Preservica 7 InformationObject ID.
-     * @return the filename for the newest presentation copy for the given InformationObject.
-     */
-    private String getManifestationFileName(String id) throws URISyntaxException, IOException {
-        InputStream objectDetails = DsPreservicaClient.getInstance().getPreservicaObjectDetails(id);
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(objectDetails, StandardCharsets.UTF_8));
-        // Create ObjectMapper instance with buffering enabled
-        ObjectMapper jsonMapper = new ObjectMapper()
-                .enable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
-                .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
-
-        // Parse JSON array
-        JsonNode rootNode = jsonMapper.readTree(in);
-        // Iterate over each JSON object in the array
-        Iterator<JsonNode> rootIterator = rootNode.elements();
-        JsonNode properties = null;
-        while (rootIterator.hasNext()) {
-            JsonNode node = rootIterator.next();
-            properties = node.get("properties");
-        }
-
-        if (properties == null){
-            throw new IOException("Expected to receive properties from call to Preservica Object Details endpoint for record with id: '" + id + "'.");
-        }
-
-        String filename = streamJsonNodes(properties)
-                .filter(this::filterByPropName)
-                .map(this::getStringValue)
-                .collect(Collectors.joining());
-
-        // Close the reader
-        in.close();
-
-        // TERACOM files are not presentation copies and should not be returned.
-        if (filename.endsWith(".ts")){
-            return "";
-        }
-
-        return filename;
-    }
-
-    private String getStringValue(JsonNode prop) {
-        String filename = prop.get("value").asText();
-        if (filename.endsWith(".ts")){
-            return "";
-        } else {
-            return filename;
-        }
-    }
-
-    private boolean filterByPropName(JsonNode prop) {
-        return prop.get("name").asText().equals(filenameField);
-    }
-
-    private static Stream<JsonNode> streamJsonNodes(JsonNode jsonNode) {
-        Iterable<JsonNode> iterable = jsonNode::elements;
-        return StreamSupport.stream(iterable.spliterator(), false);
     }
 
 }
