@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7.3) - 2024-05-28
+### 
+- Changed how to enrich preservica 7 records with manifestations. [DRA-685](https://kb-dk.atlassian.net/browse/DRA-685)
+
 ## [1.7.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7.2) - 2024-05-27
 ###
 - Added endpoint for enriching preservica 7 records with manifestations extracted through the preservica 7 REST API. [DRA-500](https://kb-dk.atlassian.net/browse/DRA-503)
