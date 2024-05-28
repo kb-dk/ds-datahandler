@@ -75,6 +75,7 @@ public class PreservicaUtils {
         return record.getReferenceId() != null && !record.getReferenceId().isEmpty();
     }
 
+
     /**
      * Parse the response from {@link dk.kb.datahandler.preservica.client.DsPreservicaClient#getAccessRepresentationForIO(String)}
      * and extract the id of the returned ContentObject.
@@ -128,4 +129,69 @@ public class PreservicaUtils {
 
         return contentObject;
     }
+
+    /**
+     * Parse the response from {@link dk.kb.datahandler.preservica.client.DsPreservicaClient#getFileRefForContentObject(String)}
+     * and extract the fileRef of the returned ContentObject. This fileRef represents the name of the representation on
+     * the server and is NOT the same as the name of the bitstream, eventhough the bitstream streams the file from the
+     * file referenced by the fileRef extracted here.
+     * @param xml an {@link InputStream} containing a IdentifierResponse for a ContentObject.
+     * @return the fileRef for the file on the server representing the ContentObject put into the method.
+     */
+    public static String parseIdentifierResponseForFileRef(InputStream xml) throws XMLStreamException {
+        // Create an XMLEventReader
+        XMLInputFactory factory = XMLInputFactory.newInstance();
+        XMLEventReader eventReader = factory.createXMLEventReader(xml);
+
+        // Variables to hold data
+        String elementName;
+        String fileRef = "";
+        boolean isCorrectType = false;
+        boolean isIdentifer = false;
+        boolean isFileRef = false;
+
+        // Loop through the XML events
+        while (eventReader.hasNext()) {
+            XMLEvent event = eventReader.nextEvent();
+            if (event.isStartElement()) {
+                StartElement startElement = event.asStartElement();
+                elementName = startElement.getName().getLocalPart();
+                if (elementName.equals("Identifier")) {
+                    isIdentifer = true;
+                }
+
+                if (isIdentifer && elementName.equals("Type")){
+                    event = eventReader.nextEvent();
+                    if (event.isCharacters()) {
+                        Characters characters = event.asCharacters();
+                        if ("co_v4_fileRef".equals(characters.getData())) {
+                            isFileRef = true;
+                        }
+                    }
+                }
+            } else if (event.isCharacters() && isIdentifer && isFileRef) {
+                Characters characters = event.asCharacters();
+                if (!characters.isWhiteSpace()) {
+                    fileRef = characters.getData();
+                }
+            } else if (event.isEndElement()) {
+                elementName = event.asEndElement().getName().getLocalPart();
+                if (elementName.equals("Identifier") && isIdentifer) {
+                    isIdentifer = false;
+                    if (fileRef.isEmpty()){
+                        log.error("No fileRef have been found in the parsed XML.");
+                    }
+                }
+                if (elementName.equals("Value") && isFileRef) {
+                    isFileRef = false;
+                    if (fileRef.isEmpty()){
+                        log.error("No fileRef have been found in the parsed XML.");
+                    }
+                }
+            }
+        }
+
+        return fileRef;
+    }
+
 }
