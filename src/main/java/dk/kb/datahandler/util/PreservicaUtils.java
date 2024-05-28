@@ -22,10 +22,10 @@ public class PreservicaUtils {
     private static final Logger log = LoggerFactory.getLogger(PreservicaUtils.class);
 
     /**
-     * Initialize a {@link PreservicaManifestationExtractor} which fetches a presentation manifestation through the
-     * Preservica 7 APIs and creates a DsRecord for it with the original record as its parent record.
+     * Initialize a {@link PreservicaManifestationExtractor} which fetches a presentation representation through the
+     * Preservica 7 APIs and sets the id for the representation as referenceId for the input record.
      * @param record to get manifestation for.
-     * @return the newly created child record with the ID of the original record as its parent.
+     * @return the updated record with presentation copy as reference id.
      */
     public static DsRecordDto fetchManifestation(DsRecordDto record, PreservicaManifestationExtractor plugin, AtomicInteger counter, AtomicLong currentTime) {
         counter.getAndIncrement();
