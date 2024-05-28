@@ -23,7 +23,6 @@ public class PreservicaClientTest {
 
     @BeforeAll
     public static void setup() throws IOException {
-        // TODO: Change local to integration-test from aegis
         ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml" ,"ds-datahandler-integration-test.yaml");
         DsPreservicaClient.init(ServiceConfig.getPreservicaUrl(), ServiceConfig.getPreservicaUser(),
                 ServiceConfig.getPreservicaPassword(), ServiceConfig.getPreservicaKeepAliveSeconds());
@@ -35,7 +34,7 @@ public class PreservicaClientTest {
         DsRecordDto record = getTestRecord();
         record = manifestationPlugin.apply(record);
 
-        assertEquals("9e081b87-66f4-4797-9cff-d2ce226ab300.mp4", record.getReferenceId());
+        assertEquals("21f85387-9900-4f2a-ab4f-cf81b2fd1dea", record.getReferenceId());
     }
 
     @Tag("integration")
@@ -81,13 +80,13 @@ public class PreservicaClientTest {
         DsRecordDto record = getTestRecord();
         record = manifestationPlugin.apply(record);
 
-        assertEquals("9e081b87-66f4-4797-9cff-d2ce226ab300.mp4", record.getReferenceId());
+        assertEquals("21f85387-9900-4f2a-ab4f-cf81b2fd1dea", record.getReferenceId());
 
         record.setReferenceId("");
         sleep(960000);
 
         record = manifestationPlugin.apply(record);
-        assertEquals("9e081b87-66f4-4797-9cff-d2ce226ab300.mp4", record.getReferenceId());
+        assertEquals("21f85387-9900-4f2a-ab4f-cf81b2fd1dea", record.getReferenceId());
     }
 
     private static DsRecordDto getTestRecord() {
