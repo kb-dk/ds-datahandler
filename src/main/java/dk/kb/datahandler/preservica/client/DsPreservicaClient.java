@@ -1,7 +1,6 @@
 package dk.kb.datahandler.preservica.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -16,8 +15,8 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.TimerTask;
 
 /**
  * Client for accessing Preservica 7. Currently, provides access to the Object-Details endpoint of the Content API.
@@ -213,6 +212,24 @@ public class DsPreservicaClient {
 
         connection.setRequestMethod("GET");
         connection.setRequestProperty("accept", "application/json");
+        connection.setRequestProperty("Preservica-Access-Token", accessToken);
+
+        return connection.getInputStream();
+    }
+
+    public InputStream getAccessRepresentationForIO(String id) throws IOException, URISyntaxException {
+        List<String> getIoAccesRepresentationEndpoint = List.of("api", "entity", "information-objects", id, "representations", "Access");
+
+        URL url = new URIBuilder(baseUrl)
+                .setPathSegments(getIoAccesRepresentationEndpoint)
+                .build()
+                .toURL();
+
+        log.debug("Opening connection to url: '{}'", url);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("accept", "application/xml");
         connection.setRequestProperty("Preservica-Access-Token", accessToken);
 
         return connection.getInputStream();
