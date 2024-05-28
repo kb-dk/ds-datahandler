@@ -246,7 +246,7 @@ public class DsPreservicaClient {
             log.info("No Access Content Object has been found for InformationObject: '{}'", id);
             return "";
         } catch (XMLStreamException | IOException | URISyntaxException e) {
-            log.error("Error getting or parsing ContentObject for InformationObject: '{}'", id, e);
+            log.warn("Error getting or parsing ContentObject for InformationObject: '{}'", id, e);
         }
 
         InputStream fileRefXml;
@@ -256,10 +256,10 @@ public class DsPreservicaClient {
             fileRef = PreservicaUtils.parseIdentifierResponseForFileRef(fileRefXml);
         } catch (FileNotFoundException e){
             // Should not happen
-            log.error("No fileRef has been found for ContentObject: '{}'", contentObjectId);
+            log.warn("No fileRef has been found for ContentObject: '{}'", contentObjectId);
             return "";
         } catch (XMLStreamException | IOException | URISyntaxException e) {
-            log.error("Error getting or parsing fileRef for ContentObject: '{}'", contentObjectId, e);
+            log.warn("Error getting or parsing fileRef for ContentObject: '{}'", contentObjectId, e);
         }
 
         return fileRef;

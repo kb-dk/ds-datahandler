@@ -115,13 +115,13 @@ public class PreservicaUtils {
                 if ("ContentObject".equals(elementName) && isContentObject) {
                     isContentObject = false;
                     if (contentObject.isEmpty()){
-                        log.error("No ContentObjects have been found in the parsed XML.");
+                        log.warn("No ContentObjects have been found in the parsed XML.");
                     }
                 }
                 if ("Representation".equals(elementName) && isInRepresentation) {
                     isInRepresentation = false;
                     if (contentObject.isEmpty()){
-                        log.error("No Representation tags have been found in the parsed XML.");
+                        log.warn("No Representation tags have been found in the parsed XML.");
                     }
                 }
             }
@@ -179,13 +179,13 @@ public class PreservicaUtils {
                 if (elementName.equals("Identifier") && isIdentifer) {
                     isIdentifer = false;
                     if (fileRef.isEmpty()){
-                        log.error("No fileRef have been found in the parsed XML.");
+                        log.warn("No fileRef have been found in the parsed XML.");
                     }
                 }
                 if (elementName.equals("Value") && isFileRef) {
                     isFileRef = false;
                     if (fileRef.isEmpty()){
-                        log.error("No fileRef have been found in the parsed XML.");
+                        log.warn("No fileRef have been found in the parsed XML.");
                     }
                 }
             }
