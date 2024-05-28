@@ -1,5 +1,6 @@
 package dk.kb.datahandler.oai;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -16,6 +17,7 @@ import java.util.Base64;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.xml.XMLEscapeSanitiser;
 
 import org.w3c.dom.ls.*;
+import org.xml.sax.SAXException;
 
 public class OaiHarvestClient {
 
@@ -184,7 +187,7 @@ public class OaiHarvestClient {
     //If they are not replaced, the DOM parse will fail completely to read anything.
 
 
-    public static Document sanitizeXml(String xmlResponse, String uri) throws Exception{ //uri only for log        
+    public static Document sanitizeXml(String xmlResponse, String uri) throws Exception { //uri only for log
 
         //System.out.println(response);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -198,10 +201,10 @@ public class OaiHarvestClient {
             document = builder.parse(new InputSource(new StringReader(responseSanitized)));
             document.getDocumentElement().normalize();
         }
-        catch(Exception e) {                       
-            log.error("Invalid XML from OAI harvest from this URI:"+uri,e);                                                
-            throw new Exception("invalid xml",e);            
-
+         catch (IOException |SAXException e) {
+            log.error("Invalid XML from OAI harvest from this URI: "+uri,e);
+            //throw new IOException()
+            throw new Exception("invalid xml",e);
         }
 
         return document;

@@ -16,6 +16,7 @@ import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.util.PreservicaUtils;
+import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.commons.io.IOUtils;
@@ -60,43 +61,47 @@ public class DsDatahandlerFacade {
      * @param is Inputstream. Must be a zip-file containing single files that each is an XML record.
      * @return List of strings containing the records that failed parsing.
      */    
-    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) throws Exception {
+    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) {
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
 
         DsStorageApi dsAPI = getDsStorageApiClient();
         ArrayList<String> errorRecords= new ArrayList<>();
 
         ZipEntry entry;
+        String fileName = "";
 
-        while ((entry = zis.getNextEntry()) != null) {
+        try {
 
-            String fileName=entry.getName();
+            while ((entry = zis.getNextEntry()) != null) {
 
-            try {                
-                String record_string = IOUtils.toString(zis, StandardCharsets.UTF_8);           
-                Document record = OaiHarvestClient.sanitizeXml(record_string, null);
+                fileName = entry.getName();
 
-                //There are several 'mods:identifier' identifier tags, but the first is the URI always.
-                Node item = record.getElementsByTagName("mods:identifier").item(0);            
-                String identifier =  item.getTextContent();                               
+
+                String recordString = IOUtils.toString(zis, StandardCharsets.UTF_8);
+                Document record = OaiHarvestClient.sanitizeXml(recordString, null);
+
+                //There are several 'mods:identifier' identifier tags, but the first always contains the URI.
+                Node item = record.getElementsByTagName("mods:identifier").item(0);
+                String identifier = item.getTextContent();
 
                 //Example: urn:uuid:096c9090-717f-11e0-82d7-002185371280
-                identifier=identifier.replaceFirst("urn:uuid:", ""); // Clear this first part from the ID
-                
-                String recordId= origin+":"+identifier;
+                identifier = identifier.replaceFirst("urn:uuid:", ""); // Clear this first part from the ID
+
+                String recordId = origin + ":" + identifier;
                 log.info("Ingesting record filename from zip: '{}' and id: '{}'", fileName, recordId);
                 DsRecordDto dsRecord = new DsRecordDto();
-                dsRecord.setId(recordId); 
+                dsRecord.setId(recordId);
                 dsRecord.setOrigin(origin);
-                dsRecord.setData(record_string);                                                 
-                dsAPI.recordPost(dsRecord);  
-                                                                
+                dsRecord.setData(recordString);
+                dsAPI.recordPost(dsRecord);
             }
-            catch(Exception e) {
-                errorRecords.add(fileName);
-                log.error("Error parsing xml record for file: '{}'", fileName, e);
-            }
+        } catch (IOException e) {
+            errorRecords.add(fileName);
+            log.error("Error parsing xml record for file: '{}'", fileName, e);
+        } catch (ApiException e){
+            log.error("Error posting record with filename: '{}' to DsStorage.", fileName, e);
         }
+
 
         IOUtils.closeQuietly(zis);        
         return errorRecords;         
@@ -339,12 +344,12 @@ public class DsDatahandlerFacade {
     }
 
     private static DsStorageClient getDsStorageApiClient() {
-        if (storageClient!= null) {
+        if (storageClient != null) {
           return storageClient;
         }
           
-        String dsLicenseUrl = ServiceConfig.getDsStorageUrl();                                
-        storageClient = new DsStorageClient(dsLicenseUrl);               
+        String dsStorageUrl = ServiceConfig.getDsStorageUrl();
+        storageClient = new DsStorageClient(dsStorageUrl);
         return storageClient;
     }
 
