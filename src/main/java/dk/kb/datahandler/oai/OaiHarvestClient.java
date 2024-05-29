@@ -1,5 +1,6 @@
 package dk.kb.datahandler.oai;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -16,7 +17,9 @@ import java.util.Base64;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
+import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.DOMImplementation;
@@ -29,6 +32,7 @@ import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.xml.XMLEscapeSanitiser;
 
 import org.w3c.dom.ls.*;
+import org.xml.sax.SAXException;
 
 public class OaiHarvestClient {
 
@@ -49,7 +53,7 @@ public class OaiHarvestClient {
     }
 
 
-    public OaiResponse next() throws Exception{
+    public OaiResponse next() throws IOException {
         OaiResponse oaiResponse = new OaiResponse();
 
         String baseURL=oaiTarget.getUrl();
@@ -184,24 +188,23 @@ public class OaiHarvestClient {
     //If they are not replaced, the DOM parse will fail completely to read anything.
 
 
-    public static Document sanitizeXml(String xmlResponse, String uri) throws Exception{ //uri only for log        
+    public static Document sanitizeXml(String xmlResponse, String uri) { //uri only for log
 
         //System.out.println(response);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
 
         XMLEscapeSanitiser sanitiser = new XMLEscapeSanitiser(""); //Do not replace with anything
         String responseSanitized  =  sanitiser.apply(xmlResponse);
-
         Document document = null;
+
         try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
             document = builder.parse(new InputSource(new StringReader(responseSanitized)));
             document.getDocumentElement().normalize();
-        }
-        catch(Exception e) {                       
-            log.error("Invalid XML from OAI harvest from this URI:"+uri,e);                                                
-            throw new Exception("invalid xml",e);            
-
+        } catch (IOException | SAXException | ParserConfigurationException e) {
+            log.error("Invalid XML from OAI harvest from this URI: '{}'", uri, e);
+            //throw new IOException()
+            throw new InternalServiceException("Invalid XML from OAI harvest from this URI: '{}'", uri, e);
         }
 
         return document;
@@ -212,11 +215,10 @@ public class OaiHarvestClient {
      * Call server and get response setting both password callback authenticator and set basic authentication in every single call
      * Preservica5  used the callback and set a session cookie
      * Preservica6 wants basic authentication in every single call.
-     * 
+     * <p>
      * The solution is to do both.
-     * 
      */
-    protected static String getHttpResponse(String uri, String user, String password) throws Exception {
+    protected static String getHttpResponse(String uri, String user, String password) throws IOException {
         HttpClient client = HttpClient.newBuilder()
                 .authenticator(new Authenticator() {
                     @Override
@@ -234,7 +236,13 @@ public class OaiHarvestClient {
                 .header("Authorization", getBasicAuthenticationHeader(user, password))
                 .build();
 
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            log.warn("An error occurred when sending OAI-PMH request: '{}'", request.toString());
+            throw new IOException(e);
+        }
         if (200 != response.statusCode()) {
             log.error("Not status code 200:" + response.statusCode());
 

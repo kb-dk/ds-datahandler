@@ -3,7 +3,6 @@ package dk.kb.datahandler.facade;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +15,7 @@ import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.util.PreservicaUtils;
+import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.commons.io.IOUtils;
@@ -48,73 +48,73 @@ import static java.lang.Thread.sleep;
 
 
 public class DsDatahandlerFacade {
-
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
     
     private static DsStorageClient storageClient;
     
     /**
-     * Ingest records directly into ds-storage from a zip-file containing multiple files that each is an xml-file with a single record
+     * Ingest records directly into ds-storage from a zip-file containing multiple files that each is a xml-file with a single record
      *  
      * @param  origin The origin for collection documents. The origin must be defined in ds-storage. 
-     * @param is Inputstream. Must be a zip-file containing single files that each is an XML record.
+     * @param is InputStream. Must be a zip-file containing single files that each is an XML record.
      * @return List of strings containing the records that failed parsing.
      */    
-    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) throws Exception {
+    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) {
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
 
         DsStorageApi dsAPI = getDsStorageApiClient();
         ArrayList<String> errorRecords= new ArrayList<>();
 
         ZipEntry entry;
+        String fileName = "";
 
-        while ((entry = zis.getNextEntry()) != null) {
+        try {
 
-            String fileName=entry.getName();
+            while ((entry = zis.getNextEntry()) != null) {
 
-            try {                
-                String record_string = IOUtils.toString(zis, StandardCharsets.UTF_8);           
-                Document record = OaiHarvestClient.sanitizeXml(record_string, null);
+                fileName = entry.getName();
 
-                //There are several 'mods:identifier' identifier tags, but the first is the URI always.
-                Node item = record.getElementsByTagName("mods:identifier").item(0);            
-                String identifier =  item.getTextContent();                               
+                String recordString = IOUtils.toString(zis, StandardCharsets.UTF_8);
+                Document record = OaiHarvestClient.sanitizeXml(recordString, null);
+
+                //There are several 'mods:identifier' identifier tags, but the first always contains the URI.
+                Node item = record.getElementsByTagName("mods:identifier").item(0);
+                String identifier = item.getTextContent();
 
                 //Example: urn:uuid:096c9090-717f-11e0-82d7-002185371280
-                identifier=identifier.replaceFirst("urn:uuid:", ""); // Clear this first part from the ID
-                
-                String recordId= origin+":"+identifier;
+                identifier = identifier.replaceFirst("urn:uuid:", ""); // Clear this first part from the ID
+
+                String recordId = origin + ":" + identifier;
                 log.info("Ingesting record filename from zip: '{}' and id: '{}'", fileName, recordId);
                 DsRecordDto dsRecord = new DsRecordDto();
-                dsRecord.setId(recordId); 
+                dsRecord.setId(recordId);
                 dsRecord.setOrigin(origin);
-                dsRecord.setData(record_string);                                                 
-                dsAPI.recordPost(dsRecord);  
-                                                                
+                dsRecord.setData(recordString);
+                dsAPI.recordPost(dsRecord);
             }
-            catch(Exception e) {
-                errorRecords.add(fileName);
-                log.error("Error parsing xml record for file: '{}'", fileName, e);
-            }
+        } catch (IOException e) {
+            errorRecords.add(fileName);
+            log.error("Error parsing xml record for file: '{}'", fileName, e);
+        } catch (ApiException e){
+            errorRecords.add(fileName);
+            log.error("Error posting record with filename: '{}' to DsStorage.", fileName, e);
         }
 
         IOUtils.closeQuietly(zis);        
         return errorRecords;         
     }
 
-    
     /**  
-     *  Will start a index flow of records from ds-storage into solr. 
+     *  Will start an index flow of records from ds-storage into solr.
      * <p>
      *  1) Call ds-present that will extract records from ds-storage and xslt transform them into solr-add documents json.
-     *  2) Send the input stream with json documents directly to solr so it is not kept in memory.
+     *  2) Send the input stream with json documents directly to solr, so it is not kept in memory.
      *  
      * @param origin Origin must be defined on the ds-present server.
      * @param mTimeFrom Will only index records with a last modification time (mTime) after this value. 
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
-    @SuppressWarnings("unchecked")
-    public static String indexSolrFull(String origin, Long mTimeFrom)  throws Exception{
+    public static String indexSolrFull(String origin, Long mTimeFrom) {
    
         if (mTimeFrom==null) {
             mTimeFrom=0L;
@@ -129,13 +129,12 @@ public class DsDatahandlerFacade {
      * Then fetch newer records from ds-storage, transform to solr documents in ds-present and index into solr.
      * @param origin to index records from.
      */
-    public static String indexSolrDelta(String origin) throws IOException, SolrServerException, URISyntaxException {
+    public static String indexSolrDelta(String origin) throws IOException, SolrServerException {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
 
         return SolrUtils.indexOrigin(origin, lastStorageMTime);
     }
 
-    
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
@@ -153,8 +152,7 @@ public class DsDatahandlerFacade {
         log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;            
     }
-   
-    
+
     /**
      * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
      * saved on the file system for that target.
@@ -174,16 +172,11 @@ public class DsDatahandlerFacade {
         log.info("Delta ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;    	    	
     }
-    
-  
-        
-   
 
-    
     /**
-     * This method has no specific code for the different OAI targets. Dateformats must be set correct for the target when calling this method. <br>
+     * This method has no specific code for the different OAI targets. Date formats must be set correct for the target when calling this method. <br>
      * The list of date-intervals must be ascending in time<br> 
-     * The date intervals will be harvested in same order as in list. After each interval harvest they persistent last harvesttime will be updated for that OAI target.
+     * The date intervals will be harvested in same order as in list. After each interval harvested they persistent last harvest time will be updated for that OAI target.
      *  <p/>
      * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform(OaiTargetJob, String, String)}-method}<br>
      *  
@@ -201,8 +194,8 @@ public class DsDatahandlerFacade {
              validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
              OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
              if (oaiTargetDto== null) {
-                 throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName +
-                    "' . See the config method for list of configured targets.");
+                 throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
+                    "'. See the config method for list of configured targets.");
              }
 
              OaiTargetJob job = createNewJob(oaiTargetDto);        
@@ -215,23 +208,18 @@ public class DsDatahandlerFacade {
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
              }
-             catch(Exception e) {
-                log.error("Oai delta harvest did not complete succesfull: '{}'", oaiTargetName);
+             catch (IOException | ApiException e) {
+                log.error("Oai delta harvest did not complete successfully for target: '{}'", oaiTargetName);
                 job.setCompletedTime(System.currentTimeMillis());
                 OaiJobCache.finishJob(job, 0,true);//Error                        
                 throw new Exception(e);
-             }            
+             }
          }
         return totalNumber;
     }
 
-    
-      
-
-    
-
     /**
-     *  Gives a ist of both completed and running jobs with status. Jobs still running will be first.
+     *  Gives a list of both completed and running jobs with status. Jobs still running will be first.
      *  The completed jobs will only contain last 10000 completed jobs
      *  
      * @return List of jobs with status
@@ -239,7 +227,7 @@ public class DsDatahandlerFacade {
     public static List<OaiJobDto> getJobs() {
         List<OaiJobDto> running=OaiJobCache.getRunningJobsMostRecentFirst();
         List<OaiJobDto> completed=OaiJobCache.getCompletedJobsMostRecentFirst();
-        List<OaiJobDto> result = new ArrayList<OaiJobDto>();
+        List<OaiJobDto> result = new ArrayList<>();
         result.addAll(running);
         result.addAll(completed);
         return result;
@@ -248,7 +236,7 @@ public class DsDatahandlerFacade {
 
     /**
      * This method will be called by the {@link #oaiIngestJobScheduler(String, ArrayList)}-method}<br>
-     * The scheduler method will setup the job and responsible for status of the job. <br>
+     * The scheduler method will set up the job and responsible for status of the job. <br>
      * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
      * For each successful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
      *      
@@ -256,11 +244,11 @@ public class DsDatahandlerFacade {
      * @param from Datestamp format that will be accepted for that OAI target
      * @param until Datestamp format that will be accepted for that OAI target
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
-     * @throws Exception If anything expected happens. OAI target does not respond, invalid xml, XSTL (filtering) failed etc.  
+     * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
-     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws Exception {
+     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws IOException, ApiException {
 
-        //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)               
+        //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format
         //Preservica seems to only accept full UTC format
         //Dirty but quick solution fix. Best would be if COP could fix it
@@ -305,7 +293,7 @@ public class DsDatahandlerFacade {
             //Update timestamp with timestamp from last OAI record.
             HarvestTimeUtil.updateDatestampForOaiTarget(oaiTargetDto,lastRecord.getDateStamp());
 
-            response = client.next(); //load next (may be empty)            
+            response = client.next(); //load next (can be empty)
         }
 
         if (response.isError()) {
@@ -331,7 +319,7 @@ public class DsDatahandlerFacade {
             sleep(1); // So next ID is different.
         }
         catch(Exception e) {
-            //can not happen, noone will interrupt.            
+            //can not happen, nothing will interrupt.
         }
 
         OaiTargetJob  job = new OaiTargetJob(id, dto);                
@@ -339,12 +327,12 @@ public class DsDatahandlerFacade {
     }
 
     private static DsStorageClient getDsStorageApiClient() {
-        if (storageClient!= null) {
+        if (storageClient != null) {
           return storageClient;
         }
           
-        String dsLicenseUrl = ServiceConfig.getDsStorageUrl();                                
-        storageClient = new DsStorageClient(dsLicenseUrl);               
+        String dsStorageUrl = ServiceConfig.getDsStorageUrl();
+        storageClient = new DsStorageClient(dsStorageUrl);
         return storageClient;
     }
 
@@ -359,8 +347,6 @@ public class DsDatahandlerFacade {
     	log.warn("Origin name was not found in origin-statistics returned from ds-storage. " +
                 "Using mTime=0 for Origin: '{}'", origin);
     	return 0L;
-    	
-    	
     }
 
     private static synchronized void validateNotAlreadyRunning(String oaiTargetName) {
@@ -378,46 +364,43 @@ public class DsDatahandlerFacade {
      * @param mTimeFrom to update records from.
      * @return a count of records that have been updated.
      */
-    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws InterruptedException, IOException {
+    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException {
+        DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+        PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
+
         long processedRecords= 0L;
-        try {
-            DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+        long startTime = System.currentTimeMillis();
+        long startTimeWithExtraZeros = startTime * 1000;
+        boolean hasMore = true;
+        AtomicInteger counter = new AtomicInteger(0);
+        AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
 
-            long startTime = System.currentTimeMillis();
-            long startTimeWithExtraZeros = startTime * 1000;
-            AtomicInteger counter = new AtomicInteger(0);
-            AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
+        while (hasMore) {
+            try (ContinuationInputStream<Long> dsDocsStream =
+                         storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, 1000L)) {
+                log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
+                        dsDocsStream.getRecordCount(), origin, counter.get());
 
-            PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
-            boolean hasMore = true;
-            log.info("Streaming records");
+                dsDocsStream.stream(DsRecordDto.class)
+                        .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
+                        .parallel() // Parallelize stream for performance boost.
+                        .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                        .filter(PreservicaUtils::validateRecord)
+                        .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
 
-            while (hasMore) {
-                try (ContinuationInputStream<Long> dsDocsStream =
-                             storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, 1000L)) {
-                    log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
-                            dsDocsStream.getRecordCount(), origin, counter.get());
-
-                    dsDocsStream.stream(DsRecordDto.class)
-                            .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
-                            .parallel() // Parallelize stream for performance boost.
-                            .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                            .filter(PreservicaUtils::validateRecord)
-                            .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
-
-                    hasMore = dsDocsStream.hasMore();
-                    if (hasMore) {
-                        mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
-                    }
+                hasMore = dsDocsStream.hasMore();
+                if (hasMore) {
+                    mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
                 }
+            } catch (IOException e) {
+                log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
+                        "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
+                        origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
+                throw e;
             }
-
-            log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
-
-        } catch (IOException e) {
-            log.warn("Threw the following IO exception when getting manifestations: ", e);
         }
 
+        log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
         return processedRecords;
     }
 }

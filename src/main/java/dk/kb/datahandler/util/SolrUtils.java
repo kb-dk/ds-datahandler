@@ -9,6 +9,7 @@ import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.solr.SolrResponseHeader;
 import dk.kb.present.model.v1.FormatDto;
 import dk.kb.present.util.DsPresentClient;
+import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrClient;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
@@ -67,19 +69,25 @@ public class SolrUtils {
      * @param sinceTime A long representation of time since epoch.
      * @return          A status on how many records have been indexed.
      */
-    public static String indexOrigin(String origin, Long sinceTime) throws IOException, URISyntaxException {
+    public static String indexOrigin(String origin, Long sinceTime){
         //DS-present client
         DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getConfig());
         // Solr update client
-        URL solrUpdateUrl=new URIBuilder(ServiceConfig.getSolrUpdateUrl())
-                .setParameter("commit", "true")
-                .build().toURL();
+        URL solrUpdateUrl;
+        try {
+            solrUpdateUrl = new URIBuilder(ServiceConfig.getSolrUpdateUrl())
+                    .setParameter("commit", "true")
+                    .build().toURL();
+        } catch (MalformedURLException | URISyntaxException e) {
+            log.warn("Update URL for solr could not be constructed. Tried to build URL from '{}'.", ServiceConfig.getSolrUpdateUrl());
+            throw new InternalServiceException(e);
+        }
 
         boolean hasMore=true;
         long batchSize= ServiceConfig.getSolrBatchSize();
 
         Long documents = 0L;
-        String solrResponse = "";
+        String solrResponse;
         SolrIndexResponse finalResponse = new SolrIndexResponse();
         log.info("Starting indexing of records with sinceTime: '{}' from origin: '{}'", sinceTime, origin);
 
@@ -91,13 +99,19 @@ public class SolrUtils {
                         solrDocsStream.getRecordCount(), origin, documents);
 
                 //POST request to Solr using the inputstream
-                HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
-                solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
+                try {
+                    HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
+                    solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
 
-                if (!solrResponse.contains("\"status\":0")) {
-                    log.error("Unexpectected reply from solr: '" + solrResponse + "'"); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
-                    throw new IOException ("Unexpected status from solr: '" + solrResponse + "'");
+                    if (!solrResponse.contains("\"status\":0")) {
+                        log.error("Unexpected reply from solr: '" + solrResponse + "'"); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}
+                        throw new IOException ("Unexpected status from solr: '" + solrResponse + "'");
+                    }
+                } catch (IOException e) {
+                    log.warn("An error occurred when posting the records to Solr at: '{}'", solrUpdateUrl);
+                    throw new InternalServiceException(e);
                 }
+
                 if (solrDocsStream.getRecordCount() != null) {
                     documents += solrDocsStream.getRecordCount();
                 }
@@ -108,6 +122,11 @@ public class SolrUtils {
                 if (hasMore) {
                     sinceTime=solrDocsStream.getContinuationToken(); //Next batch start from here.
                 }
+            } catch (IOException e) {
+                log.warn("An error occurred when streaming records from DsPresent. DsPresentClient.getRecordsJSON() " +
+                        "was called with the following params: origin='{}', mTime='{}', maxRecords='{}', format='{}'",
+                        origin, sinceTime, batchSize, FormatDto.SOLRJSON);
+                throw new InternalServiceException(e);
             }
         }
         log.info("Solr index completed for origin: '{}', mTime: {}, #docs: {}",
@@ -139,7 +158,7 @@ public class SolrUtils {
      * @param documents             The total amount of documents indexed.
      */
      public static void updateFinalResponse(String individualSolrResponse, SolrIndexResponse finalResponse,
-                                            Long documents) throws JsonProcessingException {
+                                            Long documents) {
 
         SolrResponseHeader currentResponseHeader = new SolrResponseHeader(individualSolrResponse);
 
@@ -148,9 +167,16 @@ public class SolrUtils {
         finalResponse.incrementCombinedQTime(currentResponseHeader.getqTime());
     }
 
-    private static String solrIndexObjectAsJSON(SolrIndexResponse solrIndexResponse) throws JsonProcessingException {
+    private static String solrIndexObjectAsJSON(SolrIndexResponse solrIndexResponse) {
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        return ow.writeValueAsString(solrIndexResponse);
+        String result = "";
+        try {
+            result = ow.writeValueAsString(solrIndexResponse);
+        } catch (JsonProcessingException e) {
+            log.warn("An error occurred when trying to convert a response from solr to JSON. Indexing has not been affected ");
+        }
+
+        return result;
     }
 
 }

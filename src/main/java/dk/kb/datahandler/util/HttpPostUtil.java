@@ -25,7 +25,7 @@ public class HttpPostUtil {
      * 
      * @param conn Connected data will be posted to
      * @param input Stream having json data
-     * @param contentType. Example :  'application/json'
+     * @param contentType Example :  'application/json'
      * @return Response string from server.
      * @throws IOException
      */      

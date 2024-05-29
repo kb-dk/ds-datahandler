@@ -6,6 +6,7 @@ import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.webservice.ImplBase;
+import dk.kb.util.webservice.exception.InternalServiceException;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.slf4j.Logger;
@@ -129,8 +130,8 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public Long updatePreservicaManifestation(String origin, Long mTimeFrom) {
         try {
             return DsDatahandlerFacade.updateManifestationForRecords(origin, mTimeFrom);
-        } catch (IOException | InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw handleException(e);
         }
     }
 

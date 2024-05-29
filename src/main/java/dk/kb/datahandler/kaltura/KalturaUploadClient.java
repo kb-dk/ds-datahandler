@@ -55,7 +55,7 @@ public class KalturaUploadClient {
      * @param name Name/titel for the resource in Kaltura
      * @param description , optional description 
      * 
-     * @param referenceId. Use our internal ID's there. The referenceId that later be used to a pointer to the play component to show the file
+     * @param referenceId Use our internal ID's there. The referenceId that later be used to a pointer to the play component to show the file
      * @return Status message from Kaltura. The message will return the internal id.    
      */
 
