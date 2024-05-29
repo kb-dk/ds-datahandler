@@ -3,7 +3,6 @@ package dk.kb.datahandler.facade;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,10 +53,10 @@ public class DsDatahandlerFacade {
     private static DsStorageClient storageClient;
     
     /**
-     * Ingest records directly into ds-storage from a zip-file containing multiple files that each is an xml-file with a single record
+     * Ingest records directly into ds-storage from a zip-file containing multiple files that each is a xml-file with a single record
      *  
      * @param  origin The origin for collection documents. The origin must be defined in ds-storage. 
-     * @param is Inputstream. Must be a zip-file containing single files that each is an XML record.
+     * @param is InputStream. Must be a zip-file containing single files that each is an XML record.
      * @return List of strings containing the records that failed parsing.
      */    
     public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) {
@@ -109,14 +108,13 @@ public class DsDatahandlerFacade {
      *  Will start an index flow of records from ds-storage into solr.
      * <p>
      *  1) Call ds-present that will extract records from ds-storage and xslt transform them into solr-add documents json.
-     *  2) Send the input stream with json documents directly to solr so it is not kept in memory.
+     *  2) Send the input stream with json documents directly to solr, so it is not kept in memory.
      *  
      * @param origin Origin must be defined on the ds-present server.
      * @param mTimeFrom Will only index records with a last modification time (mTime) after this value. 
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
-    @SuppressWarnings("unchecked")
-    public static String indexSolrFull(String origin, Long mTimeFrom)  throws Exception{
+    public static String indexSolrFull(String origin, Long mTimeFrom) {
    
         if (mTimeFrom==null) {
             mTimeFrom=0L;
@@ -176,9 +174,9 @@ public class DsDatahandlerFacade {
     }
 
     /**
-     * This method has no specific code for the different OAI targets. Dateformats must be set correct for the target when calling this method. <br>
+     * This method has no specific code for the different OAI targets. Date formats must be set correct for the target when calling this method. <br>
      * The list of date-intervals must be ascending in time<br> 
-     * The date intervals will be harvested in same order as in list. After each interval harvest they persistent last harvesttime will be updated for that OAI target.
+     * The date intervals will be harvested in same order as in list. After each interval harvested they persistent last harvest time will be updated for that OAI target.
      *  <p/>
      * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform(OaiTargetJob, String, String)}-method}<br>
      *  
@@ -221,7 +219,7 @@ public class DsDatahandlerFacade {
     }
 
     /**
-     *  Gives a ist of both completed and running jobs with status. Jobs still running will be first.
+     *  Gives a list of both completed and running jobs with status. Jobs still running will be first.
      *  The completed jobs will only contain last 10000 completed jobs
      *  
      * @return List of jobs with status
@@ -229,7 +227,7 @@ public class DsDatahandlerFacade {
     public static List<OaiJobDto> getJobs() {
         List<OaiJobDto> running=OaiJobCache.getRunningJobsMostRecentFirst();
         List<OaiJobDto> completed=OaiJobCache.getCompletedJobsMostRecentFirst();
-        List<OaiJobDto> result = new ArrayList<OaiJobDto>();
+        List<OaiJobDto> result = new ArrayList<>();
         result.addAll(running);
         result.addAll(completed);
         return result;
@@ -238,7 +236,7 @@ public class DsDatahandlerFacade {
 
     /**
      * This method will be called by the {@link #oaiIngestJobScheduler(String, ArrayList)}-method}<br>
-     * The scheduler method will setup the job and responsible for status of the job. <br>
+     * The scheduler method will set up the job and responsible for status of the job. <br>
      * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
      * For each successful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
      *      
@@ -246,11 +244,11 @@ public class DsDatahandlerFacade {
      * @param from Datestamp format that will be accepted for that OAI target
      * @param until Datestamp format that will be accepted for that OAI target
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
-     * @throws IOException If anything expected happens. OAI target does not respond, invalid xml, XSTL (filtering) failed etc.
+     * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
      private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws IOException, ApiException {
 
-        //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)               
+        //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format
         //Preservica seems to only accept full UTC format
         //Dirty but quick solution fix. Best would be if COP could fix it
@@ -295,7 +293,7 @@ public class DsDatahandlerFacade {
             //Update timestamp with timestamp from last OAI record.
             HarvestTimeUtil.updateDatestampForOaiTarget(oaiTargetDto,lastRecord.getDateStamp());
 
-            response = client.next(); //load next (may be empty)            
+            response = client.next(); //load next (can be empty)
         }
 
         if (response.isError()) {
@@ -321,7 +319,7 @@ public class DsDatahandlerFacade {
             sleep(1); // So next ID is different.
         }
         catch(Exception e) {
-            //can not happen, noone will interrupt.            
+            //can not happen, nothing will interrupt.
         }
 
         OaiTargetJob  job = new OaiTargetJob(id, dto);                
