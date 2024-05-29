@@ -99,6 +99,7 @@ public class DsDatahandlerFacade {
             errorRecords.add(fileName);
             log.error("Error parsing xml record for file: '{}'", fileName, e);
         } catch (ApiException e){
+            errorRecords.add(fileName);
             log.error("Error posting record with filename: '{}' to DsStorage.", fileName, e);
         }
 

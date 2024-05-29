@@ -19,6 +19,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.DOMImplementation;
@@ -187,24 +188,23 @@ public class OaiHarvestClient {
     //If they are not replaced, the DOM parse will fail completely to read anything.
 
 
-    public static Document sanitizeXml(String xmlResponse, String uri) throws Exception { //uri only for log
+    public static Document sanitizeXml(String xmlResponse, String uri) { //uri only for log
 
         //System.out.println(response);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
 
         XMLEscapeSanitiser sanitiser = new XMLEscapeSanitiser(""); //Do not replace with anything
         String responseSanitized  =  sanitiser.apply(xmlResponse);
-
         Document document = null;
+
         try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
             document = builder.parse(new InputSource(new StringReader(responseSanitized)));
             document.getDocumentElement().normalize();
-        }
-         catch (IOException |SAXException e) {
-            log.error("Invalid XML from OAI harvest from this URI: "+uri,e);
+        } catch (IOException | SAXException | ParserConfigurationException e) {
+            log.error("Invalid XML from OAI harvest from this URI: '{}'", uri, e);
             //throw new IOException()
-            throw new Exception("invalid xml",e);
+            throw new InternalServiceException("Invalid XML from OAI harvest from this URI: '{}'", uri, e);
         }
 
         return document;
