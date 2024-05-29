@@ -2,6 +2,7 @@ package dk.kb.datahandler.solr;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.kb.util.webservice.exception.InternalServiceException;
 
 import java.util.HashMap;
 
@@ -25,9 +26,13 @@ public class SolrResponseHeader {
      * @param solrResponseHeader The string representation of a solr response header which the {@code SolrResponseHeader}
      *                           is created from.
      */
-    public SolrResponseHeader(String solrResponseHeader) throws JsonProcessingException {
-        HashMap<String,Integer> responseHeader =
-                (HashMap<String, Integer>) new ObjectMapper().readValue(solrResponseHeader, HashMap.class).get("responseHeader");
+    public SolrResponseHeader(String solrResponseHeader) {
+        HashMap<String,Integer> responseHeader;
+        try {
+            responseHeader = (HashMap<String, Integer>) new ObjectMapper().readValue(solrResponseHeader, HashMap.class).get("responseHeader");
+        } catch (JsonProcessingException e) {
+            throw new InternalServiceException("An error occurred when creating the Solr response header.");
+        }
 
         this.rf = responseHeader.get("rf");
         this.status = responseHeader.get("status");

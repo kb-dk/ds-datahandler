@@ -110,7 +110,7 @@ public class DsDatahandlerFacade {
 
     
     /**  
-     *  Will start a index flow of records from ds-storage into solr. 
+     *  Will start an index flow of records from ds-storage into solr.
      * <p>
      *  1) Call ds-present that will extract records from ds-storage and xslt transform them into solr-add documents json.
      *  2) Send the input stream with json documents directly to solr so it is not kept in memory.
