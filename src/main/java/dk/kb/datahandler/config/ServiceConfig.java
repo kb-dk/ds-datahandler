@@ -47,7 +47,7 @@ public class ServiceConfig {
      * Initialized the configuration from the provided configFile.
      * This should normally be called from {@link dk.kb.datahandler.webservice.ContextListener} as
      * part of web server initialization of the container.
-     * @param configFile the configuration to load.
+     * @param configFiles the configuration to load.
      * @throws IOException if the configuration could not be loaded or parsed.
      */
     public static synchronized void initialize(String... configFiles) throws IOException {
@@ -86,7 +86,6 @@ public class ServiceConfig {
     /**
      * Direct access to the backing YAML-class is used for configurations with more flexible content
      * and/or if the service developer prefers key-based property access.
-     * @see #getHelloLines() for alternative.
      * @return the backing YAML-handler for the configuration.
      */
     public static YAML getConfig() {

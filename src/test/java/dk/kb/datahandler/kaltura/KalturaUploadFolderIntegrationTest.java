@@ -26,10 +26,9 @@ public class KalturaUploadFolderIntegrationTest {
      * Takes a directory with video or audio files and uploads them to Kaltura.<br>
      * The upload will use file_id as eksternal kaltura id.<br>
      * Title and description will be uploaded also to Kaltura title and description field. 
-     *
+     *<p/>
      * Before running this method, change log-level to warn i logback.test.xml to avoid spamming.
-     *  
-     *    *
+     * <p/>
      * This can not be changed to a unittest since it will modify Kaltura
      */
     public static void main(String[] args)  {

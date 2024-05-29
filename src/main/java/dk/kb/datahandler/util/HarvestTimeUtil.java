@@ -150,8 +150,7 @@ public class HarvestTimeUtil {
     /**
      * Return the next day. Return null if next day will be after tomorrow.  <br>
      * So if today is 2024-02-07, the last day that will be return is 2024-02-08. Else it will be null.
-     * 
-     * 
+     * <p/>
      * For input 2024-02-07 the output will be 2024-02-08  
      * If today is 2024-02-19. Input of 2024-02-19 will give 2024-02-20. But 2024-02-20 will give null.  
      * 
@@ -240,7 +239,7 @@ public class HarvestTimeUtil {
     /**
      * 
      * Validate UTC timestamp, format is strict and only seconds allowed
-     * 
+     * <p/>
      * example: 2021-03-24T19:57:34Z
      */
 
