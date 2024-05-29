@@ -135,7 +135,7 @@ public class DsDatahandlerFacade {
      * Then fetch newer records from ds-storage, transform to solr documents in ds-present and index into solr.
      * @param origin to index records from.
      */
-    public static String indexSolrDelta(String origin) throws IOException, SolrServerException, URISyntaxException {
+    public static String indexSolrDelta(String origin) throws IOException, SolrServerException {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
 
         return SolrUtils.indexOrigin(origin, lastStorageMTime);
@@ -207,8 +207,8 @@ public class DsDatahandlerFacade {
              validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
              OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
              if (oaiTargetDto== null) {
-                 throw new InvalidArgumentServiceException("No target found in configuration with name:'" + oaiTargetName +
-                    "' . See the config method for list of configured targets.");
+                 throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
+                    "'. See the config method for list of configured targets.");
              }
 
              OaiTargetJob job = createNewJob(oaiTargetDto);        
@@ -221,12 +221,12 @@ public class DsDatahandlerFacade {
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
              }
-             catch(Exception e) {
-                log.error("Oai delta harvest did not complete succesfull: '{}'", oaiTargetName);
+             catch(IOException | ApiException e) {
+                log.error("Oai delta harvest did not complete successfully for target: '{}'", oaiTargetName);
                 job.setCompletedTime(System.currentTimeMillis());
                 OaiJobCache.finishJob(job, 0,true);//Error                        
                 throw new Exception(e);
-             }            
+             }
          }
         return totalNumber;
     }
@@ -262,9 +262,9 @@ public class DsDatahandlerFacade {
      * @param from Datestamp format that will be accepted for that OAI target
      * @param until Datestamp format that will be accepted for that OAI target
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
-     * @throws Exception If anything expected happens. OAI target does not respond, invalid xml, XSTL (filtering) failed etc.  
+     * @throws IOException If anything expected happens. OAI target does not respond, invalid xml, XSTL (filtering) failed etc.
      */
-     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws Exception {
+     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws IOException, ApiException {
 
         //In the OAI spec, the from parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)               
         //But COP only supports the short version. So when this is called use short format

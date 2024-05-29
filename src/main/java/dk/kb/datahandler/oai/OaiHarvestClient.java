@@ -53,7 +53,7 @@ public class OaiHarvestClient {
     }
 
 
-    public OaiResponse next() throws Exception{
+    public OaiResponse next() throws IOException {
         OaiResponse oaiResponse = new OaiResponse();
 
         String baseURL=oaiTarget.getUrl();
@@ -215,11 +215,10 @@ public class OaiHarvestClient {
      * Call server and get response setting both password callback authenticator and set basic authentication in every single call
      * Preservica5  used the callback and set a session cookie
      * Preservica6 wants basic authentication in every single call.
-     * 
+     * <p>
      * The solution is to do both.
-     * 
      */
-    protected static String getHttpResponse(String uri, String user, String password) throws Exception {
+    protected static String getHttpResponse(String uri, String user, String password) throws IOException {
         HttpClient client = HttpClient.newBuilder()
                 .authenticator(new Authenticator() {
                     @Override
@@ -237,7 +236,13 @@ public class OaiHarvestClient {
                 .header("Authorization", getBasicAuthenticationHeader(user, password))
                 .build();
 
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(request, BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            log.warn("An error occurred when sending OAI-PMH request: '{}'", request.toString());
+            throw new IOException(e);
+        }
         if (200 != response.statusCode()) {
             log.error("Not status code 200:" + response.statusCode());
 

@@ -101,8 +101,13 @@ public class OaiResponseFilterPreservicaFive extends OaiResponseFilter {
                             oaiRecord.getId());
                 continue;
             }
-            addToStorage(oaiRecord);
-            processed++;
+            try {
+                addToStorage(oaiRecord);
+                processed++;
+            } catch (ApiException e){
+                log.warn("DsStorage threw an exception when adding OAI record from Preservica 5 to storage.");
+                throw e;
+            }
         }
     }
 

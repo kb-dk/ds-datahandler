@@ -54,7 +54,7 @@ public class HarvestTimeUtil {
     }
 
 
-    public static synchronized void updateDatestampForOaiTarget(OaiTargetDto oaiTarget, String datestamp) throws Exception{        
+    public static synchronized void updateDatestampForOaiTarget(OaiTargetDto oaiTarget, String datestamp) {
 
         //Hack to fix datestamp returned from Preservica. Format returned are not in OAI standard and is parsed wrong (downgrade to seconds) when given to preservica.
         //Only preservica 6 does not, preservica 5 gives correct format.
@@ -104,7 +104,7 @@ public class HarvestTimeUtil {
      * @param from  Generate day intervals starting from this day (included). If null it will start from the start_day attribute defined for the oai target.
      * 
      */
-    public static ArrayList<OaiFromUntilInterval> generateFromUntilInterval( OaiTargetDto oaiTarget , String from) throws Exception{
+    public static ArrayList<OaiFromUntilInterval> generateFromUntilInterval( OaiTargetDto oaiTarget , String from){
 
         ArrayList<OaiFromUntilInterval> intervals = new ArrayList<OaiFromUntilInterval>();
         if(from != null) {
@@ -205,9 +205,15 @@ public class HarvestTimeUtil {
         }               
     }
 
-    protected static void updateDatestampForOaiTarget(String oaiTargetNameFile, String datestamp) throws Exception{        
-        deleteFileAndWriteToFile(oaiTargetNameFile, datestamp);
-        log.info("Update last harvest datestamp for oai target:"+oaiTargetNameFile+" with:"+datestamp);
+    protected static void updateDatestampForOaiTarget(String oaiTargetNameFile, String datestamp) {
+        try {
+            deleteFileAndWriteToFile(oaiTargetNameFile, datestamp);
+        } catch (IOException e) {
+            log.warn("Datahandler was unable to update datestamp '{}' for OAI target in file: '{}'.",
+                    datestamp, oaiTargetNameFile);
+            throw new InternalServiceException(e);
+        }
+        log.info("Updated last harvest datestamp for oai target: '{}' with datestamp: '{}'", oaiTargetNameFile, datestamp);
     }
 
     protected static String getFileNameFromOaiTarget(OaiTargetDto oaiTarget) {        
