@@ -49,7 +49,6 @@ import static java.lang.Thread.sleep;
 
 
 public class DsDatahandlerFacade {
-
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
     
     private static DsStorageClient storageClient;
@@ -75,7 +74,6 @@ public class DsDatahandlerFacade {
             while ((entry = zis.getNextEntry()) != null) {
 
                 fileName = entry.getName();
-
 
                 String recordString = IOUtils.toString(zis, StandardCharsets.UTF_8);
                 Document record = OaiHarvestClient.sanitizeXml(recordString, null);
@@ -103,12 +101,10 @@ public class DsDatahandlerFacade {
             log.error("Error posting record with filename: '{}' to DsStorage.", fileName, e);
         }
 
-
         IOUtils.closeQuietly(zis);        
         return errorRecords;         
     }
 
-    
     /**  
      *  Will start an index flow of records from ds-storage into solr.
      * <p>
@@ -141,7 +137,6 @@ public class DsDatahandlerFacade {
         return SolrUtils.indexOrigin(origin, lastStorageMTime);
     }
 
-    
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
@@ -159,8 +154,7 @@ public class DsDatahandlerFacade {
         log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;            
     }
-   
-    
+
     /**
      * Starts a delta OAI harvest job for the target. The job will continue from last timestamp
      * saved on the file system for that target.
@@ -180,12 +174,7 @@ public class DsDatahandlerFacade {
         log.info("Delta ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;    	    	
     }
-    
-  
-        
-   
 
-    
     /**
      * This method has no specific code for the different OAI targets. Dateformats must be set correct for the target when calling this method. <br>
      * The list of date-intervals must be ascending in time<br> 
@@ -221,7 +210,7 @@ public class DsDatahandlerFacade {
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
              }
-             catch(IOException | ApiException e) {
+             catch (IOException | ApiException e) {
                 log.error("Oai delta harvest did not complete successfully for target: '{}'", oaiTargetName);
                 job.setCompletedTime(System.currentTimeMillis());
                 OaiJobCache.finishJob(job, 0,true);//Error                        
@@ -230,11 +219,6 @@ public class DsDatahandlerFacade {
          }
         return totalNumber;
     }
-
-    
-      
-
-    
 
     /**
      *  Gives a ist of both completed and running jobs with status. Jobs still running will be first.
@@ -365,8 +349,6 @@ public class DsDatahandlerFacade {
     	log.warn("Origin name was not found in origin-statistics returned from ds-storage. " +
                 "Using mTime=0 for Origin: '{}'", origin);
     	return 0L;
-    	
-    	
     }
 
     private static synchronized void validateNotAlreadyRunning(String oaiTargetName) {
@@ -384,46 +366,43 @@ public class DsDatahandlerFacade {
      * @param mTimeFrom to update records from.
      * @return a count of records that have been updated.
      */
-    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws InterruptedException, IOException {
+    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException {
+        DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+        PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
+
         long processedRecords= 0L;
-        try {
-            DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+        long startTime = System.currentTimeMillis();
+        long startTimeWithExtraZeros = startTime * 1000;
+        boolean hasMore = true;
+        AtomicInteger counter = new AtomicInteger(0);
+        AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
 
-            long startTime = System.currentTimeMillis();
-            long startTimeWithExtraZeros = startTime * 1000;
-            AtomicInteger counter = new AtomicInteger(0);
-            AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
+        while (hasMore) {
+            try (ContinuationInputStream<Long> dsDocsStream =
+                         storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, 1000L)) {
+                log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
+                        dsDocsStream.getRecordCount(), origin, counter.get());
 
-            PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
-            boolean hasMore = true;
-            log.info("Streaming records");
+                dsDocsStream.stream(DsRecordDto.class)
+                        .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
+                        .parallel() // Parallelize stream for performance boost.
+                        .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                        .filter(PreservicaUtils::validateRecord)
+                        .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
 
-            while (hasMore) {
-                try (ContinuationInputStream<Long> dsDocsStream =
-                             storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, 1000L)) {
-                    log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
-                            dsDocsStream.getRecordCount(), origin, counter.get());
-
-                    dsDocsStream.stream(DsRecordDto.class)
-                            .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
-                            .parallel() // Parallelize stream for performance boost.
-                            .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                            .filter(PreservicaUtils::validateRecord)
-                            .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
-
-                    hasMore = dsDocsStream.hasMore();
-                    if (hasMore) {
-                        mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
-                    }
+                hasMore = dsDocsStream.hasMore();
+                if (hasMore) {
+                    mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
                 }
+            } catch (IOException e) {
+                log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
+                        "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
+                        origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
+                throw e;
             }
-
-            log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
-
-        } catch (IOException e) {
-            log.warn("Threw the following IO exception when getting manifestations: ", e);
         }
 
+        log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
         return processedRecords;
     }
 }
