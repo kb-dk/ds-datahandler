@@ -587,7 +587,7 @@
                 <version>10.0.12</version>
                 <configuration>
                     <deployMode>FORK</deployMode>
-                    <jvmArgs>-Xmx256m -Djetty.port=9071</jvmArgs>
+                    <jvmArgs>-Xmx1g -Djetty.port=9071</jvmArgs>
                     <jettyXmls>${project.basedir}/target/jetty-res/jetty-env.xml</jettyXmls>
                     <useTestScope>true</useTestScope>
                     <!-- https://www.eclipse.org/jetty/documentation/jetty-10/programming-guide/index.html#jetty-run-goal -->
