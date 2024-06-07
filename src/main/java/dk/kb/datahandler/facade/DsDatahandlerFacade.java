@@ -185,7 +185,7 @@ public class DsDatahandlerFacade {
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *
      */
-     protected static Integer oaiIngestJobScheduler(String oaiTargetName,ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {
+     protected static Integer oaiIngestJobScheduler(String oaiTargetName, ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {
          int totalNumber=0;
                   
          log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size() +" for target:"+oaiTargetName);
@@ -209,7 +209,7 @@ public class DsDatahandlerFacade {
                 totalNumber+=number;
              }
              catch (IOException | ApiException e) {
-                log.error("Oai delta harvest did not complete successfully for target: '{}'", oaiTargetName);
+                log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);
                 job.setCompletedTime(System.currentTimeMillis());
                 OaiJobCache.finishJob(job, 0,true);//Error                        
                 throw new Exception(e);
