@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 
+import dk.kb.datahandler.config.ServiceConfig;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +22,6 @@ public class HttpPostUtil {
     
     /**
      * Takes an InputStream and feeds it to a HTTP post request
-     * 
-     * 
      * @param conn Connected data will be posted to
      * @param input Stream having json data
      * @param contentType Example :  'application/json'
@@ -36,23 +35,27 @@ public class HttpPostUtil {
         conn.setReadTimeout(60 * 1000); // 10 minutes 600 secs. Maybe large load needs to be delivered.
         conn.setUseCaches(false);
         conn.setDoOutput(true);
-        
+
         try (input ; OutputStream out = conn.getOutputStream()){
             long copiedBytes = IOUtils.copyLarge(input, out);
-             log.debug("Stream bytes read:"+copiedBytes);
+             log.debug("Stream bytes read: '{}'", copiedBytes);
+             if (copiedBytes < 1000L * ServiceConfig.getSolrBatchSize()){
+                 // Solr records contain approx. 1800 bytes, and they are probably only growing in size.
+                 // The tiniest I've seen is an average of 1500 bytes measured over 500 record.
+                 log.warn("The posted stream contained less than a thousand bytes pr record. " +
+                         "Records could be missing data.");
+             }
             out.flush();           
         }
        
         try (InputStream is = conn.getInputStream()) {
             return IOUtils.toString(is, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            log.error("Exception posting to " + conn.getURL(), e);
+            log.error("Exception posting to '{}'", conn.getURL(), e);
         }
         try (InputStream err = conn.getErrorStream()) {
             return IOUtils.toString(err, StandardCharsets.UTF_8);
         }
-        
-          
     }
 }
 
