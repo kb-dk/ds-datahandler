@@ -20,16 +20,18 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
     /**
      * Pattern for determining if a InformationObject from Preservica 7
      * contains metadata about a radio resource.
+     * The regex handles the fact that namespace prefixes are arbitrarily defined.
      */
     private static final Pattern RADIO_PATTERN = Pattern.compile(
-            "<formatMediaType>Sound</formatMediaType>|<ComponentType>Audio</ComponentType>");
+            "<((?:\\w+:)?formatMediaType)>Sound</\\1>");
 
     /**
      * Pattern for determining if a InformationObject from Preservica 7
      * contains metadata about a television resource.
+     * The regex handles the fact that namespace prefixes are arbitrarily defined.
      */
     private static final Pattern TV_PATTERN = Pattern.compile(
-            "<formatMediaType>Moving\\sImage</formatMediaType>|<ComponentType>Video</ComponentType>");
+            "<((?:\\w+:)?formatMediaType)>Moving\\sImage</\\1>");
 
     /**
      * Pattern used to check that records does in fact contain PBCore metadata.
