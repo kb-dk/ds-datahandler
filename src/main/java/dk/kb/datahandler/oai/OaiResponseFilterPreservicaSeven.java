@@ -22,7 +22,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      * contains metadata about a radio resource.
      * The regex handles the fact that namespace prefixes are arbitrarily defined.
      */
-    private static final Pattern RADIO_PATTERN = Pattern.compile(
+    protected static final Pattern RADIO_PATTERN = Pattern.compile(
             "<((?:\\w+:)?formatMediaType)>Sound</\\1>");
 
     /**
@@ -30,7 +30,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      * contains metadata about a television resource.
      * The regex handles the fact that namespace prefixes are arbitrarily defined.
      */
-    private static final Pattern TV_PATTERN = Pattern.compile(
+    protected static final Pattern TV_PATTERN = Pattern.compile(
             "<((?:\\w+:)?formatMediaType)>Moving\\sImage</\\1>");
 
     /**
