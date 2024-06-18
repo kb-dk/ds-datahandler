@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed 
+- Changed how origin gets extracted from records to allow for xml namespace prefixes on the field being used for this filtering for Preservica records. 
+
 ## [1.7.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7.3) - 2024-05-28
 ### 
 - Changed how to enrich preservica 7 records with manifestations. [DRA-685](https://kb-dk.atlassian.net/browse/DRA-685)
