@@ -36,7 +36,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
     /**
      * Pattern used to check that records does in fact contain PBCore metadata.
      */
-    private static final Pattern METADATA_PATTERN = Pattern.compile(
+    static final Pattern METADATA_PATTERN = Pattern.compile(
             "<Metadata\\s+schemaUri=\"http://www\\.pbcore\\.org/PBCore/PBCoreNamespace\\.html\">");
 
     protected int emptyMetadataRecords = 0;
