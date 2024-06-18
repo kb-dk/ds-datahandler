@@ -25,8 +25,10 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
     }
 
     /**
-     * Add records from Preservica OAI-PMH harvest to ds-storage. Records goes through a filtering where StructuralObjects
-     * from Preservica are filtered away and not added to ds-storage. Furthermore, types are resolved based on IDs.
+     * Add records from Preservica OAI-PMH harvest to ds-storage if the record has been sent on a DR channel.
+     * Records goes through a filtering where StructuralObjects from Preservica are filtered away and not added
+     * to ds-storage. Furthermore, types are resolved based on IDs and lastly it is checked that the record has been
+     * aired on a channel owned by DR.
      * @param response      OAI-PMH response containing preservica records.
      */
     @Override
@@ -45,11 +47,11 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
             if (!drMatcher.find()){
                 processed++;
                 nonDrRecords++;
-
+                // Periodically logging of how many records have been filtered out.
                 if (nonDrRecords % 1000 == 0) {
-                    log.info("The DR filter has filtered '{}' records away.", nonDrRecords);
+                    log.info("The DR filter has filtered '{}' records away. '{}' records have been processed.",
+                            nonDrRecords, processed);
                 }
-
                 continue;
             }
 
