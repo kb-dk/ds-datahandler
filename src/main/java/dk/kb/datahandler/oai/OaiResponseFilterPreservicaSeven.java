@@ -23,7 +23,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      * The regex handles the fact that namespace prefixes are arbitrarily defined.
      */
     protected static final Pattern RADIO_PATTERN = Pattern.compile(
-            "<((?:\\w+:)?formatMediaType)>Sound</\\1>");
+            ">Sound</(?:\\w+:)?formatMediaType");
 
     /**
      * Pattern for determining if a InformationObject from Preservica 7
@@ -31,7 +31,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      * The regex handles the fact that namespace prefixes are arbitrarily defined.
      */
     protected static final Pattern TV_PATTERN = Pattern.compile(
-            "<((?:\\w+:)?formatMediaType)>Moving\\sImage</\\1>");
+            ">Moving\\sImage</(?:\\w+:)?formatMediaType");
 
     /**
      * Pattern used to check that records does in fact contain PBCore metadata.
@@ -62,7 +62,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             String recordId = oaiRecord.getId();
             // Preservica StructuralObjects are ignored as they are only used as folders in the GUI.
             if (recordId.contains("oai:so")){
-                log.debug("Skipped Structural object with id: '{}'", recordId);
+                //log.debug("Skipped Structural object with id: '{}'", recordId);
                 continue;
             }
             // InformationObjects from preservcia 6/7 need to have the PBCore metadata tag.

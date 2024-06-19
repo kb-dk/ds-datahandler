@@ -16,12 +16,13 @@ public class PreservicaFilterTest {
                 "<formatMediaType>Moving Image</formatMediaType>",
                 "<ns:formatMediaType>Moving Image</ns:formatMediaType>",
                 "<namespace:formatMediaType>Moving Image</namespace:formatMediaType>",
+                "<ns2:formatMediaType xmlns:ns2=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">Moving Image</ns2:formatMediaType>"
         };
 
         // Test each string
         for (String text : texts) {
             Matcher matcher = tvPattern.matcher(text);
-            assertTrue(matcher.matches());
+            assertTrue(matcher.find());
         }
     }
 
@@ -32,12 +33,14 @@ public class PreservicaFilterTest {
                 "<formatMediaType>Sound</formatMediaType>",
                 "<ns:formatMediaType>Sound</ns:formatMediaType>",
                 "<namespace:formatMediaType>Sound</namespace:formatMediaType>",
+                "<ns2:formatMediaType xmlns:ns2=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">Sound</ns2:formatMediaType>"
         };
+
 
         // Test each string
         for (String text : texts) {
             Matcher matcher = radioPattern.matcher(text);
-            assertTrue(matcher.matches());
+            assertTrue(matcher.find());
         }
     }
 }
