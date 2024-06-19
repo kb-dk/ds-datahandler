@@ -291,7 +291,7 @@ public class DsDatahandlerFacade {
 
             oaiFilter.addToStorage(response);
 
-            log.info("Ingested '{}' records from origin: '{}' out of a total of '{}' records.",
+            log.info("Processed '{}' records from origin: '{}' out of a total of '{}' records.",
                     oaiFilter.getProcessed(), origin, response.getTotalRecords());
 
             //Update timestamp with timestamp from last OAI record.
