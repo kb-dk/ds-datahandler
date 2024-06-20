@@ -7,8 +7,6 @@ import java.util.List;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import com.kaltura.client.enums.MediaType;
-
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
@@ -17,22 +15,22 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 
+import com.kaltura.client.enums.MediaType;
+
 import dk.kb.kaltura.client.DsKalturaClient;
 
-
-
-
-public class KalturaUploadFolderIntegrationTest {
-
+public class KalturaManualFileUploader {
 
     /**
-     * Takes a directory with video or audio files and uploads them to Kaltura.<br>
-     * The upload will use file_id as eksternal kaltura id.<br>
-     * Title and description will be uploaded also to Kaltura title and description field. 
-     *<p/>
-     * Before running this method, change log-level to warn i logback.test.xml to avoid spamming.
-     * <p/>
-     * This can not be changed to a unittest since it will modify Kaltura
+     * <p>
+     * Manual started job to upload the devel or stage collection of audio/video files to Kaltura. 
+     * The job takes a folder of audio or video files as input. 
+     * For each file title and description are fetched from Solr and used as meta-data in Kaltura
+     * The files will be uploaded with the metadata: tag=DS-KALTURA
+     * </p>
+     * 
+     *  This is a temporary solution for devel/stage to get data into Kaltura for the frontend.
+     *  
      */
     public static void main(String[] args)  {
 
@@ -42,15 +40,13 @@ public class KalturaUploadFolderIntegrationTest {
         String userId = "XXX@kb.dk"; //User must exist in kaltura.                 
 
         try {
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl,userId,partnerId,adminSecret,86400);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl,userId,partnerId,adminSecret,86400);            
 
            // String uploadFolder="/home/teg/kaltura_files/video/";
             //KalturaMediaType mediaType = KalturaMediaType.VIDEO;
 
             String uploadFolder="/home/teg/kaltura_files/audio/";
-            MediaType mediaType = MediaType.AUDIO;
-
-
+            
             List<String> fileNameList = getFilesInDirectory(uploadFolder);
 
             
@@ -62,9 +58,10 @@ public class KalturaUploadFolderIntegrationTest {
                 String refId=file;// This is our external id 
                 System.out.println("Uploaded file:"+file +" with title:"+title);
                 String filePath=uploadFolder+file;
-                String tag="ds-kaltura";
+                String tag="DS-KALTURA"; //So we can the uploaded collection easy in Kaltura.                
+                
                 String referenceId=null;
-                referenceId= client.uploadMedia(filePath, refId, mediaType, title,description, tag);
+                referenceId= client.uploadMedia(filePath, refId,MediaType.AUDIO, title,description,tag );
                 
                 System.out.println("Uploaded file:"+file + " got kaltura referenceId:"+referenceId);    
             }
@@ -79,15 +76,12 @@ public class KalturaUploadFolderIntegrationTest {
 
     private static SolrDocument getRecordByFileId(String fileId) throws Exception{
 
-
-
         String solrUrl= "http://devel11:10007/solr/ds";
         Http2SolrClient client = new Http2SolrClient.Builder(solrUrl).build();
 
         SolrQuery solrQuery = new SolrQuery();
         solrQuery.setQuery("file_id:\""+fileId+"\"");
         solrQuery.set("facet", "false");
-
 
         QueryResponse rsp = client.query(solrQuery, METHOD.POST); //do not cache        
         SolrDocumentList results = rsp.getResults();
