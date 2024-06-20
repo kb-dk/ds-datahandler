@@ -14,7 +14,7 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
 
 
     protected static final Pattern DR_PATTERN = Pattern.compile(
-            "<((?:\\w+:)?publisher)>dr[^<]*</\\1>");
+            ">(?i:dr)[^<]*</(?:\\w+:)?publisher>");
 
     /**
      * @param datasource source for records. Default implementation uses this for {@code origin}.

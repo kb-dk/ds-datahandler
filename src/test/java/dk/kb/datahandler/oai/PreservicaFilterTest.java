@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PreservicaFilterTest {
@@ -42,5 +43,37 @@ public class PreservicaFilterTest {
             Matcher matcher = radioPattern.matcher(text);
             assertTrue(matcher.find());
         }
+    }
+
+    @Test
+    public void testDRFilterPositive(){
+        Pattern pattern = OaiResponseFilterDrArchive.DR_PATTERN;
+
+        String[] channels = {
+                "<namespace:publisher>DR P3</namespace:publisher>",
+                "<publisher>dr2</publisher>"
+        };
+
+        for (String channel : channels) {
+            Matcher matcher = pattern.matcher(channel);
+            assertTrue(matcher.find());
+        }
+
+    }
+
+    @Test
+    public void testDRFilterNegative(){
+        Pattern pattern = OaiResponseFilterDrArchive.DR_PATTERN;
+
+        String[] channels = {
+                "<namespace:publisher>TV 2</namespace:publisher>",
+                "<publisher>tvkolding</publisher>"
+        };
+
+        for (String channel : channels) {
+            Matcher matcher = pattern.matcher(channel);
+            assertFalse(matcher.find());
+        }
+
     }
 }
