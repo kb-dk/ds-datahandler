@@ -35,35 +35,13 @@ public class PreservicaDataTest {
     }
 
     @Test
-    public void testFindPvicaParent() throws Exception{
-        String xmlFile = "xml/pvica_parent_test.xml";        
-        String xml = Resolver.resolveUTF8String(xmlFile);
-        OaiRecord record = new OaiRecord();
-        record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
-        String parent = oaiFilter.getParentID(record,"ds.radiotv");
-        assertEquals("ds.radiotv:oai:du:9d9785a8-71f4-4b34-9a0e-1c99c13b001b", parent);        
-    }
-
-    @Test
     public void testPvicaOriginRadioDU() throws Exception{
         String xmlFile = "xml/pvica_origin_radio.xml";
         String xml = Resolver.resolveUTF8String(xmlFile);
 
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
-        String origin = oaiFilter.getOrigin(record, "preservica");
-        assertEquals("ds.radio", origin);
-    }
-    @Test
-    public void testPvicaOriginRadioManifestation() throws Exception{
-        String xmlFile = "xml/pvica_origin_radio_manifestation.xml";
-        String xml = Resolver.resolveUTF8String(xmlFile);
-
-        OaiRecord record = new OaiRecord();
-        record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaSeven(null, null);
         String origin = oaiFilter.getOrigin(record, "preservica");
         assertEquals("ds.radio", origin);
     }
@@ -74,33 +52,11 @@ public class PreservicaDataTest {
 
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
-        String origin = oaiFilter.getOrigin(record, "preservica");
-        assertEquals("ds.tv", origin);
-    }
-    @Test
-    public void testPvicaOriginTvManifestation() throws Exception{
-        String xmlFile = "xml/pvica_origin_tv_manifestation.xml";
-        String xml = Resolver.resolveUTF8String(xmlFile);
-
-        OaiRecord record = new OaiRecord();
-        record.setMetadata(xml);
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaSeven(null, null);
         String origin = oaiFilter.getOrigin(record, "preservica");
         assertEquals("ds.tv", origin);
     }
 
-    @Test
-    public void testRemovalOfCollectionsAndPreservationManifestations() throws ApiException {
-        // We don't need a working storage to test this functionality. Therefore this mock
-        DsStorageClient mockedStorage = Mockito.mock(DsStorageClient.class);
-        OaiResponse testResponse = createPreserviceFiveOaiResponse();
-
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive("preservica", mockedStorage);
-
-        oaiFilter.addToStorage(testResponse);
-        assertEquals(2, oaiFilter.getProcessed());
-    }
     @Test
     public void testManifestationNameSpaceFix() throws Exception{
         String xmlFile = "xml/pvica_manifestation_namespace_to_fix.xml";
@@ -110,34 +66,6 @@ public class PreservicaDataTest {
         assertTrue(xmlFixed.indexOf("<xip:Manifestation xmlns:xip=\"http://www.tessella.com/XIP/v4\"") > 0);
     }
 
-    @Test
-    public void testRecordTypeCol() {
-        DsRecordDto collectionRecord = new DsRecordDto();
-        collectionRecord.setId("ds.test:oai:col:232234234");
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
-        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
-
-        assertEquals(RecordTypeDto.COLLECTION, resolvedType);
-    }
-
-    @Test
-    public void testRecordTypeDU() {
-        DsRecordDto collectionRecord = new DsRecordDto();
-        collectionRecord.setId("ds.test:oai:du:232234234");
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
-        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
-
-        assertEquals(RecordTypeDto.DELIVERABLEUNIT, resolvedType);
-    }
-    @Test
-    public void testRecordTypeMan() {
-        DsRecordDto collectionRecord = new DsRecordDto();
-        collectionRecord.setId("ds.test:oai:man:232234234");
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
-        RecordTypeDto resolvedType = oaiFilter.getRecordType(collectionRecord, collectionRecord.getId());
-
-        assertEquals(RecordTypeDto.MANIFESTATION, resolvedType);
-    }
     @Test
     public void testRecordForTransformationErrors() throws IOException, SAXException, ParserConfigurationException {
         // Read XML as Document
@@ -160,7 +88,7 @@ public class PreservicaDataTest {
         dsRecord.setOrigin("ds.test");
         dsRecord.setData(oaiRecord.getMetadata());
 
-        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaFive(null, null);
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaSeven(null, null);
         RecordTypeDto resolvedType = oaiFilter.getRecordType(dsRecord, testStorageId);
 
         //Tests
