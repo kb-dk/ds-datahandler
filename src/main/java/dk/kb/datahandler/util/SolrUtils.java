@@ -25,6 +25,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SolrUtils {
     private static final Logger log = LoggerFactory.getLogger(SolrUtils.class);
@@ -92,6 +93,7 @@ public class SolrUtils {
         log.info("Starting indexing of records with sinceTime: '{}' from origin: '{}'", sinceTime, origin);
 
 
+        AtomicLong bytesCounter = new AtomicLong();
         while (hasMore) {
             try (ContinuationInputStream<Long> solrDocsStream =
                          presentClient.getRecordsJSON(origin, sinceTime,batchSize, FormatDto.SOLRJSON)) {
@@ -101,7 +103,14 @@ public class SolrUtils {
                 //POST request to Solr using the inputstream
                 try {
                     HttpURLConnection solrServerConnection = (HttpURLConnection) solrUpdateUrl.openConnection();
-                    solrResponse = HttpPostUtil.callPost(solrServerConnection, solrDocsStream , "application/json");
+                    solrResponse = HttpPostUtil.callPostWithBytesCounter(solrServerConnection, solrDocsStream , "application/json", bytesCounter);
+
+                    if (bytesCounter.get() < 1000L * ServiceConfig.getSolrBatchSize()) {
+                        // Solr records contain approx. 1800 bytes, and they are probably only growing in size.
+                        // The tiniest I've seen is an average of 1500 bytes measured over 500 record.
+                        log.warn("The posted stream contained less than a thousand bytes pr record. " +
+                                    "Records could be missing data.");
+                    }
 
                     if (!solrResponse.contains("\"status\":0")) {
                         log.error("Unexpected reply from solr: '" + solrResponse + "'"); //Example: {  "responseHeader":{    "rf":1,    "status":0,    "QTime":1348}}

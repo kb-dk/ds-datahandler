@@ -135,7 +135,7 @@
       <dependency>
         <groupId>dk.kb.present</groupId>
         <artifactId>ds-present</artifactId>
-          <version>1.7.4</version>
+          <version>1.8.0</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
