@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
@@ -271,6 +272,9 @@ public class DsDatahandlerFacade {
             case DIRECT:
                 oaiFilter = new OaiResponseFilter(origin, dsAPI);
                 break;
+            case DR:
+                oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI);
+                break;
             case PRESERVICA:
                 oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);
                 break;
@@ -287,7 +291,7 @@ public class DsDatahandlerFacade {
 
             oaiFilter.addToStorage(response);
 
-            log.info("Ingested '{}' records from origin: '{}' out of a total of '{}' records.",
+            log.info("Processed '{}' records from origin: '{}' out of a total of '{}' records.",
                     oaiFilter.getProcessed(), origin, response.getTotalRecords());
 
             //Update timestamp with timestamp from last OAI record.

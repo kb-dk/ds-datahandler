@@ -359,7 +359,7 @@ components:
           example: 'H.C. Andersen'
         filter:
           type: string
-          enum:  ['direct', 'preservica', 'preservica5']
+          enum:  ['direct', 'dr', 'preservica', 'preservica5']
           description: |
             Records from different OAI-PMH targets contain different kinds og metadata. Therefore some special handling
             of records are required. Possible value are:

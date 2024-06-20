@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added a DR filter for preservica data as a selectable preservica 7 filter. 
+
 ### Changed 
 - Changed how origin gets extracted from records to allow for xml namespace prefixes on the field being used for this filtering for Preservica records. 
 

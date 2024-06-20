@@ -142,7 +142,7 @@ oaiTargets:
     password: XXXXXXXXX
     metadataPrefix: XIP_full_schema
     description: Radio- og TV-udsendelser
-    filter: preservica
+    filter: dr
     oaiDaily: true
 
 
