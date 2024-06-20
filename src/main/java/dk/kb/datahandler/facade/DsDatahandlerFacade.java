@@ -12,7 +12,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
-import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.util.PreservicaUtils;
@@ -277,9 +276,6 @@ public class DsDatahandlerFacade {
                 break;
             case PRESERVICA:
                 oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);
-                break;
-            case PRESERVICA5:
-                oaiFilter = new OaiResponseFilterPreservicaFive(origin, dsAPI);
                 break;
             default: throw new UnsupportedOperationException(
                     "Unknown filter '" + oaiTargetDto.getFilter() + "' for target '" + targetName + "'");
