@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
@@ -21,6 +22,7 @@ import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.checkerframework.checker.units.qual.m;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -38,8 +40,10 @@ import dk.kb.datahandler.oai.OaiResponseFilter;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.SolrUtils;
+import dk.kb.kaltura.client.DsKalturaClient;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.DsRecordReferenceIdDto;
 import dk.kb.storage.model.v1.OriginCountDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
@@ -52,6 +56,71 @@ public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
     
     private static DsStorageClient storageClient;
+    
+    /**
+     * <p>
+     * Will load all referenceId defined in storage and call Kaltura to map them to KalturaId.
+     * The results will be saved in ds-storage in the mapping table.
+     * When all mappings has been updated, the records will enriched with the kalturaId.
+     * If the job fails alll mappings are loaded the records will not be enriched.
+     * </p>
+     * 
+     * @param mTimeFrom Only update mappings for records with mTime after mTimeFrom 
+     * 
+     */
+    public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws Exception{
+       if (mTimeFrom== null) {
+         mTimeFrom=0L;
+       }
+        
+       int batchSize=100; //No need to take this as input parameter and make method more complicated. 
+                          //This is a good value and can also be used as batchSize against Kaltura.
+       DsStorageApi dsAPI = getDsStorageApiClient();
+       DsKalturaClient kalturaClient = getKalturaClient();
+       
+       long updated=0;
+       List<DsRecordReferenceIdDto> records= new ArrayList<DsRecordReferenceIdDto>();
+       while(true) {       
+            records= dsAPI.referenceIds(origin, batchSize,mTimeFrom);
+            mTimeFrom=records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
+            log.debug("Getting DsRecordReference from storage for origin={},batchSize={},mTimeFrom={}",origin,batchSize,mTimeFrom);
+            if (records.size()==0) { //no more records
+              break;
+            }
+                    
+
+          
+          ArrayList<String> referenceIdsList= new ArrayList<String>();
+          for (DsRecordReferenceIdDto record: records) {
+               if (record.getReferenceId() != null) { //This should not be null in production after preservica enrichment. But for stage/prod most will be null
+                  referenceIdsList.add(record.getReferenceId());
+               }
+          }
+          if (referenceIdsList.size()==0) { 
+              continue;// take next batch. No input to call Kaltura API.
+          }
+          
+          log.debug("Calling Kaltura to resolve kalturaId for referenceIds. Size:"+referenceIdsList.size() +" :"+referenceIdsList);
+          Map<String, String> kalturaIds = kalturaClient.getKulturaIds(referenceIdsList);
+                           
+          if (kalturaIds.size() != referenceIdsList.size()) {
+             log.warn("Not all referenceId was found at Kaltura");//TODO log which
+          }
+          updated+=kalturaIds.size();      
+          for (String referenceId: kalturaIds.keySet()) {              
+              dsAPI.updateKalturaIdForRecord(referenceId, kalturaIds.get(referenceId));//Can be optimized with method that takes multiple. But this workflow is called rarely.
+          }
+          
+          break;//TEMP CODE FOR TEST
+       }        
+       
+       //Mapping table is now updated. Enrich all records that does not have KalturaId
+
+       //TODO
+        return updated;
+        
+    }
+
     
     /**
      * Ingest records directly into ds-storage from a zip-file containing multiple files that each is a xml-file with a single record
@@ -330,6 +399,19 @@ public class DsDatahandlerFacade {
         return job;                
     }
 
+    
+    private static DsKalturaClient getKalturaClient() throws IOException {
+        String kalturaUrl= ServiceConfig.getConfig().getString("kaltura.url");
+        String adminSecret = ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed.
+        Integer partnerId = ServiceConfig.getConfig().getInteger("kaltura.partnerId");  
+        String userId = ServiceConfig.getConfig().getString("kaltura.userId");                               
+        long sessionKeepAliveSeconds=3600L; //1 hour
+        log.info("creating kaltura client for partnerID:"+partnerId);
+        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,adminSecret,sessionKeepAliveSeconds);
+        return kalturaClient;
+    }
+   
+    
     private static DsStorageClient getDsStorageApiClient() {
         if (storageClient != null) {
           return storageClient;

@@ -184,6 +184,40 @@ paths:
               schema:
                 type: integer
                 format: int64
+                
+
+  /enrichment/kalturaIds:
+    get:
+      tags:
+        - '${project.name}'
+      summary: 'Update the referenceId to KalturaID mapping table in ds-storage. Whem mapping is completed it will apply the mapping to records missing kalturaId'
+      operationId: updateKalturaIds
+      parameters:
+        - name: origin
+          in: query
+          description: 'Origin to update kaltura mapping for'
+          required: true
+          schema:
+            type: string
+            enum: [ "${config:present.origins[*]}" ]
+        - name: mTimeFrom
+          in: query
+          description: 'Start from records modified after mTimeFrom. Format is milliseconds since Epoch with 3 added digits'
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK. Returns total number of mappings update in ds-storage
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+                
+                
+                
   # The ping service should be in all projects, should not do any advanced processing
   # and should respond quickly with a simple message, e.g. "pong".
   #
