@@ -5,15 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-### Changed
-- Kaltura client implementation. Using ds-kaltura client as dependency instead.
-
-
 ### Added
 - Added a DR filter for preservica data as a selectable preservica 7 filter. 
 
 ### Changed 
 - Changed how origin gets extracted from records to allow for xml namespace prefixes on the field being used for this filtering for Preservica records. 
+- Kaltura client implementation. Using ds-kaltura client as dependency instead.
+
+### Removed
+- Removed Preservica 5 data filter.
 
 ## [1.7.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.7.3) - 2024-05-28
 ### 
