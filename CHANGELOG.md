@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed 
 - Changed how origin gets extracted from records to allow for xml namespace prefixes on the field being used for this filtering for Preservica records. 
-- Kaltura client implementation. Using ds-kaltura client as dependency instead.
+- Kaltura client implementation. Using ds-kaltura client as dependency instead.https://kb-dk.atlassian.net/browse/DRA-964
+- Bumped KB-util version
 
 ### Removed
 - Removed Preservica 5 data filter.
