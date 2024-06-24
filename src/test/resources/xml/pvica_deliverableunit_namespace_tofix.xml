@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-    <xip:DeliverableUnit status="changed">
-    <Metadata schemaURI="http://www.pbcore.org/PBCore/PBCoreNamespace.html">
-    <PBCoreDescriptionDocument:PBCoreDescriptionDocument xmlns:PBCoreDescriptionDocument="http://www.pbcore.org/PBCore/PBCoreNamespace.html" xsi:schemaLocation="http://www.pbcore.org/PBCore/PBCoreNamespace.html">;
-    </PBCoreDescriptionDocument:PBCoreDescriptionDocument>
-    </Metadata>
-    </xip:DeliverableUnit>
-            

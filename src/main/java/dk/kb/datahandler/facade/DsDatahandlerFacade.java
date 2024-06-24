@@ -13,7 +13,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
-import dk.kb.datahandler.oai.OaiResponseFilterPreservicaFive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.util.PreservicaUtils;
@@ -341,20 +340,17 @@ public class DsDatahandlerFacade {
             throw new IllegalStateException("The filter for OaiTargetDto '" + targetName + "' was null");
         }
         switch (oaiTargetDto.getFilter()) {
-        case DIRECT:
-            oaiFilter = new OaiResponseFilter(origin, dsAPI);
-            break;
-        case DR:
-            oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI);
-            break;
-        case PRESERVICA:
-            oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);
-            break;
-        case PRESERVICA5:
-            oaiFilter = new OaiResponseFilterPreservicaFive(origin, dsAPI);
-            break;
-        default: throw new UnsupportedOperationException(
-                "Unknown filter '" + oaiTargetDto.getFilter() + "' for target '" + targetName + "'");
+            case DIRECT:
+                oaiFilter = new OaiResponseFilter(origin, dsAPI);
+                break;
+            case DR:
+                oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI);
+                break;
+            case PRESERVICA:
+                oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);
+                break;
+            default: throw new UnsupportedOperationException(
+                    "Unknown filter '" + oaiTargetDto.getFilter() + "' for target '" + targetName + "'");
         }
 
         while (response.getRecords().size() >0) {
