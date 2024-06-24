@@ -65,7 +65,11 @@ public class DsDatahandlerFacade {
      * If the job fails alll mappings are loaded the records will not be enriched.
      * </p>
      * 
+     * @param origin Only update mappings from this origin
      * @param mTimeFrom Only update mappings for records with mTime after mTimeFrom 
+     * 
+     * @return Number of mappings updated.
+     * 
      * 
      */
     public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws Exception{
