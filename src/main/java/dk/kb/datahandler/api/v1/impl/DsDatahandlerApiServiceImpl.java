@@ -165,5 +165,16 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }
     }
 
+    @Override
+    public Long updateKalturaIds(String origin, Long mTimeFrom) {        
+        try {
+         
+            return DsDatahandlerFacade.fetchKalturaIdsAndUpdateRecords(origin, mTimeFrom);
+        
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
 
 }

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
@@ -37,8 +38,11 @@ import dk.kb.datahandler.oai.OaiResponseFilter;
 import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.SolrUtils;
+import dk.kb.kaltura.client.DsKalturaClient;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.DsRecordReferenceIdDto;
+import dk.kb.storage.model.v1.MappingDto;
 import dk.kb.storage.model.v1.OriginCountDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
@@ -49,9 +53,80 @@ import static java.lang.Thread.sleep;
 
 public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
-    
+
     private static DsStorageClient storageClient;
-    
+
+    /**
+     * <p>
+     * Will load all referenceId defined in storage and call Kaltura to map them to KalturaId.
+     * The results will be saved in ds-storage in the mapping table.
+     * When all mappings has been updated, the records will be enriched with the kalturaId.
+     * If the job fails before all mappingss are loaded, the records will not be enriched from the mapping table.
+     * </p>
+     * 
+     * @param origin Only update mappings from this origin
+     * @param mTimeFrom Only update mappings for records with mTime after mTimeFrom 
+     * 
+     * @return Number of mappings updated.
+     * 
+     * 
+     */
+    public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws Exception{
+        if (mTimeFrom== null) {
+            mTimeFrom=0L;
+        }
+
+        long start=System.currentTimeMillis();
+        int batchSize=100; //No need to take this as input parameter and make method more complicated. 
+        //This is a good value and can also be used as batchSize against Kaltura.
+
+        DsStorageApi dsAPI = getDsStorageApiClient();
+        DsKalturaClient kalturaClient = getKalturaClient();
+
+        long updated=0;
+        List<DsRecordReferenceIdDto> records= new ArrayList<DsRecordReferenceIdDto>();
+        while(true) {       
+            records= dsAPI.referenceIds(origin, batchSize,mTimeFrom);            
+            if (records.size()==0) { //no more records
+                break;
+            }
+            mTimeFrom=records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
+            log.debug("Getting DsRecordReference from storage for origin={},batchSize={},mTimeFrom={}",origin,batchSize,mTimeFrom);
+            
+            ArrayList<String> referenceIdsList= new ArrayList<String>();
+            for (DsRecordReferenceIdDto record: records) {
+                if (record.getReferenceId() != null) { //This should not be null in production after preservica enrichment. But for stage/prod most will be null
+                    referenceIdsList.add(record.getReferenceId());
+                }
+            }
+            if (referenceIdsList.size()==0) { // Should not happen in production.
+                continue;
+            }
+
+            log.debug("Calling Kaltura to resolve kalturaId for referenceIds. Size:"+referenceIdsList.size());
+            Map<String, String> kalturaIds = kalturaClient.getKulturaIds(referenceIdsList);
+
+            if (kalturaIds.size() != referenceIdsList.size()) {
+                log.warn("Not all referenceId was found at Kaltura"); //Should not happen
+            }
+            updated+=kalturaIds.size();      
+            
+            for (String referenceId: kalturaIds.keySet()) {                            
+                //Can be optimized with method that takes multiple. But this workflow is called rarely.             
+                MappingDto mappingDto= new MappingDto();
+                mappingDto.setReferenceId(referenceId);
+                mappingDto.setKalturaId(kalturaIds.get(referenceId));
+                dsAPI.mappingPost(mappingDto);
+            }
+        }        
+
+        //Mapping table is now updated. Enrich all records that does not have KalturaId
+        dsAPI.updateKalturaIdForRecords();//Will update all records with kalturaid using the mapping tab
+        log.info("Updated kalturaId mapping table and enriched records. Number of mapppings updated:"+updated +" millis:"+(System.currentTimeMillis()-start));
+        return updated;
+    }
+
+
     /**
      * Ingest records directly into ds-storage from a zip-file containing multiple files that each is a xml-file with a single record
      *  
@@ -115,7 +190,7 @@ public class DsDatahandlerFacade {
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
     public static String indexSolrFull(String origin, Long mTimeFrom) {
-   
+
         if (mTimeFrom==null) {
             mTimeFrom=0L;
         }
@@ -145,7 +220,7 @@ public class DsDatahandlerFacade {
      */        
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
-        
+
         //Will be 1 interval for OAI targets that does not need to split into days
         ArrayList<OaiFromUntilInterval> intervals = HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, null); // from == null, use default start day for OAI target instead
         Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);
@@ -185,36 +260,36 @@ public class DsDatahandlerFacade {
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *
      */
-     protected static Integer oaiIngestJobScheduler(String oaiTargetName, ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {
-         int totalNumber=0;
-                  
-         log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size() +" for target:"+oaiTargetName);
-         for (OaiFromUntilInterval fromUntil: fromUntilList) {         
-             //Test no job is running before starting new for same target
-             validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
-             OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
-             if (oaiTargetDto== null) {
-                 throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
-                    "'. See the config method for list of configured targets.");
-             }
+    protected static Integer oaiIngestJobScheduler(String oaiTargetName, ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {
+        int totalNumber=0;
 
-             OaiTargetJob job = createNewJob(oaiTargetDto);        
+        log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size() +" for target:"+oaiTargetName);
+        for (OaiFromUntilInterval fromUntil: fromUntilList) {         
+            //Test no job is running before starting new for same target
+            validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
+            OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
+            if (oaiTargetDto== null) {
+                throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
+                        "'. See the config method for list of configured targets.");
+            }
 
-             //register job
-             OaiJobCache.addNewJob(job);
-              
-             try {                       
+            OaiTargetJob job = createNewJob(oaiTargetDto);        
+
+            //register job
+            OaiJobCache.addNewJob(job);
+
+            try {                       
                 int number= oaiIngestPerform(job , fromUntil.getFrom(),fromUntil.getUntil());
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
-             }
-             catch (IOException | ApiException e) {
+            }
+            catch (IOException | ApiException e) {
                 log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);
                 job.setCompletedTime(System.currentTimeMillis());
                 OaiJobCache.finishJob(job, 0,true);//Error                        
                 throw new Exception(e);
-             }
-         }
+            }
+        }
         return totalNumber;
     }
 
@@ -246,7 +321,7 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
-     private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws IOException, ApiException {
+    private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws IOException, ApiException {
 
         //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format
@@ -326,27 +401,40 @@ public class DsDatahandlerFacade {
         return job;                
     }
 
+
+    private static DsKalturaClient getKalturaClient() throws IOException {
+        String kalturaUrl= ServiceConfig.getConfig().getString("kaltura.url");
+        String adminSecret = ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed.
+        Integer partnerId = ServiceConfig.getConfig().getInteger("kaltura.partnerId");  
+        String userId = ServiceConfig.getConfig().getString("kaltura.userId");                               
+        long sessionKeepAliveSeconds=3600L; //1 hour
+        log.info("creating kaltura client for partnerID:"+partnerId);
+        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,adminSecret,sessionKeepAliveSeconds);
+        return kalturaClient;
+    }
+
+
     private static DsStorageClient getDsStorageApiClient() {
         if (storageClient != null) {
-          return storageClient;
+            return storageClient;
         }
-          
+
         String dsStorageUrl = ServiceConfig.getDsStorageUrl();
         storageClient = new DsStorageClient(dsStorageUrl);
         return storageClient;
     }
 
     private static long getLastModifiedTimeForOrigin(List<OriginCountDto> originStatistics, String origin) {
-    	for (OriginCountDto dto :originStatistics) {
-    		if (dto.getOrigin() != null && dto.getOrigin().equals(origin)) {
-    			return dto.getLatestMTime() == null ? 0L : dto.getLatestMTime();
-    		}
-    	}
+        for (OriginCountDto dto :originStatistics) {
+            if (dto.getOrigin() != null && dto.getOrigin().equals(origin)) {
+                return dto.getLatestMTime() == null ? 0L : dto.getLatestMTime();
+            }
+        }
 
-    	//Can happen if there is no records in the origin
-    	log.warn("Origin name was not found in origin-statistics returned from ds-storage. " +
+        //Can happen if there is no records in the origin
+        log.warn("Origin name was not found in origin-statistics returned from ds-storage. " +
                 "Using mTime=0 for Origin: '{}'", origin);
-    	return 0L;
+        return 0L;
     }
 
     private static synchronized void validateNotAlreadyRunning(String oaiTargetName) {
@@ -377,16 +465,16 @@ public class DsDatahandlerFacade {
 
         while (hasMore) {
             try (ContinuationInputStream<Long> dsDocsStream =
-                         storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, 1000L)) {
+                    storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, 1000L)) {
                 log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
                         dsDocsStream.getRecordCount(), origin, counter.get());
 
                 dsDocsStream.stream(DsRecordDto.class)
-                        .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
-                        .parallel() // Parallelize stream for performance boost.
-                        .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                        .filter(PreservicaUtils::validateRecord)
-                        .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
+                .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
+                .parallel() // Parallelize stream for performance boost.
+                .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                .filter(PreservicaUtils::validateRecord)
+                .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
 
                 hasMore = dsDocsStream.hasMore();
                 if (hasMore) {
