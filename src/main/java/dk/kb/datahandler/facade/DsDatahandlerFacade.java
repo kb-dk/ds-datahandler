@@ -29,7 +29,6 @@ import org.w3c.dom.Node;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.OaiFromUntilInterval;
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiJobCache;
 import dk.kb.datahandler.oai.OaiRecord;
@@ -221,9 +220,9 @@ public class DsDatahandlerFacade {
     public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
 
-        //Will be 1 interval for OAI targets that does not need to split into days
-        ArrayList<OaiFromUntilInterval> intervals = HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, null); // from == null, use default start day for OAI target instead
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);
+
+        String from= HarvestTimeUtil.generateFrom(oaiTargetDto, null); // from == null, use default start day for OAI target instead
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName,from);
         log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;            
     }
@@ -242,8 +241,8 @@ public class DsDatahandlerFacade {
         String lastHarvestTime = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
 
         //Will be 1 interval for OAI targets that does not need to split into days
-        ArrayList<OaiFromUntilInterval> intervals= HarvestTimeUtil.generateFromUntilInterval(oaiTargetDto, lastHarvestTime);
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, intervals);
+        String from= HarvestTimeUtil.generateFrom(oaiTargetDto, lastHarvestTime);
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, from);
         log.info("Delta ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;    	    	
     }
@@ -260,11 +259,11 @@ public class DsDatahandlerFacade {
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *
      */
-    protected static Integer oaiIngestJobScheduler(String oaiTargetName, ArrayList<OaiFromUntilInterval> fromUntilList) throws Exception {
+    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String from) throws Exception {
         int totalNumber=0;
 
-        log.info("Starting jobs from number of FromUntilIntervals:"+fromUntilList.size() +" for target:"+oaiTargetName);
-        for (OaiFromUntilInterval fromUntil: fromUntilList) {         
+        log.info("Starting jobs from: "+from +" for target:"+oaiTargetName);
+                 
             //Test no job is running before starting new for same target
             validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
             OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
@@ -279,7 +278,7 @@ public class DsDatahandlerFacade {
             OaiJobCache.addNewJob(job);
 
             try {                       
-                int number= oaiIngestPerform(job , fromUntil.getFrom(),fromUntil.getUntil());
+                int number= oaiIngestPerform(job , from);
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
             }
@@ -289,7 +288,7 @@ public class DsDatahandlerFacade {
                 OaiJobCache.finishJob(job, 0,true);//Error                        
                 throw new Exception(e);
             }
-        }
+        
         return totalNumber;
     }
 
@@ -321,7 +320,7 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
-    private static Integer oaiIngestPerform(OaiTargetJob job, String from, String until) throws IOException, ApiException {
+    private static Integer oaiIngestPerform(OaiTargetJob job, String from) throws IOException, ApiException {
 
         //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format
@@ -335,7 +334,7 @@ public class DsDatahandlerFacade {
         String targetName = oaiTargetDto.getName();
 
         DsStorageClient dsAPI = getDsStorageApiClient();
-        OaiHarvestClient client = new OaiHarvestClient(job,from,until);
+        OaiHarvestClient client = new OaiHarvestClient(job,from);
         OaiResponse response = client.next();
 
         OaiResponseFilter oaiFilter;

@@ -150,15 +150,7 @@ public class ServiceConfig {
             String user=target.getString("user",null);
             String password=target.getString("password",null);
             String filterStr = target.getString("filter","direct");
-            Boolean dayOnly = target.getBoolean("dayOnly",Boolean.FALSE);
-            String startDay = target.getString("startDay",null);            
-            String dateStampFormat = target.getString("dateStampFormat","date");
-            if (dayOnly) { //startDay must be defined for dayOnly strategy                        	      
-                boolean validStartDay=HarvestTimeUtil.validateDayFormat(startDay);
-                if (!validStartDay) {
-                    throw new IllegalArgumentException("Failed to parse 'start_day' for OAI target with 'day_only' strategy. start_day="+startDay +" OAI target="+name);
-                }            	
-            }
+            String dateStampFormat = target.getString("dateStampFormat","date");            
             
             OaiTargetDto.FilterEnum filter;
             try {
@@ -178,9 +170,7 @@ public class ServiceConfig {
             oaiTarget.setPassword(password);
             oaiTarget.setDatasource(datasource);
             oaiTarget.setDecription(description);
-            oaiTarget.setFilter(filter);
-            oaiTarget.setDayOnly(dayOnly);
-            oaiTarget.setStartDay(startDay);
+            oaiTarget.setFilter(filter);           
             try {
               oaiTarget.setDateStampFormat(DateStampFormatEnum.fromValue(dateStampFormat));
             }

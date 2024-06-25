@@ -73,7 +73,7 @@ public class OaiHarvestClientIntegrationTest {
 
         OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);        
 
-        OaiHarvestClient client = new OaiHarvestClient(job,from,null);
+        OaiHarvestClient client = new OaiHarvestClient(job,from);
         OaiResponse r1 = client.next();
         assertEquals(1000, r1.getRecords().size());
         assertNotNull(r1.getResumptionToken());
@@ -98,13 +98,10 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setPassword(conf.getString("integration.oaiTargets[1].password"));;
         oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
-        oaiTarget.setDayOnly(true);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
-        oaiTarget.setStartDay("2021-03-05");
-
         OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);
 
-        OaiHarvestClient client = new OaiHarvestClient(job,null ,null);
+        OaiHarvestClient client = new OaiHarvestClient(job,null);
         OaiResponse r1 = client.next();
         assertEquals(200, r1.getRecords().size());
         assertNotNull(r1.getResumptionToken());
