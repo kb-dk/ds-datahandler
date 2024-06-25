@@ -21,7 +21,6 @@ import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.checkerframework.checker.units.qual.m;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -61,8 +60,8 @@ public class DsDatahandlerFacade {
      * <p>
      * Will load all referenceId defined in storage and call Kaltura to map them to KalturaId.
      * The results will be saved in ds-storage in the mapping table.
-     * When all mappings has been updated, the records will enriched with the kalturaId.
-     * If the job fails alll mappings are loaded the records will not be enriched.
+     * When all mappings has been updated, the records will be enriched with the kalturaId.
+     * If the job fails before all mappingss are loaded, the records will not be enriched from the mapping table.
      * </p>
      * 
      * @param origin Only update mappings from this origin
