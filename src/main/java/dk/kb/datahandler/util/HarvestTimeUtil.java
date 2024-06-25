@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
-import dk.kb.datahandler.oai.OaiFromUntilInterval;
 
 /*
  * All access to this class is syncronized since we are using filesystem as persistence.
@@ -96,94 +95,7 @@ public class HarvestTimeUtil {
     }
 
 
-    /**
-     * Some OAI targets needs to be split into days instead of a full date interval. 
-     * Will format from and until date to a format supported by the OAI target<br> 
-     * 
-     * @param oaiTarget The OAI target to generate intervals for. The interval timeformat will match what the oai target has defined. 
-     * @param from  Generate day intervals starting from this day (included). If null it will start from the start_day attribute defined for the oai target.
-     * 
-     */
-    public static ArrayList<OaiFromUntilInterval> generateFromUntilInterval( OaiTargetDto oaiTarget , String from){
-
-        ArrayList<OaiFromUntilInterval> intervals = new ArrayList<OaiFromUntilInterval>();
-        if(from != null) {
-            if (!HarvestTimeUtil.validateOaiDateFormat(from)) {
-                log.warn("From datestamp not in UTC format:"+from); //Should not happen as this is called internally only
-                throw new InvalidArgumentServiceException("From datestamp not in UTC format:"+from);
-            }
-        }        
-        else { //From is null and set default        
-            //From date
-            if (oaiTarget.getDayOnly()) {
-                from=oaiTarget.getStartDay(); //Since we harvest by day, we need a start day and not from year 1900
-                from+="T00:00:00Z"; 
-            }
-            else {
-                from=HarvestTimeUtil.DEFAULT_START_DATE; //year 1900. 
-            }        
-        }
-
-        //Full interval or daily
-        if (oaiTarget.getDayOnly()) {
-            String dayStamp = from.substring(0,10); //day only
-            String nextDay=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(dayStamp);
-            //Build all day intervals until tomorrow
-            while (nextDay!= null) {       
-                String fromFormattet= formatDateForOaiTarget(dayStamp, oaiTarget);
-                String untilFormattet = formatDateForOaiTarget(nextDay, oaiTarget);               
-                intervals.add(new OaiFromUntilInterval(fromFormattet, untilFormattet)); // Add the day
-
-                dayStamp=nextDay;
-                nextDay=HarvestTimeUtil.getNextDayIfNot2DaysInFuture(nextDay); //when null it will stop           
-            }            
-        }
-        else {
-            String fromFormatted = formatDateForOaiTarget(from, oaiTarget);
-            intervals.add(new OaiFromUntilInterval(fromFormatted, null)); // no until
-        }                
-        return intervals;
-
-    }
-
-
-    /**
-     * Return the next day. Return null if next day will be after tomorrow.  <br>
-     * So if today is 2024-02-07, the last day that will be return is 2024-02-08. Else it will be null.
-     * <p/>
-     * For input 2024-02-07 the output will be 2024-02-08  
-     * If today is 2024-02-19. Input of 2024-02-19 will give 2024-02-20. But 2024-02-20 will give null.  
-     * 
-     * @param day day in format yyyy-MM.dd
-     */
-    public static String getNextDayIfNot2DaysInFuture(String day) throws InvalidArgumentServiceException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DAY_PATTERN,Locale.ROOT);
-        Date date = null;
-        try{
-            date = simpleDateFormat.parse(day);    		
-        }
-        catch(Exception e) {
-            throw new InvalidArgumentServiceException("Not valid day:"+day);
-        }
-
-        LocalDate nextDayLocal = LocalDate.parse(day).plusDays(1); //add 1 day to input day        
-        String nextDay=nextDayLocal.toString();        
-
-        if (nextDay.equals(day)) {//Sanity check. 
-            throw new InternalServiceException("Could not calculate next day for:"+nextDay);            
-        }
-
-        //Check if the following day is 2 days in future. 
-        LocalDate twoDaysFromToday=LocalDate.now(Clock.systemUTC()).plusDays(2);//Must not return value if we over this date
-        
-        //Count days since 1970. ( 2024-01-01 is about 19700 days etc.)
-        long daysNext=nextDayLocal.toEpochDay();
-        long daysTwoDaysFromToday=twoDaysFromToday.toEpochDay();
-        if (daysNext >= daysTwoDaysFromToday) {
-            return null;
-        }                
-        return nextDay;    	    	
-    }
+     
 
     protected static String loadLastHarvestTime(String oaiTargetNameFile ) throws Exception{                        
         Path oaiTargetFilePath = Paths.get( oaiTargetNameFile);
@@ -271,6 +183,34 @@ public class HarvestTimeUtil {
             return date.substring(0,10); //reduce
         }                
     }
+
+    /**
+     * Some OAI targets needs to be split into days instead of a full date interval. 
+     * Will format from and until date to a format supported by the OAI target<br> 
+     * 
+     * @param oaiTarget The OAI target to generate intervals for. The interval timeformat will match what the oai target has defined. 
+     * @param from  Generate day intervals starting from this day (included). If null it will start from the start_day attribute defined for the oai target.
+     * 
+     */
+    public static String generateFrom( OaiTargetDto oaiTarget , String from){
+
+        if(from != null) {
+            if (!HarvestTimeUtil.validateOaiDateFormat(from)) {
+                log.warn("From datestamp not in UTC format:"+from); //Should not happen as this is called internally only
+                throw new InvalidArgumentServiceException("From datestamp not in UTC format:"+from);
+            }
+        }        
+        else { //From is null and set default        
+            //From date          
+           from=HarvestTimeUtil.DEFAULT_START_DATE; //year 1900. 
+                  
+        }
+
+        String fromFormatted = formatDateForOaiTarget(from, oaiTarget);                         
+        return fromFormatted;
+
+    }
+
 
     
 
