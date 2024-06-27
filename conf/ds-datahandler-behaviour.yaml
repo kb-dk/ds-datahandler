@@ -143,9 +143,7 @@ oaiTargets:
     metadataPrefix: XIP_full_schema
     description: Radio- og TV-udsendelser
     filter: dr
-    oaiDaily: true
-
-
+ 
 
 # Save timestamps of last OAI harvest for each target in this folder. This is used for incremental delta-imports.                
 timestamps:
