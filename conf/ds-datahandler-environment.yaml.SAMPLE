@@ -27,7 +27,6 @@ oaiTargets:
     metadataPrefix: XIP_full_schema
     description: Radio- og TV-udsendelser
     filter: preservica
-    oaiDaily: true
 
 
 
