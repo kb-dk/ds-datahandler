@@ -35,7 +35,7 @@ import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
 /*
  * All access to this class is syncronized since we are using filesystem as persistence.
  * 
- * The file util methods are protected and called from unittest
+ *  HarvestTimeUtil methods are protected and called from unittest
  * 
  */
 
