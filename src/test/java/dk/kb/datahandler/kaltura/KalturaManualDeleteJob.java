@@ -2,6 +2,7 @@ package dk.kb.datahandler.kaltura;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.List;
 import java.nio.file.Paths;
@@ -84,7 +85,7 @@ public class KalturaManualDeleteJob {
      */
     private static void addLineToFile(String fileName, String line) throws IOException {
         line = line + "\n"; // new line
-        Files.write(Paths.get(fileName), line.getBytes(), StandardOpenOption.APPEND);
+        Files.write(Paths.get(fileName), line.getBytes(Charset.forName("UTF-8")), StandardOpenOption.APPEND);
     }
 
     /*
