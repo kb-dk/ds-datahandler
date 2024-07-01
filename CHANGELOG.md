@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+
+### Changed 
+
+### Removed
+
+
+## [1.8.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.8.0) - 2024-06-01
+### Added
 - Added a DR filter for preservica data as a selectable preservica 7 filter. 
 
 ### Changed 
