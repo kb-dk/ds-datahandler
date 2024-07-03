@@ -64,5 +64,10 @@ present:
     # Set this to internal_service to bypass the ds-license based access server
     - Simulated-OAuth2-Group: anonymous
 
+kaltura:
+  url:  'XX'
+  partnerId:  xxx
+  userId:  'xxx@kb.dk'
+  adminSecret: 'xxxxxxx'
     
       
