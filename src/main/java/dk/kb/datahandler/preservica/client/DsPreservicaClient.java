@@ -318,4 +318,64 @@ public class DsPreservicaClient {
         return connection.getInputStream();
     }
 
+    /**
+     * Call the endpoint {@code /api/entity/information-objects/{id}/identifiers}
+     * @param id of the information object to retrieve identifiers for.
+     * @return an input stream containing the response from the API.
+     */
+    public InputStream getIdentifiers(String id) throws URISyntaxException, IOException{
+        List<String> getIoAccesRepresentationEndpoint = List.of("api", "entity", "information-objects", id, "identifiers");
+
+        URL url = new URIBuilder(baseUrl)
+                .setPathSegments(getIoAccesRepresentationEndpoint)
+                .build()
+                .toURL();
+
+        HttpURLConnection connection = null;
+        try {
+            log.debug("Opening connection to url: '{}'", url);
+            connection = (HttpURLConnection) url.openConnection();
+
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("accept", "application/xml");
+            connection.setRequestProperty("Preservica-Access-Token", accessToken);
+
+        } catch (FileNotFoundException e){
+            log.warn("No Access Content Object was found for InformationObject: '{}'", id);
+            return null;
+        }
+
+        return connection.getInputStream();
+    }
+
+    /**
+     *  Call the endpoint {@code /api/entity/information-objects/{id}}
+     * @param id of the information object to retrieve.
+     * @return the information object as an InputStream.
+     */
+    public InputStream getInformationObject(String id) throws URISyntaxException, IOException {
+        List<String> getIoAccesRepresentationEndpoint = List.of("api", "entity", "information-objects", id);
+
+        URL url = new URIBuilder(baseUrl)
+                .setPathSegments(getIoAccesRepresentationEndpoint)
+                .build()
+                .toURL();
+
+        HttpURLConnection connection = null;
+        try {
+            log.debug("Opening connection to url: '{}'", url);
+            connection = (HttpURLConnection) url.openConnection();
+
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("accept", "application/xml");
+            connection.setRequestProperty("Preservica-Access-Token", accessToken);
+
+        } catch (FileNotFoundException e){
+            log.warn("No Access Content Object was found for InformationObject: '{}'", id);
+            return null;
+        }
+
+        return connection.getInputStream();
+    }
+
 }
