@@ -28,6 +28,16 @@ public class PreservicaClientTest {
                 ServiceConfig.getPreservicaPassword(), ServiceConfig.getPreservicaKeepAliveSeconds());
     }
 
+
+    @Test
+    public void testManifestationExtractionForDoms() throws IOException {
+        // ID of a DOMS record. Has no ContentObject as of 11th of July 2024.
+        String informationObjectId = "6ca25068-6dd4-45ed-a0cb-ab808441c078";
+        String result = DsPreservicaClient.getInstance().getFileRefFromInformationObject(informationObjectId);
+
+        assertEquals(informationObjectId, result);
+    }
+
     @Test
     public void testCreateManifestationFromDsRecord() throws IOException {
         PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();

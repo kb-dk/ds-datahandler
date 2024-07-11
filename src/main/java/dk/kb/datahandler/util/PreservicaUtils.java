@@ -1,6 +1,7 @@
 package dk.kb.datahandler.util;
 
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
+import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.util.DsStorageClient;
@@ -13,7 +14,9 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -194,4 +197,91 @@ public class PreservicaUtils {
         return fileRef;
     }
 
+
+    /**
+     * When getting access representations for InformationObjects, there is a chance that the method
+     * {@link DsPreservicaClient#getAccessRepresentationForIO(String)} throws a {@link java.io.FileNotFoundException}.
+     * When this exception is thrown, we need to check if the record is migrated from DOMS by looking at a Source ID
+     * identifier from the InformationObject. If the record is migrated, an access representation can be found by using
+     * the ID of the InformationObject as referenceId in storage.
+     * @param id of the InformationObject to validate.
+     * @return the id of the InformationObject if it is a DOMS migrated record. Otherwise, return an empty string.
+     */
+    public static String validateInformationObjectForDomsData(String id) {
+        boolean isDomsRecord = PreservicaUtils.checkForDomsRecord(id);
+        if (isDomsRecord){
+            // If the record is a DOMS record and there are no Access Content Objects. The fileRef should be set as
+            // the InformationObject ID.
+            return id;
+        } else {
+            log.info("No Access Content Object has been found for InformationObject: '{}'", id);
+            return "";
+        }
+    }
+    /**
+     * Check if an InformationObject is migrated from DOMS. This is checked by calling the Preservica entity API by
+     * {@code /api/entity/information-objects/{id}/identifiers} and then look for an identifer of type SourceID, which
+     * should have a value that starts with 'doms' for DOMS records.
+     * @param id of the information-object to look up.
+     * @return true if input InformationObject has been migrated from DOMS. Otherwise, false.
+     */
+    public static boolean checkForDomsRecord(String id){
+        try {
+            InputStream identifiersResponse = DsPreservicaClient.getInstance().getIdentifiers(id);
+
+            // Create an XMLEventReader
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            XMLEventReader eventReader = factory.createXMLEventReader(identifiersResponse);
+
+            // Variables to hold data
+            String elementName;
+            String sourceId = "";
+            boolean isIdentifier = false;
+            boolean isSourceId = false;
+
+            // Loop through the XML events
+            while (eventReader.hasNext()) {
+                XMLEvent event = eventReader.nextEvent();
+                if (event.isStartElement()) {
+                    StartElement startElement = event.asStartElement();
+                    elementName = startElement.getName().getLocalPart();
+
+                    if (elementName.equals("Identifier")) {
+                        isIdentifier = true;
+                    }
+
+                    if (isIdentifier && elementName.equals("Type")) {
+                        event = eventReader.nextEvent();
+                        if (event.isCharacters()) {
+                            Characters characters = event.asCharacters();
+                            if ("SourceID".equals(characters.getData())) {
+                                isSourceId = true;
+                            }
+                        }
+                    }
+
+                    if (isIdentifier && isSourceId && elementName.equals("Value")) {
+                        event = eventReader.nextEvent();
+                        if (event.isCharacters()) {
+                            Characters characters = event.asCharacters();
+                            sourceId = characters.getData();
+                            // Exiting the loop once the SourceID is found
+                            break;
+                        }
+                    }
+                } else if (event.isEndElement()) {
+                    elementName = event.asEndElement().getName().getLocalPart();
+                    if (elementName.equals("Identifier")) {
+                        isIdentifier = false;
+                        isSourceId = false;
+                    }
+                }
+            }
+            return sourceId.startsWith("doms");
+        } catch (URISyntaxException | IOException | XMLStreamException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
 }

@@ -18,8 +18,9 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
+
+import static dk.kb.datahandler.util.PreservicaUtils.validateInformationObjectForDomsData;
 
 /**
  * Client for accessing Preservica 7. Currently, provides access to the Object-Details endpoint of the Content API.
@@ -243,8 +244,8 @@ public class DsPreservicaClient {
             accesRepresentationXml = getAccessRepresentationForIO(id);
             contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accesRepresentationXml);
         } catch (FileNotFoundException e){
-            log.info("No Access Content Object has been found for InformationObject: '{}'", id);
-            return "";
+            // Record could be a DOMS record. Extract Identifiers from InformationObject to check if that's the case.
+            return validateInformationObjectForDomsData(id);
         } catch (XMLStreamException | IOException | URISyntaxException e) {
             log.warn("Error getting or parsing ContentObject for InformationObject: '{}'", id, e);
         }
