@@ -9,7 +9,7 @@
 
     <groupId>dk.kb.datahandler</groupId>
     <artifactId>ds-datahandler</artifactId>
-    <version>1.7.4-SNAPSHOT</version>
+    <version>1.8.2-SNAPSHOT</version>
     <packaging>war</packaging>
     <description>
     # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library. 
@@ -120,7 +120,7 @@
       <dependency>
         <groupId>dk.kb.storage</groupId>
         <artifactId>ds-storage</artifactId>
-          <version>1.22</version>
+          <version>2.0.0</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
@@ -135,7 +135,7 @@
       <dependency>
         <groupId>dk.kb.present</groupId>
         <artifactId>ds-present</artifactId>
-          <version>1.8.0</version>
+          <version>1.9.0</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
@@ -145,6 +145,14 @@
             </exclusion>
         </exclusions>
       </dependency>
+
+
+      <dependency>
+          <groupId>dk.kb.kaltura</groupId>
+          <artifactId>ds-kaltura</artifactId>
+          <version>1.2.1</version>
+          <type>jar</type>
+      </dependency>
         
         <dependency>
             <groupId>jakarta.servlet</groupId>
@@ -153,12 +161,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>dk.kb.kaltura</groupId>
-            <artifactId>ds-kaltura</artifactId>
-            <version>1.2.1</version>
-            <type>jar</type>
-       </dependency>
 
         <!-- Apache CXF and servlet stuff -->
         <dependency>
