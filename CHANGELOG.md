@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed how origin gets extracted from records to allow for xml namespace prefixes on the field being used for this filtering for Preservica records. 
 - Kaltura client implementation. Using ds-kaltura client as dependency instead.https://kb-dk.atlassian.net/browse/DRA-964
 - Bumped KB-util version
+- Updated endpoint ```enrichment/manifestations``` to check if records without ContentObjects are migrated from DOMS. If so, referenceId should be the same as the InformationObject ID. 
 
 ### Removed
 - Removed Preservica 5 data filter.

@@ -1,8 +1,5 @@
 package dk.kb.datahandler.preservica;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
@@ -10,16 +7,7 @@ import dk.kb.storage.model.v1.RecordTypeDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.Iterator;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  *
@@ -43,7 +31,7 @@ public class PreservicaManifestationExtractor {
             // Get the clean Preservica InformationObject ID.
             String preservicaIoID = PreservicaUtils.getPreservicaIoId(dsRecord);
             // Extract filename from Preservica and create a prefixed version for DS.
-            String filename = DsPreservicaClient.getInstance().getFileRefFromInformationObject(preservicaIoID);
+            String filename = DsPreservicaClient.getInstance().getFileRefFromInformationObjectAsStream(preservicaIoID);
 
             // Update the record that is to be returned.
             if (!filename.isEmpty()){

@@ -18,8 +18,9 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
+
+import static dk.kb.datahandler.util.PreservicaUtils.validateInformationObjectForDomsData;
 
 /**
  * Client for accessing Preservica 7. Currently, provides access to the Object-Details endpoint of the Content API.
@@ -204,30 +205,6 @@ public class DsPreservicaClient {
     }
 
     /**
-     * Call the Object Details endpoint in the Preservica Content API for properties related to a specific InformationObject.
-     * @param id of the InformationObject to retrieve.
-     * @return An input stream containing the Object Details JSON response.
-     */
-    public InputStream getPreservicaObjectDetails(String id) throws IOException, URISyntaxException {
-        StringBuilder idBuilder = new StringBuilder();
-        URL url = new URIBuilder(baseUrl)
-                .setPathSegments(objectDetailsEndpoint)
-                // This ID needs to be prefixed with the string: sdb:IO|
-                .addParameter("id", idBuilder.append("sdb:IO|").append(id).toString())
-                .build()
-                .toURL();
-
-        log.debug("Opening connection to url: '{}'", url);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("accept", "application/json");
-        connection.setRequestProperty("Preservica-Access-Token", accessToken);
-
-        return connection.getInputStream();
-    }
-
-    /**
      * Get the fileRef for the newest access representation for an InformationObject.
      * This method makes two distinct calls to the Preservica API. First it gets the ID of the newest access ContentObject
      * for the given InformationObject. Then the fileRef for the underlying Generation/Bitstream for the resolved
@@ -235,7 +212,7 @@ public class DsPreservicaClient {
      * @param id of the InformationObject to resolve.
      * @return a fileRef ID representing the filename of the representation on the server.
      */
-    public String getFileRefFromInformationObject(String id){
+    public String getFileRefFromInformationObjectAsStream(String id){
         InputStream accesRepresentationXml;
         String contentObjectId = "";
 
@@ -243,8 +220,8 @@ public class DsPreservicaClient {
             accesRepresentationXml = getAccessRepresentationForIO(id);
             contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accesRepresentationXml);
         } catch (FileNotFoundException e){
-            log.info("No Access Content Object has been found for InformationObject: '{}'", id);
-            return "";
+            // Record could be a DOMS record. Extract Identifiers from InformationObject to check if that's the case.
+            return validateInformationObjectForDomsData(id);
         } catch (XMLStreamException | IOException | URISyntaxException e) {
             log.warn("Error getting or parsing ContentObject for InformationObject: '{}'", id, e);
         }
@@ -273,6 +250,43 @@ public class DsPreservicaClient {
     public InputStream getAccessRepresentationForIO(String id) throws IOException, URISyntaxException {
         List<String> getIoAccesRepresentationEndpoint = List.of("api", "entity", "information-objects", id, "representations", "Access");
 
+        return getApiResponseAsInputStream(id, getIoAccesRepresentationEndpoint);
+    }
+
+    /**
+     * Get the file ref on the server for the generation inside the given ContentObject.
+     * @param id of the ContentObject to retrieve fileRef for
+     * @return a fileRef representing the filename on the server for the representation of the ContentObject.
+     */
+    public InputStream getFileRefForContentObject(String id) throws IOException, URISyntaxException {
+        List<String> getFileRefForContentObjectEndpoint = List.of("api", "entity", "content-objects", id, "identifiers");
+
+        return getApiResponseAsInputStream(id, getFileRefForContentObjectEndpoint);
+    }
+
+    /**
+     * Call the endpoint {@code /api/entity/information-objects/{id}/identifiers}
+     * @param id of the information object to retrieve identifiers for.
+     * @return an input stream containing the response from the API.
+     */
+    public InputStream getIdentifiersAsStream(String id) throws URISyntaxException, IOException{
+        List<String> getInformationObjectIdentifiersEndpoint = List.of("api", "entity", "information-objects", id, "identifiers");
+
+        return getApiResponseAsInputStream(id, getInformationObjectIdentifiersEndpoint);
+    }
+    /**
+     *  Call the endpoint {@code /api/entity/information-objects/{id}}
+     * @param id of the information object to retrieve.
+     * @return the information object as an InputStream.
+     */
+    public InputStream getInformationObjectAsStream(String id) throws URISyntaxException, IOException {
+        List<String> getInformationObjectEndpoint = List.of("api", "entity", "information-objects", id);
+
+        return getApiResponseAsInputStream(id, getInformationObjectEndpoint);
+    }
+
+
+    private InputStream getApiResponseAsInputStream(String id, List<String> getIoAccesRepresentationEndpoint) throws URISyntaxException, IOException {
         URL url = new URIBuilder(baseUrl)
                 .setPathSegments(getIoAccesRepresentationEndpoint)
                 .build()
@@ -288,32 +302,9 @@ public class DsPreservicaClient {
             connection.setRequestProperty("Preservica-Access-Token", accessToken);
 
         } catch (FileNotFoundException e){
-            log.warn("No Access Content Object was found for InformationObject: '{}'", id);
+            log.warn("No response could be found for id: '{}'", id);
             return null;
         }
-
-        return connection.getInputStream();
-    }
-
-    /**
-     * Get the file ref on the server for the generation inside the given ContentObject.
-     * @param id of the ContentObject to retrieve fileRef for
-     * @return a fileRef representing the filename on the server for the representation of the ContentObject.
-     */
-    public InputStream getFileRefForContentObject(String id) throws IOException, URISyntaxException {
-        List<String> getFileRefForContentObjectEndpoint = List.of("api", "entity", "content-objects", id, "identifiers");
-
-        URL url = new URIBuilder(baseUrl)
-                .setPathSegments(getFileRefForContentObjectEndpoint)
-                .build()
-                .toURL();
-
-        log.debug("Opening connection to url: '{}'", url);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("accept", "application/xml");
-        connection.setRequestProperty("Preservica-Access-Token", accessToken);
 
         return connection.getInputStream();
     }
