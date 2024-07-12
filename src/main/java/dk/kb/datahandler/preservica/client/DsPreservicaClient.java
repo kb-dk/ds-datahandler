@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.datahandler.util.PreservicaUtils;
 import org.apache.http.client.utils.URIBuilder;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -274,26 +275,7 @@ public class DsPreservicaClient {
     public InputStream getAccessRepresentationForIO(String id) throws IOException, URISyntaxException {
         List<String> getIoAccesRepresentationEndpoint = List.of("api", "entity", "information-objects", id, "representations", "Access");
 
-        URL url = new URIBuilder(baseUrl)
-                .setPathSegments(getIoAccesRepresentationEndpoint)
-                .build()
-                .toURL();
-
-        HttpURLConnection connection = null;
-        try {
-            log.debug("Opening connection to url: '{}'", url);
-            connection = (HttpURLConnection) url.openConnection();
-
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("accept", "application/xml");
-            connection.setRequestProperty("Preservica-Access-Token", accessToken);
-
-        } catch (FileNotFoundException e){
-            log.warn("No Access Content Object was found for InformationObject: '{}'", id);
-            return null;
-        }
-
-        return connection.getInputStream();
+        return getApiResponseAsInputStream(id, getIoAccesRepresentationEndpoint);
     }
 
     /**
@@ -304,19 +286,7 @@ public class DsPreservicaClient {
     public InputStream getFileRefForContentObject(String id) throws IOException, URISyntaxException {
         List<String> getFileRefForContentObjectEndpoint = List.of("api", "entity", "content-objects", id, "identifiers");
 
-        URL url = new URIBuilder(baseUrl)
-                .setPathSegments(getFileRefForContentObjectEndpoint)
-                .build()
-                .toURL();
-
-        log.debug("Opening connection to url: '{}'", url);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("accept", "application/xml");
-        connection.setRequestProperty("Preservica-Access-Token", accessToken);
-
-        return connection.getInputStream();
+        return getApiResponseAsInputStream(id, getFileRefForContentObjectEndpoint);
     }
 
     /**
@@ -325,38 +295,24 @@ public class DsPreservicaClient {
      * @return an input stream containing the response from the API.
      */
     public InputStream getIdentifiers(String id) throws URISyntaxException, IOException{
-        List<String> getIoAccesRepresentationEndpoint = List.of("api", "entity", "information-objects", id, "identifiers");
+        List<String> getInformationObjectIdentifiersEndpoint = List.of("api", "entity", "information-objects", id, "identifiers");
 
-        URL url = new URIBuilder(baseUrl)
-                .setPathSegments(getIoAccesRepresentationEndpoint)
-                .build()
-                .toURL();
-
-        HttpURLConnection connection = null;
-        try {
-            log.debug("Opening connection to url: '{}'", url);
-            connection = (HttpURLConnection) url.openConnection();
-
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("accept", "application/xml");
-            connection.setRequestProperty("Preservica-Access-Token", accessToken);
-
-        } catch (FileNotFoundException e){
-            log.warn("No Access Content Object was found for InformationObject: '{}'", id);
-            return null;
-        }
-
-        return connection.getInputStream();
+        return getApiResponseAsInputStream(id, getInformationObjectIdentifiersEndpoint);
     }
-
     /**
      *  Call the endpoint {@code /api/entity/information-objects/{id}}
      * @param id of the information object to retrieve.
      * @return the information object as an InputStream.
      */
     public InputStream getInformationObject(String id) throws URISyntaxException, IOException {
-        List<String> getIoAccesRepresentationEndpoint = List.of("api", "entity", "information-objects", id);
+        List<String> getInformationObjectEndpoint = List.of("api", "entity", "information-objects", id);
 
+        return getApiResponseAsInputStream(id, getInformationObjectEndpoint);
+    }
+
+
+    @Nullable
+    private InputStream getApiResponseAsInputStream(String id, List<String> getIoAccesRepresentationEndpoint) throws URISyntaxException, IOException {
         URL url = new URIBuilder(baseUrl)
                 .setPathSegments(getIoAccesRepresentationEndpoint)
                 .build()
@@ -372,7 +328,7 @@ public class DsPreservicaClient {
             connection.setRequestProperty("Preservica-Access-Token", accessToken);
 
         } catch (FileNotFoundException e){
-            log.warn("No Access Content Object was found for InformationObject: '{}'", id);
+            log.warn("No response could be found for id: '{}'", id);
             return null;
         }
 
