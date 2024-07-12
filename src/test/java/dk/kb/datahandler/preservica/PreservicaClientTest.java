@@ -33,7 +33,7 @@ public class PreservicaClientTest {
     public void testManifestationExtractionForDoms() throws IOException {
         // ID of a DOMS record. Has no ContentObject as of 11th of July 2024.
         String informationObjectId = "6ca25068-6dd4-45ed-a0cb-ab808441c078";
-        String result = DsPreservicaClient.getInstance().getFileRefFromInformationObject(informationObjectId);
+        String result = DsPreservicaClient.getInstance().getFileRefFromInformationObjectAsStream(informationObjectId);
 
         assertEquals(informationObjectId, result);
     }
@@ -70,7 +70,7 @@ public class PreservicaClientTest {
     @Test
     public void testGetFileRefFromIO() throws IOException {
         // Newest ContentObject at 28th of May 2024. This can change in the future.
-        String fileRef = DsPreservicaClient.getInstance().getFileRefFromInformationObject("ee36a7b5-de87-4e45-96d8-018b513a5e2e");
+        String fileRef = DsPreservicaClient.getInstance().getFileRefFromInformationObjectAsStream("ee36a7b5-de87-4e45-96d8-018b513a5e2e");
         assertEquals("ce4a81eb-ab15-474f-bed5-0debc2fde97a", fileRef);
     }
 
@@ -78,7 +78,7 @@ public class PreservicaClientTest {
     @Test
     public void testNoFileRefFromIO() throws IOException {
         // Newest ContentObject at 28th of May 2024. This can change in the future.
-        String fileRef = DsPreservicaClient.getInstance().getFileRefFromInformationObject("abee9c4f-dacd-4518-b68b-773c8506ac7d");
+        String fileRef = DsPreservicaClient.getInstance().getFileRefFromInformationObjectAsStream("abee9c4f-dacd-4518-b68b-773c8506ac7d");
         assertEquals("", fileRef);
     }
 

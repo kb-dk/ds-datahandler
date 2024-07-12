@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.datahandler.util.PreservicaUtils;
 import org.apache.http.client.utils.URIBuilder;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,30 +205,6 @@ public class DsPreservicaClient {
     }
 
     /**
-     * Call the Object Details endpoint in the Preservica Content API for properties related to a specific InformationObject.
-     * @param id of the InformationObject to retrieve.
-     * @return An input stream containing the Object Details JSON response.
-     */
-    public InputStream getPreservicaObjectDetails(String id) throws IOException, URISyntaxException {
-        StringBuilder idBuilder = new StringBuilder();
-        URL url = new URIBuilder(baseUrl)
-                .setPathSegments(objectDetailsEndpoint)
-                // This ID needs to be prefixed with the string: sdb:IO|
-                .addParameter("id", idBuilder.append("sdb:IO|").append(id).toString())
-                .build()
-                .toURL();
-
-        log.debug("Opening connection to url: '{}'", url);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("accept", "application/json");
-        connection.setRequestProperty("Preservica-Access-Token", accessToken);
-
-        return connection.getInputStream();
-    }
-
-    /**
      * Get the fileRef for the newest access representation for an InformationObject.
      * This method makes two distinct calls to the Preservica API. First it gets the ID of the newest access ContentObject
      * for the given InformationObject. Then the fileRef for the underlying Generation/Bitstream for the resolved
@@ -237,7 +212,7 @@ public class DsPreservicaClient {
      * @param id of the InformationObject to resolve.
      * @return a fileRef ID representing the filename of the representation on the server.
      */
-    public String getFileRefFromInformationObject(String id){
+    public String getFileRefFromInformationObjectAsStream(String id){
         InputStream accesRepresentationXml;
         String contentObjectId = "";
 
@@ -294,7 +269,7 @@ public class DsPreservicaClient {
      * @param id of the information object to retrieve identifiers for.
      * @return an input stream containing the response from the API.
      */
-    public InputStream getIdentifiers(String id) throws URISyntaxException, IOException{
+    public InputStream getIdentifiersAsStream(String id) throws URISyntaxException, IOException{
         List<String> getInformationObjectIdentifiersEndpoint = List.of("api", "entity", "information-objects", id, "identifiers");
 
         return getApiResponseAsInputStream(id, getInformationObjectIdentifiersEndpoint);
@@ -304,14 +279,13 @@ public class DsPreservicaClient {
      * @param id of the information object to retrieve.
      * @return the information object as an InputStream.
      */
-    public InputStream getInformationObject(String id) throws URISyntaxException, IOException {
+    public InputStream getInformationObjectAsStream(String id) throws URISyntaxException, IOException {
         List<String> getInformationObjectEndpoint = List.of("api", "entity", "information-objects", id);
 
         return getApiResponseAsInputStream(id, getInformationObjectEndpoint);
     }
 
 
-    @Nullable
     private InputStream getApiResponseAsInputStream(String id, List<String> getIoAccesRepresentationEndpoint) throws URISyntaxException, IOException {
         URL url = new URIBuilder(baseUrl)
                 .setPathSegments(getIoAccesRepresentationEndpoint)

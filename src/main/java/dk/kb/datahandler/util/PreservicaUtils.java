@@ -227,7 +227,7 @@ public class PreservicaUtils {
      */
     public static boolean checkForDomsRecord(String id){
         try {
-            InputStream identifiersResponse = DsPreservicaClient.getInstance().getIdentifiers(id);
+            InputStream identifiersResponse = DsPreservicaClient.getInstance().getIdentifiersAsStream(id);
 
             // Create an XMLEventReader
             XMLInputFactory factory = XMLInputFactory.newInstance();
