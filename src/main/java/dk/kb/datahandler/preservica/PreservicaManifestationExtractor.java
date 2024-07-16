@@ -3,6 +3,7 @@ package dk.kb.datahandler.preservica;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +23,7 @@ public class PreservicaManifestationExtractor {
      * is about will be resolved from the backing Preservica instance and added as a referenceId in the record it has been applied to.
      * @param dsRecord DeliverableUnit to fetch manifestation from.
      */
-    public DsRecordDto apply(DsRecordDto dsRecord) {
-        if (dsRecord.getRecordType() != RecordTypeDto.DELIVERABLEUNIT){
-            log.warn("Manifestation extraction plugin has been used on a record which cant have manifestations.");
-            return null;
-        }
+    public DsRecordMinimalDto apply(DsRecordMinimalDto dsRecord) {
         try {
             // Get the clean Preservica InformationObject ID.
             String preservicaIoID = PreservicaUtils.getPreservicaIoId(dsRecord);

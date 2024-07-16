@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed 
+- Changed DSStorage client method used in methods DsDatahandlerFacade.updateManifestationForRecords and DsDatahandlerFacade.fetchKalturaIdsAndUpdateRecords.
+- Bumped ds-storage dependency to v. 2.1.1
 
 ### Removed
 

@@ -17,6 +17,7 @@ import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.invoker.v1.ApiException;
+import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.commons.io.IOUtils;
@@ -40,7 +41,6 @@ import dk.kb.datahandler.util.SolrUtils;
 import dk.kb.kaltura.client.DsKalturaClient;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
-import dk.kb.storage.model.v1.DsRecordReferenceIdDto;
 import dk.kb.storage.model.v1.MappingDto;
 import dk.kb.storage.model.v1.OriginCountDto;
 import dk.kb.storage.util.DsStorageClient;
@@ -79,13 +79,13 @@ public class DsDatahandlerFacade {
         int batchSize=100; //No need to take this as input parameter and make method more complicated. 
         //This is a good value and can also be used as batchSize against Kaltura.
 
-        DsStorageApi dsAPI = getDsStorageApiClient();
+        DsStorageClient dsAPI = getDsStorageApiClient();
         DsKalturaClient kalturaClient = getKalturaClient();
 
         long updated=0;
-        List<DsRecordReferenceIdDto> records= new ArrayList<DsRecordReferenceIdDto>();
+        List<DsRecordMinimalDto> records= new ArrayList<DsRecordMinimalDto>();
         while(true) {       
-            records= dsAPI.referenceIds(origin, batchSize,mTimeFrom);            
+            records = dsAPI.getMinimalRecords(origin, batchSize,mTimeFrom);
             if (records.size()==0) { //no more records
                 break;
             }
@@ -93,7 +93,7 @@ public class DsDatahandlerFacade {
             log.debug("Getting DsRecordReference from storage for origin={},batchSize={},mTimeFrom={}",origin,batchSize,mTimeFrom);
             
             ArrayList<String> referenceIdsList= new ArrayList<String>();
-            for (DsRecordReferenceIdDto record: records) {
+            for (DsRecordMinimalDto record: records) {
                 if (record.getReferenceId() != null) { //This should not be null in production after preservica enrichment. But for stage/prod most will be null
                     referenceIdsList.add(record.getReferenceId());
                 }
@@ -464,16 +464,16 @@ public class DsDatahandlerFacade {
 
         while (hasMore) {
             try (ContinuationInputStream<Long> dsDocsStream =
-                    storageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON(origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, 1000L)) {
+                    storageClient.getMinimalRecordsModifiedAfterJSON(origin, mTimeFrom, 1000L)){
                 log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
                         dsDocsStream.getRecordCount(), origin, counter.get());
 
-                dsDocsStream.stream(DsRecordDto.class)
-                .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
-                .parallel() // Parallelize stream for performance boost.
-                .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                .filter(PreservicaUtils::validateRecord)
-                .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
+                dsDocsStream.stream(DsRecordMinimalDto.class)
+                    .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
+                    .parallel() // Parallelize stream for performance boost.
+                    .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                    .filter(PreservicaUtils::validateRecord)
+                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
 
                 hasMore = dsDocsStream.hasMore();
                 if (hasMore) {
