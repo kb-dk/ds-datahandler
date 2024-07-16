@@ -4,8 +4,7 @@ import dk.kb.datahandler.config.ServiceConfig;
 
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
-import dk.kb.storage.model.v1.DsRecordDto;
-import dk.kb.storage.model.v1.RecordTypeDto;
+import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -41,7 +40,7 @@ public class PreservicaClientTest {
     @Test
     public void testCreateManifestationFromDsRecord() throws IOException {
         PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
-        DsRecordDto record = getTestRecord();
+        DsRecordMinimalDto record = getTestRecord();
         record = manifestationPlugin.apply(record);
 
         assertEquals("21f85387-9900-4f2a-ab4f-cf81b2fd1dea", record.getReferenceId());
@@ -87,7 +86,7 @@ public class PreservicaClientTest {
     @Test
     public void testRefresh() throws IOException, InterruptedException {
         PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
-        DsRecordDto record = getTestRecord();
+        DsRecordMinimalDto record = getTestRecord();
         record = manifestationPlugin.apply(record);
 
         assertEquals("21f85387-9900-4f2a-ab4f-cf81b2fd1dea", record.getReferenceId());
@@ -99,9 +98,8 @@ public class PreservicaClientTest {
         assertEquals("21f85387-9900-4f2a-ab4f-cf81b2fd1dea", record.getReferenceId());
     }
 
-    private static DsRecordDto getTestRecord() {
-        DsRecordDto record = new DsRecordDto();
-        record.setRecordType(RecordTypeDto.DELIVERABLEUNIT);
+    private static DsRecordMinimalDto getTestRecord() {
+        DsRecordMinimalDto record = new DsRecordMinimalDto();
         record.setId("ds.tv:oai:io:9e081b87-66f4-4797-9cff-d2ce226ab300");
         return record;
     }

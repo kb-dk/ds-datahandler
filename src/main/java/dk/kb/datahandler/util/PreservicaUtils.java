@@ -4,6 +4,7 @@ import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.util.DsStorageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class PreservicaUtils {
      * @param record to get manifestation for.
      * @return the updated record with presentation copy as reference id.
      */
-    public static DsRecordDto fetchManifestation(DsRecordDto record, PreservicaManifestationExtractor plugin, AtomicInteger counter, AtomicLong currentTime) {
+    public static DsRecordMinimalDto fetchManifestation(DsRecordMinimalDto record, PreservicaManifestationExtractor plugin, AtomicInteger counter, AtomicLong currentTime) {
         counter.getAndIncrement();
 
         if (counter.get() % 200 == 0){
@@ -48,9 +49,9 @@ public class PreservicaUtils {
      * @param storageClient to post the record to.
      * @param record to post.
      */
-    public static void safeRecordPost(DsStorageClient storageClient, DsRecordDto record) {
+    public static void safeRecordPost(DsStorageClient storageClient, DsRecordMinimalDto record) {
         try {
-            storageClient.recordPost(record);
+            storageClient.updateReferenceIdForRecord(record.getId(), record.getReferenceId());
         } catch (ApiException e) {
             log.error("ApiException has been thrown. Record probably already exists.");
         }
@@ -61,7 +62,7 @@ public class PreservicaUtils {
      * @param dsRecord with an ID in the format ds.tv:oai:io:3006e2f8-3f73-477a-a504-4d7cb1ae1e1c
      * @return a
      */
-    public static String getPreservicaIoId(DsRecordDto dsRecord) {
+    public static String getPreservicaIoId(DsRecordMinimalDto dsRecord) {
         String prefix = ":oai:io:";
         int lengthOfPrefix = prefix.length();
         int endOfPrefix = dsRecord.getId().lastIndexOf(prefix);
@@ -74,7 +75,7 @@ public class PreservicaUtils {
      * @param record to ensure has values correctly set.
      * @return true if record is valid.
      */
-    public static boolean validateRecord(DsRecordDto record) {
+    public static boolean validateRecord(DsRecordMinimalDto record) {
         return record.getReferenceId() != null && !record.getReferenceId().isEmpty();
     }
 
@@ -136,7 +137,7 @@ public class PreservicaUtils {
     /**
      * Parse the response from {@link dk.kb.datahandler.preservica.client.DsPreservicaClient#getFileRefForContentObject(String)}
      * and extract the fileRef of the returned ContentObject. This fileRef represents the name of the representation on
-     * the server and is NOT the same as the name of the bitstream, eventhough the bitstream streams the file from the
+     * the server and is NOT the same as the name of the bitstream, even though the bitstream streams the file from the
      * file referenced by the fileRef extracted here.
      * @param xml an {@link InputStream} containing a IdentifierResponse for a ContentObject.
      * @return the fileRef for the file on the server representing the ContentObject put into the method.
@@ -150,7 +151,7 @@ public class PreservicaUtils {
         String elementName;
         String fileRef = "";
         boolean isCorrectType = false;
-        boolean isIdentifer = false;
+        boolean isIdentifier = false;
         boolean isFileRef = false;
 
         // Loop through the XML events
@@ -160,10 +161,10 @@ public class PreservicaUtils {
                 StartElement startElement = event.asStartElement();
                 elementName = startElement.getName().getLocalPart();
                 if (elementName.equals("Identifier")) {
-                    isIdentifer = true;
+                    isIdentifier = true;
                 }
 
-                if (isIdentifer && elementName.equals("Type")){
+                if (isIdentifier && elementName.equals("Type")){
                     event = eventReader.nextEvent();
                     if (event.isCharacters()) {
                         Characters characters = event.asCharacters();
@@ -172,15 +173,15 @@ public class PreservicaUtils {
                         }
                     }
                 }
-            } else if (event.isCharacters() && isIdentifer && isFileRef) {
+            } else if (event.isCharacters() && isIdentifier && isFileRef) {
                 Characters characters = event.asCharacters();
                 if (!characters.isWhiteSpace()) {
                     fileRef = characters.getData();
                 }
             } else if (event.isEndElement()) {
                 elementName = event.asEndElement().getName().getLocalPart();
-                if (elementName.equals("Identifier") && isIdentifer) {
-                    isIdentifer = false;
+                if (elementName.equals("Identifier") && isIdentifier) {
+                    isIdentifier = false;
                     if (fileRef.isEmpty()){
                         log.warn("No fileRef have been found in the parsed XML.");
                     }
@@ -220,7 +221,7 @@ public class PreservicaUtils {
     }
     /**
      * Check if an InformationObject is migrated from DOMS. This is checked by calling the Preservica entity API by
-     * {@code /api/entity/information-objects/{id}/identifiers} and then look for an identifer of type SourceID, which
+     * {@code /api/entity/information-objects/{id}/identifiers} and then look for an identifier of type SourceID, which
      * should have a value that starts with 'doms' for DOMS records.
      * @param id of the information-object to look up.
      * @return true if input InformationObject has been migrated from DOMS. Otherwise, false.
