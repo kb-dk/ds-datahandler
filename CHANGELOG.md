@@ -7,11 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 
+### Changed  
+
+### Removed
+
+## [1.8.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.8.2) - 2024-07-17
 ### Changed 
 - Changed DSStorage client method used in methods DsDatahandlerFacade.updateManifestationForRecords and DsDatahandlerFacade.fetchKalturaIdsAndUpdateRecords.
 - Bumped ds-storage dependency to v. 2.1.1
+- Bumped ds-storage dependency to v. 2.1.1
+- Bumped ds-present dependency to v 2.0.0  
+- Bumped ds-kaltura dependency to 1.2.2
 
-### Removed
 
 
 ## [1.8.1](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.8.1) - 2024-07-01
