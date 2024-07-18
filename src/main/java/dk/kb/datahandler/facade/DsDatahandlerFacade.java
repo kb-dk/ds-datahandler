@@ -453,9 +453,6 @@ public class DsDatahandlerFacade {
      * @return a count of records that have been updated.
      */
     public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException {
-        // Initialization of preservica client.
-        DsPreservicaClient.init(ServiceConfig.getPreservicaUrl(), ServiceConfig.getPreservicaUser(),
-                ServiceConfig.getPreservicaPassword(), ServiceConfig.getPreservicaKeepAliveSeconds());
         DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
         PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
 
