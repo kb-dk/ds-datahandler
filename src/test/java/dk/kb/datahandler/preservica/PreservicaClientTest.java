@@ -23,8 +23,6 @@ public class PreservicaClientTest {
     @BeforeAll
     public static void setup() throws IOException {
         ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml" ,"ds-datahandler-integration-test.yaml");
-        DsPreservicaClient.init(ServiceConfig.getPreservicaUrl(), ServiceConfig.getPreservicaUser(),
-                ServiceConfig.getPreservicaPassword(), ServiceConfig.getPreservicaKeepAliveSeconds());
     }
 
 

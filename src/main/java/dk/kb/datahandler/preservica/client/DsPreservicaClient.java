@@ -1,6 +1,7 @@
 package dk.kb.datahandler.preservica.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.datahandler.util.PreservicaUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -42,14 +43,14 @@ public class DsPreservicaClient {
 
     private DsPreservicaClient(){}
 
-    public static void init(String baseUrl, String username, String password, long sessionKeepAliveSeconds){
+    private static void init(String baseUrl, String username, String password, long sessionKeepAliveSeconds){
         if (sessionKeepAliveSeconds <600) { //Enforce some kind of reuse of session since authenticating sessions will accumulate at Kaltura.
             throw new IllegalArgumentException("SessionKeepAliveSeconds must be at least 600 seconds (10 minutes) ");
         }
         DsPreservicaClient.baseUrl = baseUrl;
         user = username;
         DsPreservicaClient.password = password;
-        DsPreservicaClient.sessionKeepAliveSeconds =sessionKeepAliveSeconds;
+        DsPreservicaClient.sessionKeepAliveSeconds = sessionKeepAliveSeconds;
 
         // Call method to get first accesToken and refreshToken.
         getAccess();
@@ -90,19 +91,26 @@ public class DsPreservicaClient {
      * Get an instance of the Preservica Client
      * @return an instance of the client.
      */
-    public static synchronized DsPreservicaClient getInstance() throws IOException{
+    public static synchronized DsPreservicaClient getInstance() throws IOException {
+        if (lastSessionStart == 0) {
+            // Initialization of preservica client.
+            init(ServiceConfig.getPreservicaUrl(), ServiceConfig.getPreservicaUser(),
+                    ServiceConfig.getPreservicaPassword(), ServiceConfig.getPreservicaKeepAliveSeconds());
+            log.info("Initialized Preservica Client to the following URL: '{}' for the user: '{}'",
+                    ServiceConfig.getPreservicaUrl(), ServiceConfig.getPreservicaUser());
+        }
+
         try {
-            if (System.currentTimeMillis()-lastSessionStart >= sessionKeepAliveSeconds * 1000) {
+            if (System.currentTimeMillis() - lastSessionStart >= sessionKeepAliveSeconds * 1000) {
                 getAccess();
                 log.info("Refreshed Preservica client session.");
-                lastSessionStart=System.currentTimeMillis(); //Reset timer
+                lastSessionStart = System.currentTimeMillis(); //Reset timer
                 return client;
             }
             return client; //Reuse existing connection.
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.warn("Connecting to Preservica failed.");
-            throw new IOException (e);
+            throw new IOException(e);
         }
     }
 

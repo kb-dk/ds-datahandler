@@ -15,6 +15,7 @@ import java.util.zip.ZipInputStream;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
+import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
