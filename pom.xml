@@ -640,18 +640,9 @@
                     <includeOnlyProperties>
                         <includeOnlyProperty>git.commit.id</includeOnlyProperty>
                         <includeOnlyProperty>git.branch</includeOnlyProperty>
-                        <includeOnlyProperty>git.tag</includeOnlyProperty>
                         <includeOnlyProperty>git.closest.tag.name</includeOnlyProperty>
                         <includeOnlyProperty>git.commit.author.time</includeOnlyProperty>
                     </includeOnlyProperties>
-                    <replacementProperties>
-                        <replacementProperty>
-                            <property>git.tag</property>
-                            <regex>false</regex>
-                            <token>git.tag</token>
-                            <value>unknown</value>
-                        </replacementProperty>
-                    </replacementProperties>
                 </configuration>
             </plugin>
         </plugins>
