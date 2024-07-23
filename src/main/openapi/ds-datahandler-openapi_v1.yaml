@@ -284,6 +284,23 @@ paths:
               schema:
                 type: string
 
+  /monitor/whoami:
+    get:
+      tags:
+        - Service
+      summary: 'Extract OAuth2 accessToken in the `Authorization` HTTP header and return the roles from it'
+      operationId: probeWhoami
+      security:
+        - KBOAuth:
+          - public
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Whoami'
+
 components:
   schemas:
 
@@ -454,6 +471,33 @@ components:
       example: 'FULL'
       default: 'FULL'
 
+    Whoami:
+      type: object
+      description: 'OAuth2 information derived from the request'
+      properties:
+        token:
+          type: object
+          required:
+            - present
+          properties:
+            present:
+              type: boolean
+              description: 'True if an OAuth2 accessToken was present in the request, else false'
+              example: true
+            valid:
+              type: boolean
+              description: 'True is an OAuth2 accessToken was present and valid, else false'
+              example: false
+            error:
+              type: string
+              description: 'If the accessToken is not valid, the reason will be stated here'
+            roles:
+              type: array
+              items:
+                type: string
+              description: 'The roles stated in the OAuth2 accessToken'
+              example: [read, write, admin]
+
     Error:
       type: object
       required:
@@ -465,3 +509,30 @@ components:
           format: int32
         message:
           type: string
+
+                    
+
+  # TODO: Inject this from properties when DRA-139 has been implemented
+  securitySchemes:
+
+    KBOAuth:
+      type: oauth2
+      description: 'This API uses OAuth 2 with the implicit grant flow. [More info](https://api.example.com/docs/auth)'
+      flows:
+        implicit:   # <---- OAuth flow(authorizationCode, implicit, password or clientCredentials)
+          authorizationUrl: 'https://keycloak-devel-01.kb.dk/realms/ds-poc/protocol/openid-connect/auth'
+          #authorizationUrl: https://api.example.com/oauth2/authorize # Overridden by the configuration
+          scopes:
+            generic_ds: 'Scope used for all Digitale Samlinger services'
+            # Project specific roles
+            read: 'read data'
+            write: 'modify or delete data'
+
+            # General roles at the Royal Danish Library
+            devel: 'broad read access'
+            admin: 'all rights'
+
+            # Meta role controlling authorization behaviour
+            public: 'allowed for all, authorization optional, implementation behaviour depending on caller roles'
+            any: 'allowed for all, authorization mandatory, implementation behaviour depending on caller roles'
+          

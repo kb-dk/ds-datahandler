@@ -4,8 +4,8 @@ import {{package}}.*;
 {{#imports}}import {{import}};
 {{/imports}}
 
-import dk.kb.util.webservice.exception.ServiceException;
-import dk.kb.util.webservice.exception.InternalServiceException;
+import {{packageName}}.webservice.exception.ServiceException;
+import {{packageName}}.webservice.exception.InternalServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +66,7 @@ import org.springframework.stereotype.Service;
  *
  */
 {{/appName}}
+@InInterceptors(interceptors = "dk.kb.poc.webservice.KBInterceptor")
 public class {{classname}}ServiceImpl extends ImplBase implements {{classname}} {
     private Logger log = LoggerFactory.getLogger(this.toString());
 
@@ -85,7 +86,6 @@ public class {{classname}}ServiceImpl extends ImplBase implements {{classname}} 
 
 {{/loadTestDataFromFile}}
 {{/generateOperationBody}}
-
 
 {{#operations}}
 {{#operation}}
@@ -135,8 +135,17 @@ non-void response:
 pre-populated operation body:
                     }}{{#generateOperationBody}}
         try { {{#vendorExtensions.x-streamingOutput}}
+            String filename = "somefile";
             // Show download link in Swagger UI, inline when opened directly in browser
-            setFilename("somefile", true, false);
+            // https://github.com/swagger-api/swagger-ui/issues/3832
+            httpServletResponse.setHeader("Content-Disposition", "inline; swaggerDownload=\"attachment\"; filename=\"" + filename + "\"");
+
+            // Show inline in Swagger UI, inline when opened directly in browser
+            // httpServletResponse.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
+
+            // Show download link in Swagger UI, download dialog when opened directly in browser
+            // httpServletResponse.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+
             return output -> output.write("Magic".getBytes(java.nio.charset.StandardCharsets.UTF_8));{{!
         }}{{/vendorExtensions.x-streamingOutput}}{{!
         }}{{^vendorExtensions.x-streamingOutput}}
@@ -154,6 +163,21 @@ pre-populated operation body:
     }
 
 {{/operation}}
+
+    /**
+    * This method simply converts any Exception into a Service exception
+    * @param e: Any kind of exception
+    * @return A ServiceException
+    * @see dk.kb.poc.webservice.ServiceExceptionMapper
+    */
+    private ServiceException handleException(Exception e) {
+        if (e instanceof ServiceException) {
+            return (ServiceException) e; // Do nothing - this is a declared ServiceException from within module.
+        } else {// Unforseen exception (should not happen). Wrap in internal service exception
+            log.error("ServiceException(HTTP 500):", e); //You probably want to log this.
+            return new InternalServiceException(e.getMessage());
+        }
+    }
 
 }
 {{/operations}}

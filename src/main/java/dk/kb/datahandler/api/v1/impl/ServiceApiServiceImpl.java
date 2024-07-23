@@ -4,16 +4,24 @@ import dk.kb.datahandler.api.v1.ServiceApi;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.OaiJobDto;
 import dk.kb.datahandler.model.v1.StatusDto;
+import dk.kb.datahandler.model.v1.WhoamiDto;
+import dk.kb.datahandler.model.v1.WhoamiTokenDto;
+import dk.kb.datahandler.webservice.KBAuthorizationInterceptor;
 import dk.kb.util.BuildInfoManager;
 import dk.kb.util.webservice.ImplBase;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.ServiceException;
+
+import org.apache.cxf.jaxrs.utils.JAXRSUtils;
+import org.apache.cxf.message.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Meta endpoints.
@@ -96,5 +104,32 @@ public class ServiceApiServiceImpl extends ImplBase implements ServiceApi {
         }      
         return jobs;        
     }
+    
+    
+    /**
+     * Extract info from OAUth2 accessTokens.
+     * @return OAUth2 roles from the caller's accessToken, if present.
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    public WhoamiDto probeWhoami() {
+        WhoamiDto whoami = new WhoamiDto();
+        WhoamiTokenDto token = new WhoamiTokenDto();
+        whoami.setToken(token);
+
+        Message message = JAXRSUtils.getCurrentMessage();
+
+        token.setPresent(message.containsKey(KBAuthorizationInterceptor.ACCESS_TOKEN_STRING));
+        token.setValid(Boolean.TRUE.equals(message.get(KBAuthorizationInterceptor.VALID_TOKEN)));
+        if (message.containsKey(KBAuthorizationInterceptor.FAILED_REASON)) {
+            token.setError(message.get(KBAuthorizationInterceptor.FAILED_REASON).toString());
+        }
+        Object roles = message.get(KBAuthorizationInterceptor.TOKEN_ROLES);
+        if (roles != null) {
+            token.setRoles(new ArrayList<>((Set<String>)roles));
+        }
+        return whoami;
+    }
+
     
 }
