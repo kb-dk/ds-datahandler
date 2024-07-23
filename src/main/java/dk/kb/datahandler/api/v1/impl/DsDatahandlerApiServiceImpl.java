@@ -7,6 +7,8 @@ import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.webservice.ImplBase;
 import dk.kb.util.webservice.exception.InternalServiceException;
+
+import org.apache.cxf.interceptor.InInterceptors;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.slf4j.Logger;
@@ -35,6 +37,7 @@ import java.util.List;
  * <p>ds-datahandler by the Royal Danish Library 
  *
  */
+@InInterceptors(interceptors = "dk.kb.datahandler.webservice.KBAuthorizationInterceptor")
 public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApi {
     private Logger log = LoggerFactory.getLogger(this.toString());
 
