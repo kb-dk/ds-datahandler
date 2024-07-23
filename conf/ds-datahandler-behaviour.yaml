@@ -196,6 +196,33 @@ kaltura:
   userId:  'xxx@kb.dk'
   adminSecret: 'xxxxxxx'
 
+security:
+  # The security mode. Valid values are
+  # OFFLINE: No validation of security tokens: All requests are accepted.
+  # ENABLED (or no mode set): Validation of security tokens against OAuth2 server.
+  mode: 'ENABLED'
+  # The OAUth2 server base url, typically ending in "realms"
+  # Sample: https://keycloak-keycloak.example.org/auth/realms
+  baseurl: 'https://keycloak.example.com/realms'
+  # Accepted realms for requests. These must be present at the OAuth2 server
+  # The authentification url with the correct realm value. Does not seem the used active by code but is required when building. (TODO?)
+  auth_url: ' https://api.example.com/oauth2/authorize'
+  # Accepted realms for requests. These must be present at the OAuth2 server
+  realms:
+    - foo-bar
+  public_keys:
+    # The number of seconds that public keys from the realms are cached
+    # Optional, -1 means forever.
+    # Default is 600 (10 minutes)
+    ttl_seconds: 86400
+
+  # Client settings are used if the webapp needs to request tokens from the OAuth2 server
+  client:
+    # Matches OAuth2 server Client ID
+    id: 'some_client'
+    # Secret is used if the service needs to request a token from the OAuth2 server.
+    # This typically used for calls between services, where there is a need for elevated access.
+    secret: '01234567-89ab-cdef-0123-456789abcdef'
 
     
       
