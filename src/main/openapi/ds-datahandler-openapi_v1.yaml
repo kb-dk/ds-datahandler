@@ -511,8 +511,6 @@ components:
           type: string
 
                     
-
-  # TODO: Inject this from properties when DRA-139 has been implemented
   securitySchemes:
 
     KBOAuth:
@@ -520,8 +518,9 @@ components:
       description: 'This API uses OAuth 2 with the implicit grant flow. [More info](https://api.example.com/docs/auth)'
       flows:
         implicit:   # <---- OAuth flow(authorizationCode, implicit, password or clientCredentials)
-          authorizationUrl: 'https://keycloak-devel-01.kb.dk/realms/ds-poc/protocol/openid-connect/auth'
-          #authorizationUrl: https://api.example.com/oauth2/authorize # Overridden by the configuration
+          #authorizationUrl is not used. Instead it uses keycloak url from yaml property file aegis-devel.
+          #If we figure out what this is supposed to be used for, inject the value from yaml file  ${config.yaml.path}           
+          authorizationUrl: https://api.example.com/oauth2/authorize 
           scopes:
             generic_ds: 'Scope used for all Digitale Samlinger services'
             # Project specific roles
