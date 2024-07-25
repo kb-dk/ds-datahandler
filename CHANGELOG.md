@@ -14,6 +14,7 @@ No methods are defined to require OAuth yet!
 
 ### Removed
 - Removed non-resolvable git.tag from build.properties
+- Removed double logging of part of the URL by bumping kb util to v1.5.10 
 
 ## [1.8.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.8.2) - 2024-07-17
 ### Changed 
