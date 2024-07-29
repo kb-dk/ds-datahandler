@@ -11,6 +11,7 @@ No methods are defined to require OAuth yet!
 
 ### Changed  
 - Changed when DsPreservicaClient is initialized.
+- Bump ds-kaltura to 1.2.3
 
 ### Removed
 - Removed non-resolvable git.tag from build.properties
