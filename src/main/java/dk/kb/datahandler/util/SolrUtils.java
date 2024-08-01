@@ -15,7 +15,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,22 +39,25 @@ public class SolrUtils {
     public static Long getLatestMTimeForOrigin(String origin) throws SolrServerException, IOException {
         // Solr query client
         String solrQueryUrl = ServiceConfig.getSolrQueryUrl();
-        SolrClient solrClient = new HttpSolrClient.Builder(solrQueryUrl).build();
+        String storageMTime;
+        QueryResponse response;
+        try (SolrClient solrClient = new HttpJdkSolrClient.Builder(solrQueryUrl).build()) {
 
-        String storageMTime = "internal_storage_mTime";
+            storageMTime = "internal_storage_mTime";
 
-        // Perform a query
-        SolrQuery query = new SolrQuery("origin:"+ origin + " AND " + storageMTime + ":*");
-        query.setFields(storageMTime);
-        query.setSort(storageMTime, SolrQuery.ORDER.desc);
-        query.setRows(1);
-        // Have to add facet and highlights like this as the query.setFacet and query.setHighlight aren't appended
-        // to the query.
-        query.add("facet", "false");
-        query.add("hl", "false");
+            // Perform a query
+            SolrQuery query = new SolrQuery("origin:" + origin + " AND " + storageMTime + ":*");
+            query.setFields(storageMTime);
+            query.setSort(storageMTime, SolrQuery.ORDER.desc);
+            query.setRows(1);
+            // Have to add facet and highlights like this as the query.setFacet and query.setHighlight aren't appended
+            // to the query.
+            query.add("facet", "false");
+            query.add("hl", "false");
 
-        // Parse response to get last modified field
-        QueryResponse response = solrClient.query(query);
+            // Parse response to get last modified field
+            response = solrClient.query(query);
+        }
 
         if (!response.getResults().isEmpty()) {
             Long lastStorageMTime = (Long) response.getResults().get(0).getFieldValue(storageMTime);
@@ -65,7 +68,7 @@ public class SolrUtils {
     }
 
     /**
-     * Index documents from a given oringin into the configured solr index.
+     * Index documents from a given origin into the configured solr index.
      * @param origin    where the records come from. Has to be registered with DS-Storage
      * @param sinceTime A long representation of time since epoch.
      * @return          A status on how many records have been indexed.
@@ -130,11 +133,17 @@ public class SolrUtils {
                 hasMore=solrDocsStream.hasMore();
                 if (hasMore) {
                     sinceTime=solrDocsStream.getContinuationToken(); //Next batch start from here.
+                } else {
+                    buildSuggestIndex();
+                    log.info("Updated solr suggest index.");
                 }
             } catch (IOException e) {
                 log.warn("An error occurred when streaming records from DsPresent. DsPresentClient.getRecordsJSON() " +
                         "was called with the following params: origin='{}', mTime='{}', maxRecords='{}', format='{}'",
                         origin, sinceTime, batchSize, FormatDto.SOLRJSON);
+                throw new InternalServiceException(e);
+            } catch (SolrServerException e) {
+                log.warn("An error occurred when updating the solr suggester index.");
                 throw new InternalServiceException(e);
             }
         }
@@ -186,6 +195,24 @@ public class SolrUtils {
         }
 
         return result;
+    }
+
+    /**
+     * Send a request to build the index for the suggest component.
+     */
+    public static void buildSuggestIndex() throws SolrServerException, IOException {
+        String solrUrl = ServiceConfig.getSolrQueryUrl();
+        try (SolrClient solrClient = new HttpJdkSolrClient.Builder(solrUrl).build()) {
+
+            // Perform a query at suggest handler
+            SolrQuery query = new SolrQuery();
+            query.setRequestHandler("/suggest");
+            query.set("suggest.build", "true");
+            log.debug("Starts building suggest index by querying '{}' with this request: '{}'.", solrUrl, query);
+
+            // Fire the query and build the suggest index
+            solrClient.query(query);
+        }
     }
 
 }

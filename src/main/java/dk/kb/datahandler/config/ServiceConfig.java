@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
-import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.util.yaml.YAML;
 
 /**
@@ -105,7 +104,7 @@ public class ServiceConfig {
     public static String getSolrQueryUrl() {
         return solrQueryUrl;
     }
-    
+
     public static String getDsPresentUrl() {
         return dsPresentUrl;
     }
@@ -136,6 +135,10 @@ public class ServiceConfig {
 
     public static int getPreservicaKeepAliveSeconds() {
         return preservicaKeepAliveSeconds;
+    }
+
+    public static void setSolrQueryUrl(String solrQueryUrl) {
+        ServiceConfig.solrQueryUrl = solrQueryUrl;
     }
 
     private static void loadOaiTargets() {
