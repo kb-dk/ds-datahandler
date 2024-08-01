@@ -44,7 +44,10 @@ storage:
 # Batchsize 100 or 1000 does not increase performance much. May change with large scale data.
 # URLs should point to stage/production solr installation
 solr:
-  updateUrl:  http://localhost:10011/solr/ds-write/update
+  # Update is split into url and request handler because the url is needed in different contexts when updating indexes.
+  # url needs to point at update url for solr.
+  update:
+    url: http://localhost:10011/solr/ds-write
   queryUrl: http://localhost:10011/solr/ds
   batchSize: 500
 
