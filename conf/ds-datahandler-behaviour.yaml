@@ -156,7 +156,9 @@ storage:
 # solr. Used by workflow that extracts from storage, xslt and index into solr.
 # Batchsize 100 or 1000 does not increase performance much. May change with large scale data.
 solr:
-  updateUrl:  http://localhost:10011/solr/ds/update
+  update:
+    url: http://localhost:10011/solr/ds-write
+    requestHandler: /update
   queryUrl: http://localhost:10011/solr/ds
   batchSize: 500
 

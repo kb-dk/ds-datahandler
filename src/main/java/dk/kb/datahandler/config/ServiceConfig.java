@@ -1,6 +1,8 @@
 package dk.kb.datahandler.config;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -8,12 +10,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
-import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.util.yaml.YAML;
 
 /**
@@ -27,7 +29,15 @@ public class ServiceConfig {
     private static final HashMap<String, OaiTargetDto> oaiTargets = new HashMap<String, OaiTargetDto>();
     private static String oaiTimestampFolder=null;
     private static String dsStorageUrl = null;
+    /**
+     * Url to solr write collection with updateHandler added as URL path. Most likely the url has "/update" appened.
+     * To get the URL for the write collection without the updateHanler appended use this: {@link #solrWriteCollectionUrl}.
+     */
     private static String solrUpdateUrl = null;
+    /**
+     * Solr write collection. This contains the URL to the write collection in solr. If an updateHandler gets appended the path should resemble {@link #solrUpdateUrl}.
+     */
+    private static String solrWriteCollectionUrl = null;
     private static String solrQueryUrl = null;
     private static String dsPresentUrl = null;
     private static int solrBatchSize=100;
@@ -56,7 +66,8 @@ public class ServiceConfig {
         
         oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
         dsStorageUrl = serviceConfig.getString("storage.url");
-        solrUpdateUrl = serviceConfig.getString("solr.updateUrl");
+        solrUpdateUrl = createSolrUpdateUrl();
+        solrWriteCollectionUrl = serviceConfig.getString("solr.update.url");
         solrQueryUrl = serviceConfig.getString("solr.queryUrl");
         solrBatchSize=  serviceConfig.getInteger("solr.batchSize");
         dsPresentUrl = serviceConfig.getString("present.url");
@@ -82,7 +93,22 @@ public class ServiceConfig {
         
     }
 
-  
+    /**
+     * Combine configuration solr.update.url and solr.update.requestHandler to a solrUpdateUrl.
+     * @return a string representing a URL to a solr request handler for updating the index.
+     */
+    private static String createSolrUpdateUrl() {
+        try {
+            return new URIBuilder(serviceConfig.getString("solr.update.url") + serviceConfig.getString("solr.update.requestHandler"))
+                    .build().toURL().toString();
+        } catch (MalformedURLException | URISyntaxException e) {
+            log.warn("Error creating solr update url from URL: '{}' and requestHandler: '{}'",
+                    serviceConfig.getString("solr.update.url"), serviceConfig.getString("solr.update.requestHandler") );
+            throw new RuntimeException(e);
+        }
+    }
+
+
     /**
      * Direct access to the backing YAML-class is used for configurations with more flexible content
      * and/or if the service developer prefers key-based property access.
@@ -99,13 +125,26 @@ public class ServiceConfig {
     	return solrBatchSize;
     }
 
+    /**
+     * Get URL to solr write collection with updateHandler added as URL path. Most likely the url has "/update" appened.
+     * To get the URL for the write collection without the updateHanler appended use this: {@link #solrWriteCollectionUrl}.
+     */
     public static String getSolrUpdateUrl() {
         return solrUpdateUrl;
     }
+
+    public static String getSolrWriteCollectionUrl() {
+        return solrWriteCollectionUrl;
+    }
+
+    public static void setSolrWriteCollectionUrl(String solrWriteCollectionUrl) {
+        ServiceConfig.solrWriteCollectionUrl = solrWriteCollectionUrl;
+    }
+
     public static String getSolrQueryUrl() {
         return solrQueryUrl;
     }
-    
+
     public static String getDsPresentUrl() {
         return dsPresentUrl;
     }

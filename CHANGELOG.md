@@ -8,14 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Enabled OAuth2 on module. Much is copy-paste from ds-image to see it working in two different modules.  Plans are to refactor common functionality out into kb-util/template projects.
 No methods are defined to require OAuth yet!
+- After finished solr indexing the `/solr/index`-endpoint now updates the index for the suggest component as well.
 
 ### Changed  
 - Changed when DsPreservicaClient is initialized.
 - Bump ds-kaltura to 1.2.3
+- Updated solrJ to 9.6.1 to remove deprecated `HttpSolrClient` and switch to `HttpJdkSolrClient` capable of using Http 1 and 2.
+- Removed solr.updateUrl from configuration files. Use the added solr.update.url instead.
 
 ### Removed
 - Removed non-resolvable git.tag from build.properties
-- Removed double logging of part of the URL by bumping kb util to v1.5.10 
+- Removed double logging of part of the URL by bumping kb util to v1.5.10
 
 ## [1.8.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.8.2) - 2024-07-17
 ### Changed 
