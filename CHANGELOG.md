@@ -14,10 +14,11 @@ No methods are defined to require OAuth yet!
 - Changed when DsPreservicaClient is initialized.
 - Bump ds-kaltura to 1.2.3
 - Updated solrJ to 9.6.1 to remove deprecated `HttpSolrClient` and switch to `HttpJdkSolrClient` capable of using Http 1 and 2.
+- Removed solr.updateUrl from configuration files. Use the added solr.update.url instead.
 
 ### Removed
 - Removed non-resolvable git.tag from build.properties
-- Removed double logging of part of the URL by bumping kb util to v1.5.10 
+- Removed double logging of part of the URL by bumping kb util to v1.5.10
 
 ## [1.8.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.8.2) - 2024-07-17
 ### Changed 
