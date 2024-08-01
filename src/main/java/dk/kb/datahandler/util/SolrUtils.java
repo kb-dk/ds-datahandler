@@ -198,10 +198,10 @@ public class SolrUtils {
     }
 
     /**
-     * Send a request to build the index for the suggest component.
+     * Send a request to build the index for the suggest component in the solr write collection
      */
-    public static void buildSuggestIndex() throws SolrServerException, IOException {
-        String solrUrl = ServiceConfig.getSolrQueryUrl();
+    public static QueryResponse buildSuggestIndex() throws SolrServerException, IOException {
+        String solrUrl = ServiceConfig.getSolrWriteCollectionUrl();
         try (SolrClient solrClient = new HttpJdkSolrClient.Builder(solrUrl).build()) {
 
             // Perform a query at suggest handler
@@ -211,7 +211,7 @@ public class SolrUtils {
             log.debug("Starts building suggest index by querying '{}' with this request: '{}'.", solrUrl, query);
 
             // Fire the query and build the suggest index
-            solrClient.query(query);
+            return solrClient.query(query);
         }
     }
 

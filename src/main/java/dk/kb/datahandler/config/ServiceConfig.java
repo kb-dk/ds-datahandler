@@ -26,7 +26,15 @@ public class ServiceConfig {
     private static final HashMap<String, OaiTargetDto> oaiTargets = new HashMap<String, OaiTargetDto>();
     private static String oaiTimestampFolder=null;
     private static String dsStorageUrl = null;
+    /**
+     * Url to solr write collection with updateHandler added as URL path. Most likely the url has "/update" appened.
+     * To get the URL for the write collection without the updateHanler appended use this: {@link #solrWriteCollectionUrl}.
+     */
     private static String solrUpdateUrl = null;
+    /**
+     * Solr write collection. This contains the URL to the write collection in solr. If an updateHandler gets appended the path should resemble {@link #solrUpdateUrl}.
+     */
+    private static String solrWriteCollectionUrl = null;
     private static String solrQueryUrl = null;
     private static String dsPresentUrl = null;
     private static int solrBatchSize=100;
@@ -55,7 +63,8 @@ public class ServiceConfig {
         
         oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
         dsStorageUrl = serviceConfig.getString("storage.url");
-        solrUpdateUrl = serviceConfig.getString("solr.updateUrl");
+        solrUpdateUrl = serviceConfig.getString("solr.update.url") + serviceConfig.getString("solr.update.requestHandler");
+        solrWriteCollectionUrl = serviceConfig.getString("solr.update.url");
         solrQueryUrl = serviceConfig.getString("solr.queryUrl");
         solrBatchSize=  serviceConfig.getInteger("solr.batchSize");
         dsPresentUrl = serviceConfig.getString("present.url");
@@ -98,9 +107,22 @@ public class ServiceConfig {
     	return solrBatchSize;
     }
 
+    /**
+     * Get URL to solr write collection with updateHandler added as URL path. Most likely the url has "/update" appened.
+     * To get the URL for the write collection without the updateHanler appended use this: {@link #solrWriteCollectionUrl}.
+     */
     public static String getSolrUpdateUrl() {
         return solrUpdateUrl;
     }
+
+    public static String getSolrWriteCollectionUrl() {
+        return solrWriteCollectionUrl;
+    }
+
+    public static void setSolrWriteCollectionUrl(String solrWriteCollectionUrl) {
+        ServiceConfig.solrWriteCollectionUrl = solrWriteCollectionUrl;
+    }
+
     public static String getSolrQueryUrl() {
         return solrQueryUrl;
     }
@@ -135,10 +157,6 @@ public class ServiceConfig {
 
     public static int getPreservicaKeepAliveSeconds() {
         return preservicaKeepAliveSeconds;
-    }
-
-    public static void setSolrQueryUrl(String solrQueryUrl) {
-        ServiceConfig.solrQueryUrl = solrQueryUrl;
     }
 
     private static void loadOaiTargets() {
