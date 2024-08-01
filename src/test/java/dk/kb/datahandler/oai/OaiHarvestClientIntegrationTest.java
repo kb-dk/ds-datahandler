@@ -103,19 +103,18 @@ public class OaiHarvestClientIntegrationTest {
 
         OaiHarvestClient client = new OaiHarvestClient(job,null);
         OaiResponse r1 = client.next();
-        assertEquals(200, r1.getRecords().size());
+        assertEquals(193, r1.getRecords().size());
         assertNotNull(r1.getResumptionToken());
 
         //System.out.println(r1.getRecords().get(0).getMetadata());
 
-        /*
+
         //Fetch next 200
         OaiResponse r2= client.next();
         assertEquals(200, r2.getRecords().size());
         // and next
         OaiResponse r3= client.next();
         assertEquals(200, r3.getRecords().size());
-        */
     }
 
 }
