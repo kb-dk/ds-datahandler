@@ -1,6 +1,8 @@
 package dk.kb.datahandler.config;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -8,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +66,7 @@ public class ServiceConfig {
         
         oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
         dsStorageUrl = serviceConfig.getString("storage.url");
-        solrUpdateUrl = serviceConfig.getString("solr.update.url") + serviceConfig.getString("solr.update.requestHandler");
+        solrUpdateUrl = createSolrUpdateUrl();
         solrWriteCollectionUrl = serviceConfig.getString("solr.update.url");
         solrQueryUrl = serviceConfig.getString("solr.queryUrl");
         solrBatchSize=  serviceConfig.getInteger("solr.batchSize");
@@ -90,7 +93,22 @@ public class ServiceConfig {
         
     }
 
-  
+    /**
+     * Combine configuration solr.update.url and solr.update.requestHandler to a solrUpdateUrl.
+     * @return a string representing a URL to a solr request handler for updating the index.
+     */
+    private static String createSolrUpdateUrl() {
+        try {
+            return new URIBuilder(serviceConfig.getString("solr.update.url") + serviceConfig.getString("solr.update.requestHandler"))
+                    .build().toURL().toString();
+        } catch (MalformedURLException | URISyntaxException e) {
+            log.warn("Error creating solr update url from URL: '{}' and requestHandler: '{}'",
+                    serviceConfig.getString("solr.update.url"), serviceConfig.getString("solr.update.requestHandler") );
+            throw new RuntimeException(e);
+        }
+    }
+
+
     /**
      * Direct access to the backing YAML-class is used for configurations with more flexible content
      * and/or if the service developer prefers key-based property access.
