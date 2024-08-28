@@ -106,6 +106,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
     }
 
+
     @Override
     public List<OaiTargetDto> getOaiTargetsConfiguration() {
         try {            
@@ -119,6 +120,15 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
             return  targets;
         } catch (Exception e){
+            throw handleException(e);
+        }
+    }
+
+    @Override
+    public Long enrichMetadataRecords(String origin, Long mTimeFrom) {
+        try {
+            return DsDatahandlerFacade.enrichMetadataRecords(origin, mTimeFrom);
+        } catch (Exception  e) {
             throw handleException(e);
         }
     }

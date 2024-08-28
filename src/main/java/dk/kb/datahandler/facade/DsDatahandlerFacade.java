@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import dk.kb.datahandler.enrichment.DataEnricher;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
@@ -21,6 +22,7 @@ import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
+import dk.kb.util.webservice.stream.ContinuationStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -442,6 +444,47 @@ public class DsDatahandlerFacade {
         if (alreadyRunning) {
             throw new InvalidArgumentServiceException("There is already a job running for target:"+oaiTargetName);
         }
+    }
+
+    public static long enrichMetadataRecords(String origin, Long mTimeFrom) throws IOException, ApiException {
+        DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+
+        long processedRecords= 0L;
+        boolean hasMore = true;
+
+        AtomicInteger counter = new AtomicInteger(0);
+        AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
+
+
+        try (ContinuationInputStream<Long> dsDocsStream =
+                     storageClient.getRecordsModifiedAfterJSON(origin, mTimeFrom, 1000L)){
+            log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
+                    dsDocsStream.getRecordCount(), origin, counter.get());
+
+            dsDocsStream.stream(DsRecordDto.class)
+                    .map(DataEnricher::apply)
+                    .forEach((record) -> {
+                                try {
+                                    storageClient.recordPost(record);
+                                } catch (ApiException e) {
+                                    // Error handling
+                                }
+                            }
+                    );
+
+            hasMore = dsDocsStream.hasMore();
+            if (hasMore) {
+                mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
+            }
+        } catch (IOException e) {
+            log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
+                            "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
+                    origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
+            throw e;
+        }
+
+
+        return 0L;
     }
 
     /**
