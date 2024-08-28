@@ -215,7 +215,37 @@ paths:
               schema:
                 type: integer
                 format: int64
-                
+
+  /enrichment/metadatarecords:
+    get:
+      tags:
+        - '${project.name}'
+      summary: 'Enriches the metadata records'
+      operationId: enrichMetadataRecords
+      parameters:
+        - name: origin
+          in: query
+          description: 'Origin to enrich metadata from'
+          required: true
+          schema:
+            type: string
+            enum: [ "${config:present.origins[*]}" ]
+        - name: mTimeFrom
+          in: query
+          description: 'Start from records modified after mTimeFrom. Format is milliseconds since Epoch with 3 added digits'
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK. Returns total number of records updated
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+
                 
                 
   # The ping service should be in all projects, should not do any advanced processing
@@ -534,4 +564,3 @@ components:
             # Meta role controlling authorization behaviour
             public: 'allowed for all, authorization optional, implementation behaviour depending on caller roles'
             any: 'allowed for all, authorization mandatory, implementation behaviour depending on caller roles'
-          
