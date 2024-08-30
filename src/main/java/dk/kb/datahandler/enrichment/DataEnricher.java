@@ -1,8 +1,11 @@
 package dk.kb.datahandler.enrichment;
 
+import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.util.xml.XML;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
@@ -14,17 +17,23 @@ import java.util.List;
 
 public class DataEnricher {
 
+    private static final Logger log = LoggerFactory.getLogger(DataEnricher.class);
+
+
     public static DsRecordDto apply(DsRecordDto record) {
         Document recordData;
         try {
             recordData = XML.fromXML(record.getData(),true);
             List<Fragment> fragments = FragmentsClient.getInstance().fetchMetadataFragments(getIoId(record));
+            if (!fragments.isEmpty()) {
+                log.info("No fragments found "+record.getId());
+            }
             for (Fragment fragment : fragments) {
                 Document fragmentDoc = XML.fromXML(fragment.getMetadataFragment(),true);
                 fragmentDoc.getElementById("record");
                 addMetadataFragments(recordData, fragmentDoc);
-                record.setData(XML.domToString(recordData));
             }
+            record.setData(XML.domToString(recordData));
             // TODO error handling
         } catch (ParserConfigurationException e) {
             throw new RuntimeException(e);
