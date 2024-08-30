@@ -30,9 +30,9 @@ public class FragmentsClient {
         this.baseUrl = baseUrl;
     }
 
-    public List<Fragment> fetchMetadataFragments(DsRecordDto record) throws IOException, URISyntaxException {
+    public List<Fragment> fetchMetadataFragments(String id) throws IOException, URISyntaxException {
         // Fetch enrichment data from the webservice
-        HttpURLConnection connection = getConnection("b8a1a107-59a8-4f74-a6e4-c0026b828d66");
+        HttpURLConnection connection = getConnection(id);
         if (connection.getResponseCode() != 200){
             //do some error handling
             return null;
