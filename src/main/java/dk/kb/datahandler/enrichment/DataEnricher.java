@@ -1,5 +1,6 @@
 package dk.kb.datahandler.enrichment;
 
+import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.util.xml.XML;
 import org.w3c.dom.*;
@@ -17,13 +18,14 @@ public class DataEnricher {
         Document recordData;
         try {
             recordData = XML.fromXML(record.getData(),true);
-            List<Fragment> fragments = FragmentsClient.getInstance().fetchMetadataFragments(record);
+            List<Fragment> fragments = FragmentsClient.getInstance().fetchMetadataFragments(getIoId(record));
             for (Fragment fragment : fragments) {
                 Document fragmentDoc = XML.fromXML(fragment.getMetadataFragment(),true);
                 fragmentDoc.getElementById("record");
                 addMetadataFragments(recordData, fragmentDoc);
                 record.setData(XML.domToString(recordData));
             }
+            // TODO error handling
         } catch (ParserConfigurationException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -41,10 +43,13 @@ public class DataEnricher {
     }
 
     private static Document addMetadataFragments(Document record, Document fragments) {
+        // TODO check if fragment exists
         NodeList nodeList = record.getElementsByTagName("XIP");
         if (nodeList.getLength() > 0 ) {
             Node xipNode = nodeList.item(0);
             Element metadataNode = record.createElement("Metadata");
+
+            // Copy attributes
             NamedNodeMap attributes = fragments.getDocumentElement().getAttributes();
             for (int i = 0; i < attributes.getLength(); i++) {
                 Node attr = attributes.item(i);
@@ -56,6 +61,7 @@ public class DataEnricher {
                 }
             }
 
+            // COPY child nodes
             NodeList childNodes = fragments.getDocumentElement().getChildNodes();
             for (int i = 0; i < childNodes.getLength(); i++) {
                 Node child = record.importNode(childNodes.item(i), true);
@@ -67,6 +73,15 @@ public class DataEnricher {
             // propably should not happen
         }
         return record;
+    }
+
+
+    static String getIoId(DsRecordDto dsRecord) {
+        String prefix = ":oai:io:";
+        int lengthOfPrefix = prefix.length();
+        int endOfPrefix = dsRecord.getId().lastIndexOf(prefix);
+
+        return dsRecord.getId().substring(endOfPrefix + lengthOfPrefix);
     }
 
 }
