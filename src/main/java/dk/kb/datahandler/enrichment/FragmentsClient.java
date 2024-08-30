@@ -1,0 +1,71 @@
+package dk.kb.datahandler.enrichment;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dk.kb.datahandler.preservica.AccessResponseObject;
+import dk.kb.storage.model.v1.DsRecordDto;
+import org.apache.http.client.utils.URIBuilder;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+public class FragmentsClient {
+
+    private static FragmentsClient instance;
+
+    private String baseUrl;
+
+    public static synchronized FragmentsClient getInstance() {
+        if (instance == null) {
+            instance = new FragmentsClient("http://nifi-rtv-stage-node01.kb.dk:9411");
+        }
+        return instance;
+    }
+
+    public FragmentsClient(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
+    public List<Fragment> fetchMetadataFragments(DsRecordDto record) throws IOException, URISyntaxException {
+        // Fetch enrichment data from the webservice
+        HttpURLConnection connection = getConnection("b8a1a107-59a8-4f74-a6e4-c0026b828d66");
+        if (connection.getResponseCode() != 200){
+            //do some error handling
+            return null;
+        }
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+        String inputLine;
+        StringBuilder response = new StringBuilder();
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Fragment> fragments = objectMapper.readValue(response.toString(), new TypeReference<List<Fragment>>(){});
+        return fragments;
+    }
+
+
+    private HttpURLConnection getConnection(String id) throws URISyntaxException, MalformedURLException {
+        URL url = new URIBuilder(baseUrl)
+                .setPathSegments("fragments",id)
+                .build().toURL();
+        HttpURLConnection connection;
+        try {
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("accept", "application/json");
+            return connection;
+        } catch (ProtocolException e) {
+            return null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+
+}
