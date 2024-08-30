@@ -125,6 +125,15 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     @Override
+    public void enrichMetadataRecord(String id) {
+        try {
+             DsDatahandlerFacade.enrichMetadataRecord(id);
+        } catch (Exception  e) {
+            throw handleException(e);
+        }
+    }
+
+    @Override
     public Long enrichMetadataRecords(String origin, Long mTimeFrom) {
         try {
             return DsDatahandlerFacade.enrichMetadataRecords(origin, mTimeFrom);

@@ -246,7 +246,25 @@ paths:
                 type: integer
                 format: int64
 
-                
+  /enrichment/metadatarecord/{id}:
+    get:
+      tags:
+        - '${project.name}'
+      summary: 'Enriches a metadata record'
+      operationId: enrichMetadataRecord
+      parameters:
+        - name: id
+          in: path
+          description: 'Record ID'
+          required: true
+          schema:
+            type: string
+            example: "ds.tv:oai:du:3006e2f8-3f73-477a-a504-4d7cb1ae1e1c"
+      responses:
+        '200':
+          description: OK. record enriched
+
+
                 
   # The ping service should be in all projects, should not do any advanced processing
   # and should respond quickly with a simple message, e.g. "pong".

@@ -446,6 +446,19 @@ public class DsDatahandlerFacade {
         }
     }
 
+    public static void enrichMetadataRecord(String id) {
+        DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
+
+        try {
+            DsRecordDto record = storageClient.getRecord(id,false);
+            DataEnricher.apply(record);
+            storageClient.recordPost(record);
+        } catch (ApiException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     public static long enrichMetadataRecords(String origin, Long mTimeFrom) throws IOException, ApiException {
         DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
 
@@ -534,4 +547,5 @@ public class DsDatahandlerFacade {
         log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
         return processedRecords;
     }
+
 }
