@@ -2,8 +2,7 @@ package dk.kb.datahandler.enrichment;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.kb.datahandler.preservica.AccessResponseObject;
-import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.datahandler.config.ServiceConfig;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.BufferedReader;
@@ -21,7 +20,7 @@ public class FragmentsClient {
 
     public static synchronized FragmentsClient getInstance() {
         if (instance == null) {
-            instance = new FragmentsClient("http://nifi-rtv-stage-node01.kb.dk:9411");
+            instance = new FragmentsClient(ServiceConfig.getConfig().getString("fragmentService.baseUrl"));
         }
         return instance;
     }
