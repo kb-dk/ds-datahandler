@@ -124,24 +124,6 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }
     }
 
-    @Override
-    public void enrichMetadataRecord(String id) {
-        try {
-             DsDatahandlerFacade.enrichMetadataRecord(id);
-        } catch (Exception  e) {
-            throw handleException(e);
-        }
-    }
-
-    @Override
-    public Long enrichMetadataRecords(String origin, Long mTimeFrom) {
-        try {
-            return DsDatahandlerFacade.enrichMetadataRecords(origin, mTimeFrom);
-        } catch (Exception  e) {
-            throw handleException(e);
-        }
-    }
-
     /**
      * Update manifestations for records in an origin. This endpoint is used with origins originating from Preservica 7.
      * @param origin to update records in.
