@@ -446,6 +446,7 @@ public class DsDatahandlerFacade {
         }
     }
 
+    //TODO remove
     public static void enrichMetadataRecord(String id) {
         DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
 
@@ -459,6 +460,7 @@ public class DsDatahandlerFacade {
 
     }
 
+    //TODO remove
     public static long enrichMetadataRecords(String origin, Long mTimeFrom) throws IOException, ApiException {
         DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
 
