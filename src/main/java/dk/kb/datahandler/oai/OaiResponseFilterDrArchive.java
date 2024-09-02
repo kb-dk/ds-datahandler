@@ -1,10 +1,17 @@
 package dk.kb.datahandler.oai;
 
+import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.enrichment.DataEnricher;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.util.DsStorageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,6 +73,16 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
                 continue;
             }
 
+            // Enrich record
+            if (ServiceConfig.getConfig().getBoolean("enrichMetadata",false) && "ds.tv".equals(getOrigin(oaiRecord,datasource))) {
+                try {
+                    DataEnricher.apply(oaiRecord);
+                } catch (ParserConfigurationException | IOException | TransformerException | SAXException e) {
+                    log.warn("Failed to enrich record {} is skipped", oaiRecord.getId());
+                } catch (URISyntaxException e) {
+                    // The configured fragment URL is invalid, so we should propably stop the harvester
+                }
+            }
             try {
                 addToStorage(oaiRecord);
                 processed++;

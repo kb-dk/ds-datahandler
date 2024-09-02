@@ -1,6 +1,7 @@
 package dk.kb.datahandler.enrichment;
 
 import dk.kb.datahandler.oai.OaiHarvestClient;
+import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.util.xml.XML;
@@ -19,7 +20,25 @@ public class DataEnricher {
 
     private static final Logger log = LoggerFactory.getLogger(DataEnricher.class);
 
+    public static OaiRecord apply(OaiRecord record) throws ParserConfigurationException, IOException, SAXException, URISyntaxException, TransformerException {
 
+        Document metadataDoc = XML.fromXML(record.getMetadata(),true);
+        List<Fragment> fragments = FragmentsClient.getInstance().fetchMetadataFragments(extractOiId(record.getId()));
+        //TODO if the fragment service returns 0 fragments for a (tv) record, it should fail.
+
+
+        for (Fragment fragment : fragments) {
+            Document fragmentDoc = XML.fromXML(fragment.getMetadataFragment(),true);
+            fragmentDoc.getElementById("record");
+            addMetadataFragments(metadataDoc, fragmentDoc);
+        }
+
+        record.setMetadata(XML.domToString(metadataDoc));
+        return record;
+    }
+
+
+    //TODO remove
     public static DsRecordDto apply(DsRecordDto record) {
         Document recordData;
         try {
@@ -51,6 +70,8 @@ public class DataEnricher {
         return record;
     }
 
+
+    //TODO remove
     private static Document addMetadataFragments(Document record, Document fragments) {
         // TODO check if fragment exists
         NodeList nodeList = record.getElementsByTagName("XIP");
@@ -84,7 +105,15 @@ public class DataEnricher {
         return record;
     }
 
+    private static String extractOiId(String recordId) {
+        String prefix = "oai:io";
+        int lengthOfPrefix = prefix.length();
+        int endOfPrefix = recordId.lastIndexOf(prefix);
 
+        return recordId.substring(endOfPrefix + lengthOfPrefix);
+    }
+
+    //TODO remove
     static String getIoId(DsRecordDto dsRecord) {
         String prefix = ":oai:io:";
         int lengthOfPrefix = prefix.length();
