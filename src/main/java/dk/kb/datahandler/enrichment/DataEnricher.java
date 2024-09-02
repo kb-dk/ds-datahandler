@@ -37,41 +37,6 @@ public class DataEnricher {
         return record;
     }
 
-
-    //TODO remove
-    public static DsRecordDto apply(DsRecordDto record) {
-        Document recordData;
-        try {
-            recordData = XML.fromXML(record.getData(),true);
-            List<Fragment> fragments = FragmentsClient.getInstance().fetchMetadataFragments(getIoId(record));
-            if (!fragments.isEmpty()) {
-                log.info("No fragments found "+record.getId());
-            }
-            for (Fragment fragment : fragments) {
-                Document fragmentDoc = XML.fromXML(fragment.getMetadataFragment(),true);
-                fragmentDoc.getElementById("record");
-                addMetadataFragments(recordData, fragmentDoc);
-            }
-            record.setData(XML.domToString(recordData));
-            // TODO error handling
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (SAXException e) {
-            throw new RuntimeException(e);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        } catch (TransformerException e) {
-            throw new RuntimeException(e);
-        }
-        //   String enrichedData = addMetadataFragments(recordData,fragments);
-    //    record.setData(enrichedData);
-        return record;
-    }
-
-
-    //TODO remove
     private static Document addMetadataFragments(Document record, Document fragments) {
         // TODO check if fragment exists
         NodeList nodeList = record.getElementsByTagName("XIP");
@@ -113,13 +78,5 @@ public class DataEnricher {
         return recordId.substring(endOfPrefix + lengthOfPrefix);
     }
 
-    //TODO remove
-    static String getIoId(DsRecordDto dsRecord) {
-        String prefix = ":oai:io:";
-        int lengthOfPrefix = prefix.length();
-        int endOfPrefix = dsRecord.getId().lastIndexOf(prefix);
-
-        return dsRecord.getId().substring(endOfPrefix + lengthOfPrefix);
-    }
 
 }
