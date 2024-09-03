@@ -71,7 +71,7 @@ public class DataEnricher {
     }
 
     private static String extractOiId(String recordId) {
-        String prefix = "oai:io";
+        String prefix = "oai:io:";
         int lengthOfPrefix = prefix.length();
         int endOfPrefix = recordId.lastIndexOf(prefix);
 
