@@ -1,9 +1,6 @@
 package dk.kb.datahandler.enrichment;
 
-import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiRecord;
-import dk.kb.datahandler.util.PreservicaUtils;
-import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.util.xml.XML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +13,25 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 
+/**
+ *
+ */
 public class DataEnricher {
 
     private static final Logger log = LoggerFactory.getLogger(DataEnricher.class);
 
+    /**
+     * Fetches metadata segments and adds them as <Metadata> elements of the XIP -node to the metdata of the oaiRecord
+     * Note: only works of metadata is in XIP format.
+     *
+     * @param record OaiRecord to be enriched
+     * @return the enriched records
+     * @throws ParserConfigurationException
+     * @throws IOException
+     * @throws SAXException
+     * @throws URISyntaxException
+     * @throws TransformerException
+     */
     public static OaiRecord apply(OaiRecord record) throws ParserConfigurationException, IOException, SAXException, URISyntaxException, TransformerException {
 
         Document metadataDoc = XML.fromXML(record.getMetadata(),true);

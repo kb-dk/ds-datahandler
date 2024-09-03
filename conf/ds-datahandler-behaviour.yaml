@@ -147,7 +147,7 @@ oaiTargets:
 
 # Save timestamps of last OAI harvest for each target in this folder. This is used for incremental delta-imports.                
 timestamps:
- folder: /home/xxx/oai.timestamps/
+ folder: /tmp/ds-datahandler/oai.timestamps/
 
 # The ds-storage server to ingest data into 
 storage:
@@ -226,5 +226,9 @@ security:
     # This typically used for calls between services, where there is a need for elevated access.
     secret: '01234567-89ab-cdef-0123-456789abcdef'
 
-    
+# Settings for metadata enrichment
+#
+enrichMetadata: false
+fragmentService:
+  baseUrl: http://example.kb.dk
       
