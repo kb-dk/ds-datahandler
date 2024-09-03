@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XIP>
+    <InformationObject>
+        <Ref>enrichment-test1</Ref>
+        <Title>xxxx</Title>
+        <Description>yyyy</Description>
+        <SecurityTag>pligtafleveringRadioTvOpenProgram</SecurityTag>
+        <Parent>zzzzzz</Parent>
+    </InformationObject>
+    <Metadata schemaUri="http://preservica.com/LegacyXIP">
+    <Ref>abcd</Ref>
+    <Entity>abcd</Entity>
+    <Content>
+        <LegacyXIP>
+            <AccessionRef>34154f45-1c36-47f1-a549-5b36e6e5244b</AccessionRef>
+            <AccumulationRef>00b466d7-e0f0-4c32-b183-80cbd47f7ef5</AccumulationRef>
+        </LegacyXIP>
+    </Content>
+</Metadata>
+    <Metadata schemaUri="http://preservica.com/ExtendedXIP/v6.0">
+    <Ref>e3777f3c-2b03-49af-9411-c56dcf3db929</Ref>
+    <Entity>aad85e8e-3080-4951-9fce-78a19ca2d4e2</Entity>
+    <Content>
+        <ExtendedXIP>
+            <DigitalSurrogate>false</DigitalSurrogate>
+            <CoverageFrom>2018-04-03T03:24:00.000Z</CoverageFrom>
+            <CoverageTo>2018-04-03T03:45:00.000Z</CoverageTo>
+        </ExtendedXIP>
+    </Content>
+</Metadata>
+</XIP>
