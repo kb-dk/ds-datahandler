@@ -12,6 +12,9 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/*
+ * Client for accessing metadata fragments for enrichment (from webservices)
+ */
 public class FragmentsClient {
 
     private static FragmentsClient instance;
@@ -29,6 +32,14 @@ public class FragmentsClient {
         this.baseUrl = baseUrl;
     }
 
+    /**
+     * Fetches metadata fragments for a information object
+     *
+     * @param id the id of the object
+     * @return A list of metadata fragments
+     * @throws IOException
+     * @throws URISyntaxException
+     */
     public List<Fragment> fetchMetadataFragments(String id) throws IOException, URISyntaxException {
         // Fetch enrichment data from the webservice
         HttpURLConnection connection = getConnection(id);
@@ -59,8 +70,6 @@ public class FragmentsClient {
             connection.setRequestMethod("GET");
             connection.setRequestProperty("accept", "application/json");
             return connection;
-        } catch (ProtocolException e) {
-            return null;
         } catch (IOException e) {
             return null;
         }
