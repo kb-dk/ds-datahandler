@@ -75,14 +75,9 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
 
             // Enrich record
             if (ServiceConfig.getConfig().getBoolean("enrichMetadata",false) && "ds.tv".equals(getOrigin(oaiRecord,datasource))) {
-                try {
                     DataEnricher.apply(oaiRecord);
-                } catch (ParserConfigurationException | IOException | TransformerException | SAXException e) {
-                    log.warn("Failed to enrich record {} is skipped", oaiRecord.getId());
-                } catch (URISyntaxException e) {
-                    // The configured fragment URL is invalid, so we should propably stop the harvester
-                }
             }
+
             try {
                 addToStorage(oaiRecord);
                 processed++;
