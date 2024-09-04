@@ -32,25 +32,43 @@ public class DataEnricher {
      * @throws URISyntaxException
      * @throws TransformerException
      */
-    public static OaiRecord apply(OaiRecord record) throws ParserConfigurationException, IOException, SAXException, URISyntaxException, TransformerException {
+    public static OaiRecord apply(OaiRecord record)  {
+        log.debug("Enriching {}",record.getId());
 
-        Document metadataDoc = XML.fromXML(record.getMetadata(),true);
-        List<Fragment> fragments = FragmentsClient.getInstance().fetchMetadataFragments(extractOiId(record.getId()));
-        //TODO if the fragment service returns 0 fragments for a (tv) record, it should fail.
-
-
-        for (Fragment fragment : fragments) {
-            Document fragmentDoc = XML.fromXML(fragment.getMetadataFragment(),true);
-            fragmentDoc.getElementById("record");
-            addMetadataFragments(metadataDoc, fragmentDoc);
+        Document metadataDoc = null;
+        List<Fragment> fragments = null;
+        try {
+            metadataDoc = XML.fromXML(record.getMetadata(), true);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            log.warn("Unable to pass OAI record metadata {} ",record.getId(),e);
+            throw new RuntimeException(e);
         }
 
-        record.setMetadata(XML.domToString(metadataDoc));
+        try {
+             fragments = FragmentsClient.getInstance().fetchMetadataFragments(extractOiId(record.getId()));
+             if (fragments.isEmpty()) {
+                 log.debug("No fragments found for {}", record.getId());
+             }
+        } catch (IOException | URISyntaxException e) {
+            log.warn("Unable to fetch metadata fragments for {}",record.getId(),e);
+            throw new RuntimeException(e);
+        }
+
+        try {
+            for (Fragment fragment : fragments) {
+                Document fragmentDoc = XML.fromXML(fragment.getMetadataFragment(), true);
+                fragmentDoc.getElementById("record");
+                addMetadataFragments(metadataDoc, fragmentDoc);
+                record.setMetadata(XML.domToString(metadataDoc));
+            }
+        } catch (ParserConfigurationException | IOException | SAXException | TransformerException e) {
+            log.warn("Unable to add metadata fragments to {}",record.getId(),e);
+            throw new RuntimeException(e);
+        }
         return record;
     }
 
     private static Document addMetadataFragments(Document record, Document fragments) {
-        // TODO check if fragment exists
         NodeList nodeList = record.getElementsByTagName("XIP");
         if (nodeList.getLength() > 0 ) {
             Node xipNode = nodeList.item(0);
@@ -76,8 +94,6 @@ public class DataEnricher {
             }
             xipNode.appendChild(metadataNode);
 
-        } else {
-            // propably should not happen
         }
         return record;
     }
