@@ -50,8 +50,9 @@ public class FragmentsClient {
             try {
                 HttpURLConnection connection = getConnection(id);
 
-                if (connection.getResponseCode() != 200) {
-                    throw new IOException("Failed to fetch metadata fragments, HTTP response code: " + connection.getResponseCode());
+                int status = connection.getResponseCode();
+                if (status != 200) {
+                    throw new IOException("Failed to fetch metadata fragments, HTTP response code: " + status);
                 }
 
                 try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
@@ -67,7 +68,7 @@ public class FragmentsClient {
         throw new RuntimeException("Failed to fetch fragments for id:"+id+" after "+maxRetries+" retries");
     }
 
-    private HttpURLConnection getConnection(String id) throws URISyntaxException, IOException {
+    protected HttpURLConnection getConnection(String id) throws URISyntaxException, IOException {
         URL url = new URIBuilder(baseUrl)
                 .setPathSegments("fragments", id)
                 .build().toURL();
