@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.config.ServiceConfig;
 import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,22 +15,25 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /*
- * Client for accessing metadata fragments for enrichment (from webservices)
+ *  Client for accessing metadata fragments for enrichment (from webservices)
  */
 public class FragmentsClient {
+    private static final Logger log = LoggerFactory.getLogger(FragmentsClient.class);
 
     private static FragmentsClient instance;
 
-    private String baseUrl;
+    private final String baseUrl;
+    private final int maxRetries;
 
     public static synchronized FragmentsClient getInstance() {
         if (instance == null) {
-            instance = new FragmentsClient(ServiceConfig.getConfig().getString("fragmentService.baseUrl"));
+            instance = new FragmentsClient(ServiceConfig.getConfig().getString("fragmentService.baseUrl"),5);
         }
         return instance;
     }
 
-    public FragmentsClient(String baseUrl) {
+    public FragmentsClient(String baseUrl,int maxRetries) {
+        this.maxRetries = maxRetries;
         this.baseUrl = baseUrl;
     }
 
@@ -37,43 +42,48 @@ public class FragmentsClient {
      *
      * @param id the id of the object
      * @return A list of metadata fragments
-     * @throws IOException
      * @throws URISyntaxException
      */
-    public List<Fragment> fetchMetadataFragments(String id) throws IOException, URISyntaxException {
-        // Fetch enrichment data from the webservice
-        HttpURLConnection connection = getConnection(id);
-        if (connection.getResponseCode() != 200){
-            //do some error handling
-            return null;
+    public List<Fragment> fetchMetadataFragments(String id) throws  URISyntaxException {
+        int attempt = 0;
+        while (attempt < maxRetries) {
+            try {
+                HttpURLConnection connection = getConnection(id);
+
+                if (connection.getResponseCode() != 200) {
+                    throw new IOException("Failed to fetch metadata fragments, HTTP response code: " + connection.getResponseCode());
+                }
+
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                    String response = readResponse(in);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    return objectMapper.readValue(response, new TypeReference<List<Fragment>>(){});
+                }
+            } catch (IOException e) {
+                log.warn("Fragments client connection failed "+e.getMessage());
+                attempt++;
+            }
         }
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
-        String inputLine;
+        throw new RuntimeException("Failed to fetch fragments for id:"+id+" after "+maxRetries+" retries");
+    }
+
+    private HttpURLConnection getConnection(String id) throws URISyntaxException, IOException {
+        URL url = new URIBuilder(baseUrl)
+                .setPathSegments("fragments", id)
+                .build().toURL();
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("accept", "application/json");
+        return connection;
+    }
+
+    private String readResponse(BufferedReader in) throws IOException {
         StringBuilder response = new StringBuilder();
+        String inputLine;
         while ((inputLine = in.readLine()) != null) {
             response.append(inputLine);
         }
-        in.close();
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<Fragment> fragments = objectMapper.readValue(response.toString(), new TypeReference<List<Fragment>>(){});
-        return fragments;
+        return response.toString();
     }
-
-
-    private HttpURLConnection getConnection(String id) throws URISyntaxException, MalformedURLException {
-        URL url = new URIBuilder(baseUrl)
-                .setPathSegments("fragments",id)
-                .build().toURL();
-        HttpURLConnection connection;
-        try {
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("accept", "application/json");
-            return connection;
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-
 }
