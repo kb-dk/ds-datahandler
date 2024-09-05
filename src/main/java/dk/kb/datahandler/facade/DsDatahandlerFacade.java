@@ -12,17 +12,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import dk.kb.datahandler.enrichment.DataEnricher;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
-import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
-import dk.kb.util.webservice.stream.ContinuationStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -349,7 +346,7 @@ public class DsDatahandlerFacade {
                 oaiFilter = new OaiResponseFilter(origin, dsAPI);
                 break;
             case DR:
-                oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI);
+                oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI, oaiTargetDto.getFragmentServiceUrl());
                 break;
             case PRESERVICA:
                 oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);

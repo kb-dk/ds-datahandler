@@ -426,8 +426,11 @@ components:
             * `date`:     Only use format yyyy-MM-dd as from/until parameters
             * `datetime`:    Use UTC format yyyy-MM-ddThh:mm:ssZ as from/until parameters. This is default.                        
           example: 'date'
-          default: 'date'         
-          
+          default: 'date'
+        fragmentServiceUrl:
+          type: string
+          description: BaseURL for the enrichment fragment service
+          example: 'http://example.com/'
 
     OaiJob:
       type: object
