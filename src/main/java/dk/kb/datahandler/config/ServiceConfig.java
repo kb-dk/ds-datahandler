@@ -190,7 +190,8 @@ public class ServiceConfig {
             String password=target.getString("password",null);
             String filterStr = target.getString("filter","direct");
             String dateStampFormat = target.getString("dateStampFormat","date");            
-            
+            String fragmentServiceUrl = target.getString("fragmentServiceUrl",null);
+
             OaiTargetDto.FilterEnum filter;
             try {
                 filter = OaiTargetDto.FilterEnum.fromValue(filterStr);
@@ -216,6 +217,7 @@ public class ServiceConfig {
             catch(Exception e) {
                 log.warn("dateStampFormat not 'day' or 'date':"+dateStampFormat);
             }
+            oaiTarget.setFragmentServiceUrl(fragmentServiceUrl);
                     
             oaiTargets.put(name, oaiTarget);
             
