@@ -26,17 +26,12 @@ public class DataEnricher {
      *
      * @param record OaiRecord to be enriched
      * @return the enriched records
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
-     * @throws URISyntaxException
-     * @throws TransformerException
      */
     public static OaiRecord apply(OaiRecord record)  {
         log.debug("Enriching {}",record.getId());
 
-        Document metadataDoc = null;
-        List<Fragment> fragments = null;
+        Document metadataDoc;
+        List<Fragment> fragments;
         try {
             metadataDoc = XML.fromXML(record.getMetadata(), true);
         } catch (ParserConfigurationException | SAXException | IOException e) {
@@ -49,7 +44,7 @@ public class DataEnricher {
              if (fragments.isEmpty()) {
                  log.debug("No fragments found for {}", record.getId());
              }
-        } catch (IOException | URISyntaxException e) {
+        } catch (URISyntaxException e) {
             log.warn("Unable to fetch metadata fragments for {}",record.getId(),e);
             throw new RuntimeException(e);
         }
@@ -68,7 +63,7 @@ public class DataEnricher {
         return record;
     }
 
-    private static Document addMetadataFragments(Document record, Document fragments) {
+    private static void addMetadataFragments(Document record, Document fragments) {
         NodeList nodeList = record.getElementsByTagName("XIP");
         if (nodeList.getLength() > 0 ) {
             Node xipNode = nodeList.item(0);
@@ -95,7 +90,6 @@ public class DataEnricher {
             xipNode.appendChild(metadataNode);
 
         }
-        return record;
     }
 
     private static String extractOiId(String recordId) {
