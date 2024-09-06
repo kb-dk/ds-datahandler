@@ -53,6 +53,8 @@ public class FragmentClientTest {
                 .thenReturn(500)
                 .thenReturn(200);
 
+        when(mockConnection.getInputStream()).thenReturn(new java.io.ByteArrayInputStream("[]".getBytes()));
+
         fragmentsClient.fetchMetadataFragments("test");
         verify(mockConnection, times(3)).getResponseCode();
     }
