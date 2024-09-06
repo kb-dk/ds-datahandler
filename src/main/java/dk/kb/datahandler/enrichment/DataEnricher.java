@@ -14,7 +14,9 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 /**
- *
+ * Apply the Enricher to a OaiRecord (with metadataformat XIP).
+ * It fetches additional metadata fragments from a webservices and adds them
+ * to the metadata of the OaiRacord.
  */
 public class DataEnricher {
 
@@ -74,7 +76,7 @@ public class DataEnricher {
             for (int i = 0; i < attributes.getLength(); i++) {
                 Node attr = attributes.item(i);
                 Attr importedAttr = (Attr) record.importNode(attr, true);
-                if (importedAttr.getName().startsWith("xmlns") || importedAttr.getName().contains(":schemaLocation")) {
+                if (importedAttr.getName().startsWith("xmlns") || importedAttr.getName().contains("schemaLocation")) {
                     metadataNode.setAttributeNS(importedAttr.getNamespaceURI(), importedAttr.getName(), importedAttr.getValue());
                 } else {
                     metadataNode.setAttributeNode(importedAttr);
