@@ -35,7 +35,6 @@ public class DataEnricherTest {
 
     @BeforeAll
     public static void setUp() throws IOException, URISyntaxException {
-        ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml","conf/ds-datahandler-local.yaml");
 
         fragmentsClientMock = Mockito.mock(FragmentsClient.class);
         mapper = new ObjectMapper();
