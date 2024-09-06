@@ -76,11 +76,7 @@ public class DataEnricher {
             for (int i = 0; i < attributes.getLength(); i++) {
                 Node attr = attributes.item(i);
                 Attr importedAttr = (Attr) record.importNode(attr, true);
-                if (importedAttr.getName().startsWith("xmlns") || importedAttr.getName().contains("schemaLocation")) {
-                    metadataNode.setAttributeNS(importedAttr.getNamespaceURI(), importedAttr.getName(), importedAttr.getValue());
-                } else {
-                    metadataNode.setAttributeNode(importedAttr);
-                }
+                metadataNode.setAttributeNode(importedAttr);
             }
 
             // COPY child nodes
