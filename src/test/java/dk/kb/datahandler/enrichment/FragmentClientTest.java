@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class FragmentClientTest {
         when(mockConnection.getResponseCode()).thenReturn(200);
 
         String jsonResponse = Files.readString(Resolver.getPathFromClasspath("xml/fragments-multi.json"));
-        InputStream jsonStream = new java.io.ByteArrayInputStream(jsonResponse.getBytes());
+        InputStream jsonStream = new java.io.ByteArrayInputStream(jsonResponse.getBytes(StandardCharsets.UTF_8));
         when(mockConnection.getInputStream()).thenReturn(jsonStream);
 
         List<Fragment> fragments = fragmentsClient.fetchMetadataFragments("test-id");
@@ -53,7 +54,7 @@ public class FragmentClientTest {
                 .thenReturn(500)
                 .thenReturn(200);
 
-        when(mockConnection.getInputStream()).thenReturn(new java.io.ByteArrayInputStream("[]".getBytes()));
+        when(mockConnection.getInputStream()).thenReturn(new java.io.ByteArrayInputStream("[]".getBytes(StandardCharsets.UTF_8)));
 
         fragmentsClient.fetchMetadataFragments("test");
         verify(mockConnection, times(3)).getResponseCode();
