@@ -6,6 +6,7 @@ import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.oai.OaiRecord;;
 import dk.kb.util.Resolver;
 import dk.kb.util.xml.XML;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -29,11 +30,11 @@ import static org.mockito.Mockito.when;
 
 public class DataEnricherTest {
 
-    private FragmentsClient fragmentsClientMock;
-    private ObjectMapper mapper;
+    private static FragmentsClient fragmentsClientMock;
+    private static ObjectMapper mapper;
 
-    @BeforeEach
-    public void setUp() throws IOException, URISyntaxException {
+    @BeforeAll
+    public static void setUp() throws IOException, URISyntaxException {
         ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml","conf/ds-datahandler-local.yaml");
 
         fragmentsClientMock = Mockito.mock(FragmentsClient.class);
@@ -41,14 +42,22 @@ public class DataEnricherTest {
 
         MockedStatic<FragmentsClient> mockedStatic = Mockito.mockStatic(FragmentsClient.class);
         mockedStatic.when(FragmentsClient::getInstance).thenReturn(fragmentsClientMock);
-    }
 
-    @Test
-    public void testEnrichment() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException, URISyntaxException {
         String fragmentsString = Files.readString(Resolver.getPathFromClasspath("xml/fragments.json"));
         List<Fragment> fragments = mapper.readValue(fragmentsString, new TypeReference<List<Fragment>>(){});
         when(fragmentsClientMock.fetchMetadataFragments("test1")).thenReturn(fragments);
 
+        fragmentsString = Files.readString(Resolver.getPathFromClasspath("xml/fragments-empty.json"));
+        fragments = mapper.readValue(fragmentsString, new TypeReference<List<Fragment>>(){});
+        when(fragmentsClientMock.fetchMetadataFragments("test2")).thenReturn(fragments);
+
+        fragmentsString = Files.readString(Resolver.getPathFromClasspath("xml/fragments-multi.json"));
+        fragments = mapper.readValue(fragmentsString, new TypeReference<List<Fragment>>(){});
+        when(fragmentsClientMock.fetchMetadataFragments("test3")).thenReturn(fragments);
+    }
+
+    @Test
+    public void testEnrichment() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException, URISyntaxException {
 
         OaiRecord oaiRecord = new OaiRecord();
         oaiRecord.setId("oai:io:test1");
@@ -62,10 +71,6 @@ public class DataEnricherTest {
 
     @Test
     public void testEnrichmentEmpty() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException, URISyntaxException {
-        String fragmentsString = Files.readString(Resolver.getPathFromClasspath("xml/fragments-empty.json"));
-        List<Fragment> fragments = mapper.readValue(fragmentsString, new TypeReference<List<Fragment>>(){});
-        when(fragmentsClientMock.fetchMetadataFragments("test2")).thenReturn(fragments);
-
 
         OaiRecord oaiRecord = new OaiRecord();
         oaiRecord.setId("oai:io:test2");
@@ -79,11 +84,6 @@ public class DataEnricherTest {
 
     @Test
     public void testEnrichmentMulti() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException, URISyntaxException {
-        String fragmentsString = Files.readString(Resolver.getPathFromClasspath("xml/fragments-multi.json"));
-        List<Fragment> fragments = mapper.readValue(fragmentsString, new TypeReference<List<Fragment>>(){});
-        when(fragmentsClientMock.fetchMetadataFragments("test3")).thenReturn(fragments);
-
-
         OaiRecord oaiRecord = new OaiRecord();
         oaiRecord.setId("oai:io:test3");
         oaiRecord.setMetadata(Files.readString(Resolver.getPathFromClasspath("xml/unenriched-metadata-test1.xml")));
