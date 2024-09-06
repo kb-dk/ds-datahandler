@@ -42,7 +42,7 @@ public class DataEnricher {
         }
 
         try {
-             fragments = FragmentsClient.getInstance().fetchMetadataFragments(extractOiId(record.getId()));
+             fragments = FragmentsClient.getInstance().fetchMetadataFragments(extractIoId(record.getId()));
              if (fragments.isEmpty()) {
                  log.debug("No fragments found for {}", record.getId());
              }
@@ -90,7 +90,7 @@ public class DataEnricher {
         }
     }
 
-    private static String extractOiId(String recordId) {
+    private static String extractIoId(String recordId) {
         String prefix = "oai:io:";
         int lengthOfPrefix = prefix.length();
         int endOfPrefix = recordId.lastIndexOf(prefix);
