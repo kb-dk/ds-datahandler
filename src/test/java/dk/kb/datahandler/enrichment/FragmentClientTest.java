@@ -1,7 +1,7 @@
 package dk.kb.datahandler.enrichment;
 
 import dk.kb.util.Resolver;
-import org.junit.jupiter.api.Assertions;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,7 +13,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -44,7 +43,7 @@ public class FragmentClientTest {
         when(mockConnection.getInputStream()).thenReturn(jsonStream);
 
         List<Fragment> fragments = fragmentsClient.fetchMetadataFragments("test-id");
-        Assertions.assertEquals(2, fragments.size());
+        assertEquals(2, fragments.size());
     }
 
     @Test
