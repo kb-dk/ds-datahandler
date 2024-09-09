@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enabled OAuth2 on module. Much is copy-paste from ds-image to see it working in two different modules.  Plans are to refactor common functionality out into kb-util/template projects.
 No methods are defined to require OAuth yet!
 - After finished solr indexing the `/solr/index`-endpoint now updates the index for the suggest component as well.
+- Added the ability to enrich metadata with extra fragments from a seperate webservice when harvesting records from preservica
 
 ### Changed  
 - Changed when DsPreservicaClient is initialized.
