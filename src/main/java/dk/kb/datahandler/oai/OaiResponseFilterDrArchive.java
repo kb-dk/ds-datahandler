@@ -76,7 +76,7 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
 
             // Enrich record
             if (!StringUtil.isEmpty(fragmentServiceUrl) && "ds.tv".equals(getOrigin(oaiRecord,datasource))) {
-                    DataEnricher.apply(oaiRecord);
+                    DataEnricher.apply(fragmentServiceUrl,oaiRecord);
             }
 
             try {

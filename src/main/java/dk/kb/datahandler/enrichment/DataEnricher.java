@@ -29,7 +29,7 @@ public class DataEnricher {
      * @param record OaiRecord to be enriched
      * @return the enriched records
      */
-    public static OaiRecord apply(OaiRecord record)  {
+    public static OaiRecord apply(String fragmentsUrl, OaiRecord record)  {
         log.debug("Enriching {}",record.getId());
 
         Document metadataDoc;
@@ -42,7 +42,7 @@ public class DataEnricher {
         }
 
         try {
-             fragments = FragmentsClient.getInstance().fetchMetadataFragments(extractIoId(record.getId()));
+             fragments = FragmentsClient.getInstance(fragmentsUrl).fetchMetadataFragments(extractIoId(record.getId()));
              if (fragments.isEmpty()) {
                  log.debug("No fragments found for {}", record.getId());
              }

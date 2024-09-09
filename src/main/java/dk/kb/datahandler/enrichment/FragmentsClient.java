@@ -2,7 +2,6 @@ package dk.kb.datahandler.enrichment;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.kb.datahandler.config.ServiceConfig;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +24,9 @@ public class FragmentsClient {
     private final String baseUrl;
     private final int maxRetries;
 
-    public static synchronized FragmentsClient getInstance() {
-        if (instance == null) {
-            instance = new FragmentsClient(ServiceConfig.getConfig().getString("fragmentService.baseUrl"),5);
+    public static synchronized FragmentsClient getInstance(String baseUrl) {
+        if (instance == null || !baseUrl.equals(instance.getBaseUrl())) {
+            instance = new FragmentsClient(baseUrl,5);
         }
         return instance;
     }
@@ -35,6 +34,10 @@ public class FragmentsClient {
     public FragmentsClient(String baseUrl,int maxRetries) {
         this.maxRetries = maxRetries;
         this.baseUrl = baseUrl;
+    }
+
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
     /**
