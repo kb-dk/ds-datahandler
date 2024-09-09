@@ -2,12 +2,10 @@ package dk.kb.datahandler.enrichment;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.oai.OaiRecord;;
+import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.util.Resolver;
 import dk.kb.util.xml.XML;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -26,6 +24,7 @@ import java.nio.file.Files;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class DataEnricherTest {
@@ -40,7 +39,7 @@ public class DataEnricherTest {
         mapper = new ObjectMapper();
 
         MockedStatic<FragmentsClient> mockedStatic = Mockito.mockStatic(FragmentsClient.class);
-        mockedStatic.when(FragmentsClient::getInstance).thenReturn(fragmentsClientMock);
+        mockedStatic.when(() -> FragmentsClient.getInstance(any(String.class))).thenReturn(fragmentsClientMock);
 
         String fragmentsString = Files.readString(Resolver.getPathFromClasspath("xml/fragments.json"));
         List<Fragment> fragments = mapper.readValue(fragmentsString, new TypeReference<List<Fragment>>(){});
@@ -56,39 +55,39 @@ public class DataEnricherTest {
     }
 
     @Test
-    public void testEnrichment() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException, URISyntaxException {
+    public void testEnrichment() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 
         OaiRecord oaiRecord = new OaiRecord();
         oaiRecord.setId("oai:io:test1");
         oaiRecord.setMetadata(Files.readString(Resolver.getPathFromClasspath("xml/unenriched-metadata-test1.xml")));
 
         int numberOfmetadatanodesBefore = countMetadataNodes(oaiRecord);
-        DataEnricher.apply(oaiRecord);
+        DataEnricher.apply("",oaiRecord);
         int numberOfmetadatanodesAfter = countMetadataNodes(oaiRecord);
         assertEquals(numberOfmetadatanodesBefore+1,numberOfmetadatanodesAfter);
     }
 
     @Test
-    public void testEnrichmentEmpty() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException, URISyntaxException {
+    public void testEnrichmentEmpty() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
 
         OaiRecord oaiRecord = new OaiRecord();
         oaiRecord.setId("oai:io:test2");
         oaiRecord.setMetadata(Files.readString(Resolver.getPathFromClasspath("xml/unenriched-metadata-test1.xml")));
 
         int numberOfmetadatanodesBefore = countMetadataNodes(oaiRecord);
-        DataEnricher.apply(oaiRecord);
+        DataEnricher.apply("",oaiRecord);
         int numberOfmetadatanodesAfter = countMetadataNodes(oaiRecord);
         assertEquals(numberOfmetadatanodesBefore,numberOfmetadatanodesAfter);
     }
 
     @Test
-    public void testEnrichmentMulti() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException, URISyntaxException {
+    public void testEnrichmentMulti() throws IOException, ParserConfigurationException, SAXException, XPathExpressionException {
         OaiRecord oaiRecord = new OaiRecord();
         oaiRecord.setId("oai:io:test3");
         oaiRecord.setMetadata(Files.readString(Resolver.getPathFromClasspath("xml/unenriched-metadata-test1.xml")));
 
         int numberOfmetadatanodesBefore = countMetadataNodes(oaiRecord);
-        DataEnricher.apply(oaiRecord);
+        DataEnricher.apply("",oaiRecord);
         int numberOfmetadatanodesAfter = countMetadataNodes(oaiRecord);
         assertEquals(numberOfmetadatanodesBefore+2,numberOfmetadatanodesAfter);
     }
