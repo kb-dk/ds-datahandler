@@ -47,7 +47,7 @@ public class FragmentsClient {
      * @return A list of metadata fragments
      * @throws URISyntaxException
      */
-    public List<Fragment> fetchMetadataFragments(String id) throws  URISyntaxException {
+    public List<Fragment> fetchMetadataFragments(String id) throws  URISyntaxException, IOException {
         int attempt = 0;
         while (attempt < maxRetries) {
             try {
@@ -68,7 +68,7 @@ public class FragmentsClient {
                 attempt++;
             }
         }
-        throw new RuntimeException("Failed to fetch fragments for id:"+id+" after "+maxRetries+" retries");
+        throw new IOException("Failed to fetch fragments for id:"+id+" after "+maxRetries+" retries");
     }
 
     protected HttpURLConnection getConnection(String id) throws URISyntaxException, IOException {
