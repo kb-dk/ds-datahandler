@@ -1,6 +1,7 @@
 package dk.kb.datahandler.enrichment;
 
 import dk.kb.datahandler.oai.OaiRecord;
+import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.xml.XML;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,18 +39,18 @@ public class DataEnricher {
             metadataDoc = XML.fromXML(record.getMetadata(), true);
         } catch (ParserConfigurationException | SAXException | IOException e) {
             log.warn("Unable to pass OAI record metadata {} ",record.getId(),e);
-            throw new RuntimeException(e);
+            throw new InternalServiceException("Unable to pass OAI record metadata "+record.getId(),e);
         }
 
-        try {
+         try {
              fragments = FragmentsClient.getInstance(fragmentsUrl).fetchMetadataFragments(extractIoId(record.getId()));
-             if (fragments.isEmpty()) {
-                 log.debug("No fragments found for {}", record.getId());
-             }
-        } catch (URISyntaxException e) {
-            log.warn("Unable to fetch metadata fragments for {}",record.getId(),e);
-            throw new RuntimeException(e);
-        }
+         } catch (URISyntaxException | IOException e) {
+             log.error("Unable to fetch fragments for {}",record.getId(),e);
+             throw new InternalServiceException("Unable to fetch fragments for "+record.getId());
+         }
+        if (fragments.isEmpty()) {
+             log.debug("No fragments found for {}", record.getId());
+         }
 
         try {
             for (Fragment fragment : fragments) {
@@ -60,7 +61,7 @@ public class DataEnricher {
             }
         } catch (ParserConfigurationException | IOException | SAXException | TransformerException e) {
             log.warn("Unable to add metadata fragments to {}",record.getId(),e);
-            throw new RuntimeException(e);
+            throw new InternalServiceException("Unable to add metadata to fragment to "+record.getId(),e);
         }
         return record;
     }
