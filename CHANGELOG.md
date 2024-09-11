@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 No methods are defined to require OAuth yet!
 - After finished solr indexing the `/solr/index`-endpoint now updates the index for the suggest component as well.
 - Added the ability to enrich metadata with extra fragments from a seperate webservice when harvesting records from preservica
+- handle errors when calling fragment service
 
 ### Changed  
 - Changed when DsPreservicaClient is initialized.
