@@ -63,7 +63,7 @@ public class FragmentClientTest {
     @Test
     public void testFailure() throws IOException {
         when(mockConnection.getResponseCode()).thenReturn(500);
-        assertThrows(RuntimeException.class, () -> fragmentsClient.fetchMetadataFragments("test"));
+        assertThrows(IOException.class, () -> fragmentsClient.fetchMetadataFragments("test"));
         verify(mockConnection, times(5)).getResponseCode();
     }
 
