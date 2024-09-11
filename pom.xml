@@ -281,7 +281,7 @@
         <dependency>
             <groupId>net.sf.saxon</groupId>
             <artifactId>Saxon-HE</artifactId>
-            <version>12.5</version>
+            <version>10.6</version>
         </dependency>
         <!-- To get date parsing to work? -->
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-modules-java8 -->
