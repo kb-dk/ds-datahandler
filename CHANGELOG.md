@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+##[1.9.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.0) - 2024-09-12
 ### Added
 - Enabled OAuth2 on module. Much is copy-paste from ds-image to see it working in two different modules.  Plans are to refactor common functionality out into kb-util/template projects.
 No methods are defined to require OAuth yet!
