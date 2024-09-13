@@ -34,6 +34,8 @@ import dk.kb.util.xml.XMLEscapeSanitiser;
 import org.w3c.dom.ls.*;
 import org.xml.sax.SAXException;
 
+import static java.lang.Thread.sleep;
+
 public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
@@ -69,7 +71,12 @@ public class OaiHarvestClient {
         uri=addQueryParamsToUri(uri, set, resumptionToken,metadataPrefix,from);
         log.info("calling uri:"+uri);
         //log.info("resumption token at:"+resumptionToken);
-        String xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());
+        String xmlResponse = null;
+        try {
+            xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());
+        } catch (InterruptedException e) {
+            throw new InternalServiceException(e);
+        }
 
         Document document = sanitizeXml(xmlResponse,uri);
 
@@ -213,7 +220,7 @@ public class OaiHarvestClient {
      * <p>
      * The solution is to do both.
      */
-    protected static String getHttpResponse(String uri, String user, String password) throws IOException {
+    protected static String getHttpResponse(String uri, String user, String password) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder()
                 .authenticator(new Authenticator() {
                     @Override
@@ -232,15 +239,26 @@ public class OaiHarvestClient {
                 .build();
 
         HttpResponse<String> response = null;
-        try {
-            response = client.send(request, BodyHandlers.ofString());
-        } catch (IOException | InterruptedException e) {
-            log.warn("An error occurred when sending OAI-PMH request: '{}'", request.toString());
-            throw new IOException(e);
+        int attempt = 0;
+        int maxRetries = 3;
+        while (attempt < maxRetries){
+            try {
+                response = client.send(request, BodyHandlers.ofString());
+            } catch (IOException | InterruptedException e) {
+                attempt ++;
+                log.warn("An error occurred when sending OAI-PMH request: '{}'. Retrying 3 times, this was the '{}' time an error occurred. Sleeps for 30 seconds before retrying.",
+                        request.toString(), attempt);
+                Thread.sleep(30 * 1000);
+            }
         }
+
+        if (attempt == maxRetries){
+            log.error("Gave up harvesting records after three tries, from the following OAI-PMH request: '{}'", request);
+            throw new InternalServiceException("Failed to harvest records after three tries, from the following OAI-PMH request: '" + request + "'.");
+        }
+
         if (200 != response.statusCode()) {
             log.error("Not status code 200:" + response.statusCode());
-
         }       
       
         //log.debug("http header:"+response.headers());
