@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.3) - 2024-09-13
+### Changed
+- Update OAI harvester to retry when response code is not 200.
+
 ## [1.9.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.2) - 2024-09-13
 ### Fixed 
 - Fixed endless loop in OAI-PMH harvester.
