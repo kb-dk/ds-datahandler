@@ -244,6 +244,11 @@ public class OaiHarvestClient {
         while (attempt < maxRetries){
             try {
                 response = client.send(request, BodyHandlers.ofString());
+
+                //log.debug("http header:"+response.headers());
+                //log.debug("http body:"+response.body());if
+
+                return response.body();
             } catch (IOException | InterruptedException e) {
                 attempt ++;
                 log.warn("An error occurred when sending OAI-PMH request: '{}'. Retrying 3 times, this was the '{}' time an error occurred. Sleeps for 30 seconds before retrying.",
@@ -259,10 +264,7 @@ public class OaiHarvestClient {
 
         if (200 != response.statusCode()) {
             log.error("Not status code 200:" + response.statusCode());
-        }       
-      
-        //log.debug("http header:"+response.headers());
-        //log.debug("http body:"+response.body());if
+        }
 
         return response.body();
     }
