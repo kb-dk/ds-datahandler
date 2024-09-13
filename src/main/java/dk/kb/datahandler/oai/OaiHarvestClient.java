@@ -253,6 +253,7 @@ public class OaiHarvestClient {
         }
 
         if (attempt == maxRetries){
+            log.error("Gave up harvesting records after three tries, from the following OAI-PMH request: '{}'", request);
             throw new InternalServiceException("Failed to harvest records after three tries, from the following OAI-PMH request: '" + request + "'.");
         }
 
