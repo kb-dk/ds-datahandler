@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.2) - 2024-09-13
+### Fixed 
+- Fixed endless loop in OAI-PMH harvester.
+
 ## [1.9.1](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.1) - 2024-09-13
 ### Added
 - Added an automatic retry, when the OAI-PMH harvester encounters http 401s, as Preservica sometimes throws these when tickled enough.
