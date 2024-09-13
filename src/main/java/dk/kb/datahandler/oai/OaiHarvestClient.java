@@ -248,6 +248,10 @@ public class OaiHarvestClient {
                 //log.debug("http header:"+response.headers());
                 //log.debug("http body:"+response.body());if
 
+                if (200 != response.statusCode()){
+                   throw new IOException("Response code was not 200");
+                }
+
                 return response.body();
             } catch (IOException | InterruptedException e) {
                 attempt ++;
