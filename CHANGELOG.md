@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- When origin cannot be resolved for a record, it is not added to storage as this should not happen.
+- Changed preservica origin resolving to ignore casing of ENUMS: `Moving Image` and `Sound`.
+
 ## [1.9.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.3) - 2024-09-13
 ### Changed
 - Update OAI harvester to retry when response code is not 200.
