@@ -101,7 +101,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             log.warn("No specific origin has been extracted for preservica record '{}'.",
                     oaiRecord.getId());
             // Not quite sure what we should do in the case where nothing gets matched.
-            return datasource;
+            return "";
         }
     }
 

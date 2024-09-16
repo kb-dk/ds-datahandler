@@ -18,6 +18,8 @@ import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.storage.util.DsStorageClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -25,6 +27,8 @@ import dk.kb.storage.util.DsStorageClient;
  * sets type to {@link RecordTypeDto#DELIVERABLEUNIT} and does not resolve {@code parent}.
  */
 public class OaiResponseFilter {
+    private static final Logger log = LoggerFactory.getLogger(OaiResponseFilter.class);
+
     protected final DsStorageClient storage;
     protected final String datasource;
     protected int processed = 0;
@@ -60,7 +64,10 @@ public class OaiResponseFilter {
         String storageId = origin + ":" + oaiRecord.getId();
         if (oaiRecord.isDeleted()) {
             storage.markRecordForDelete(storageId);
-        } else {
+        } else if (origin.isEmpty()){
+           log.warn("OAI Record with ID: '{}', has empty origin, it is not added to DS-Storage.", oaiRecord.getId());
+        }
+        else {
             String parentID = getParentID(oaiRecord, origin);
             addOrUpdateRecord(oaiRecord, storageId, parentID, origin);
         }
