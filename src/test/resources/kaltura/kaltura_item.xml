@@ -1,0 +1,22 @@
+<item>
+    <action>add</action>
+    <type>#TYPE</type>
+    <referenceId>#REFERENCE_ID</referenceId>
+    <userId>xmlUpload</userId>
+    <name>#NAME</name>
+    <description>#DESCRIPTION</description>
+    <tags>
+        <tag>#TAG1</tag>
+        <tag>#TAG2</tag>
+        <tag>#TAG3</tag>
+    </tags>
+    <conversionProfileId>#CONVERSION_PROFILE_ID</conversionProfileId>
+    <media>
+        <mediaType>#MEDIATYPE</mediaType>
+    </media>
+    <contentAssets>
+        <content flavorParamsId="#FLAVOR_PARAMS_ID">
+            <urlContentResource url="#DOWNLOAD_URL"></urlContentResource>
+        </content>
+    </contentAssets>
+</item>
