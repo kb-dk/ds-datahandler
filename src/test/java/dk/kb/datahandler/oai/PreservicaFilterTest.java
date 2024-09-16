@@ -16,6 +16,7 @@ public class PreservicaFilterTest {
         String[] texts = {
                 "<formatMediaType>Moving Image</formatMediaType>",
                 "<ns:formatMediaType>Moving Image</ns:formatMediaType>",
+                "<ns:formatMediaType>Moving image</ns:formatMediaType>",
                 "<namespace:formatMediaType>Moving Image</namespace:formatMediaType>",
                 "<ns2:formatMediaType xmlns:ns2=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">Moving Image</ns2:formatMediaType>"
         };
