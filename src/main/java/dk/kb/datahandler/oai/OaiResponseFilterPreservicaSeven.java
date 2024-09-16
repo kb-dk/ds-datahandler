@@ -23,7 +23,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      * The regex handles the fact that namespace prefixes are arbitrarily defined.
      */
     protected static final Pattern RADIO_PATTERN = Pattern.compile(
-            ">Sound</(?:\\w+:)?formatMediaType");
+            ">Sound</(?:\\w+:)?formatMediaType", Pattern.CASE_INSENSITIVE);
 
     /**
      * Pattern for determining if a InformationObject from Preservica 7
@@ -31,7 +31,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      * The regex handles the fact that namespace prefixes are arbitrarily defined.
      */
     protected static final Pattern TV_PATTERN = Pattern.compile(
-            ">Moving\\sImage</(?:\\w+:)?formatMediaType");
+            ">Moving\\sImage</(?:\\w+:)?formatMediaType", Pattern.CASE_INSENSITIVE);
 
     /**
      * Pattern used to check that records does in fact contain PBCore metadata.
@@ -101,7 +101,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             log.warn("No specific origin has been extracted for preservica record '{}'.",
                     oaiRecord.getId());
             // Not quite sure what we should do in the case where nothing gets matched.
-            return datasource;
+            return "";
         }
     }
 
