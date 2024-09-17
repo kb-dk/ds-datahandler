@@ -473,30 +473,33 @@ public class DsDatahandlerFacade {
                 log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
                         dsDocsStream.getRecordCount(), origin, counter.get());
 
-                customThreadPool.submit(() ->
-                        dsDocsStream.stream(DsRecordMinimalDto.class)
-                                .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
-                                .parallel() // Parallelize stream for performance boost.
-                                .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                                .filter(PreservicaUtils::validateRecord)
-                                .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record))
-                        ).get();
+                try {
+                    customThreadPool.submit(() ->
+                            dsDocsStream.stream(DsRecordMinimalDto.class)
+                                    .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
+                                    .parallel() // Parallelize stream for performance boost.
+                                    .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                                    .filter(PreservicaUtils::validateRecord)
+                                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record))
+                    ).get();
+                } catch (ExecutionException | InterruptedException  e){
+                    throw new InternalServiceException(e);
+                }
 
                 hasMore = dsDocsStream.hasMore();
                 if (hasMore) {
                     mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
                 }
-            } catch (IOException | ExecutionException | InterruptedException  e) {
+            } catch (IOException e) {
                 log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
                         "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
                         origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
                 throw new InternalServiceException(e);
-            } finally {
-                customThreadPool.shutdown(); // Shutting down the thread pool when done.
             }
         }
 
         log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
+        customThreadPool.shutdown(); // Shutting down the thread pool when done.
         return processedRecords;
     }
 
