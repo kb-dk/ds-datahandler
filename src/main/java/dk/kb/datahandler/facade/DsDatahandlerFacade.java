@@ -491,6 +491,8 @@ public class DsDatahandlerFacade {
                         "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
                         origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
                 throw new InternalServiceException(e);
+            } finally {
+                customThreadPool.shutdown(); // Shutting down the thread pool when done.
             }
         }
 
