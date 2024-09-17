@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
@@ -462,32 +464,40 @@ public class DsDatahandlerFacade {
         AtomicInteger counter = new AtomicInteger(0);
         AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
 
+        // Create a custom ForkJoinPool with 5 threads
+        ForkJoinPool customThreadPool = new ForkJoinPool(5);
+
         while (hasMore) {
             try (ContinuationInputStream<Long> dsDocsStream =
                     storageClient.getMinimalRecordsModifiedAfterJSON(origin, mTimeFrom, 1000L)){
                 log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
                         dsDocsStream.getRecordCount(), origin, counter.get());
 
-                dsDocsStream.stream(DsRecordMinimalDto.class)
-                    .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
-                    .parallel() // Parallelize stream for performance boost.
-                    .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                    .filter(PreservicaUtils::validateRecord)
-                    .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record));
+
+                customThreadPool.submit(() ->
+                        dsDocsStream.stream(DsRecordMinimalDto.class)
+                                .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
+                                .parallel() // Parallelize stream for performance boost.
+                                .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                                .filter(PreservicaUtils::validateRecord)
+                                .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record))
+                ).get();
+
 
                 hasMore = dsDocsStream.hasMore();
                 if (hasMore) {
                     mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
                 }
-            } catch (IOException e) {
+            } catch (IOException | ExecutionException | InterruptedException e) {
                 log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
                         "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
                         origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
-                throw e;
+                throw new InternalServiceException(e);
             }
         }
 
         log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
+        customThreadPool.shutdown(); // Shutting down the thread pool when done.
         return processedRecords;
     }
 
