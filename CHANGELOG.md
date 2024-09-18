@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added retry mechanism for `/enrichment/manifestation` endpoint.
+
 ## [1.9.5](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.5) - 2024-09-17
 ### Changed
 - Enrichment with access copy IDs now always happens in parallel with 5 threads.
