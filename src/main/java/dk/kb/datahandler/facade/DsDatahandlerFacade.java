@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
@@ -489,7 +491,7 @@ public class DsDatahandlerFacade {
                     } catch (ExecutionException | InterruptedException e){
                         currentTry ++;
                         log.info("En error occurred when fetching manifestation IDs from preservica, waiting 10 seconds before retrying.");
-                        sleep(10 * 1000); // Sleep for 10 seconds pr execution.
+                        customThreadPool.awaitTermination(10, TimeUnit.SECONDS);
                     }
                 }
                 if (currentTry == maxTries){
