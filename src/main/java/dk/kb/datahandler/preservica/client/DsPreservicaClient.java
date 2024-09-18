@@ -224,31 +224,47 @@ public class DsPreservicaClient {
      * @return a fileRef ID representing the filename of the representation on the server.
      */
     public String getFileRefFromInformationObjectAsStream(String id) throws InterruptedException {
-        InputStream accesRepresentationXml;
+        InputStream accesRepresentationXml = InputStream.nullInputStream();
         String contentObjectId = "";
 
         try {
             accesRepresentationXml = getAccessRepresentationForIO(id);
-            contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accesRepresentationXml);
         } catch (FileNotFoundException e){
             // Record could be a DOMS record. Extract Identifiers from InformationObject to check if that's the case.
             return validateInformationObjectForDomsData(id);
-        } catch (XMLStreamException | IOException | URISyntaxException e) {
-            log.warn("Error getting or parsing ContentObject for InformationObject: '{}'", id, e);
-            return "";
+        } catch (IOException | URISyntaxException e) {
+            log.warn("Error getting ContentObject for InformationObject: '{}'", id, e);
         }
 
-        InputStream fileRefXml;
+        try {
+            if (accesRepresentationXml.available() != 0) {
+                log.info("Stream has '{}' bytes available", accesRepresentationXml.available());
+                contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accesRepresentationXml);
+            }
+        } catch (XMLStreamException | IOException e) {
+            log.error("Error parsing ContentObject for InformationObject: '{}'", id, e);
+        }
+
+
+        InputStream fileRefXml = InputStream.nullInputStream();
         String fileRef = "";
         try {
             fileRefXml = getFileRefForContentObject(contentObjectId);
-            fileRef = PreservicaUtils.parseIdentifierResponseForFileRef(fileRefXml);
         } catch (FileNotFoundException e){
             // Should not happen
             log.warn("No fileRef has been found for ContentObject: '{}'", contentObjectId);
             return "";
-        } catch (XMLStreamException | IOException | URISyntaxException e) {
-            log.warn("Error getting or parsing fileRef for ContentObject: '{}'", contentObjectId, e);
+        } catch (IOException | URISyntaxException e) {
+            log.warn("Error getting fileRef for ContentObject: '{}'", contentObjectId, e);
+        }
+
+
+        try {
+            if (fileRefXml.available() != 0){
+                fileRef = PreservicaUtils.parseIdentifierResponseForFileRef(fileRefXml);
+            }
+        } catch (XMLStreamException | IOException e) {
+            log.warn("Error parsing fileRef for ContentObject: '{}'", contentObjectId, e);
         }
 
         return fileRef;
@@ -318,11 +334,11 @@ public class DsPreservicaClient {
                 connection.setRequestProperty("Preservica-Access-Token", accessToken);
                 return connection.getInputStream();
             } catch (FileNotFoundException e){
-                log.warn("No response could be found for id: '{}'", id);
-                return null;
+                log.warn("No response could be found for id: '{}'.", id);
+                throw e;
             } catch (ConnectException e){
                 currentTry ++;
-                log.info("Received a time out from Preservica. Retrying in 10 seconds, this is the '{}' retry of '{}'", currentTry, maxTries);
+                log.warn("Received a time out from Preservica. Retrying in 10 seconds, this is the '{}' retry of '{}'", currentTry, maxTries);
                 sleep(10 * 1000); //Sleeping for 10 seconds before retrying.
             }
         }
