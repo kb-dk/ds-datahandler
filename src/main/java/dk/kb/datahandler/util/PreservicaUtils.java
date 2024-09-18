@@ -33,6 +33,7 @@ public class PreservicaUtils {
      */
     public static DsRecordMinimalDto fetchManifestation(DsRecordMinimalDto record, PreservicaManifestationExtractor plugin, AtomicInteger counter, AtomicLong currentTime) {
         counter.getAndIncrement();
+        log.debug("Fetching manifestation ID for record with id: '{}'", record.getId());
 
         if (counter.get() % 200 == 0){
             log.info("200 Records have been updated in '{}' milliseconds. In total '{}' records have been processed.",

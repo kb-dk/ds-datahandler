@@ -474,24 +474,42 @@ public class DsDatahandlerFacade {
                         dsDocsStream.getRecordCount(), origin, counter.get());
 
 
-                customThreadPool.submit(() ->
-                        dsDocsStream.stream(DsRecordMinimalDto.class)
-                                .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
-                                .parallel() // Parallelize stream for performance boost.
-                                .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                                .filter(PreservicaUtils::validateRecord)
-                                .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record))
-                ).get();
-
+                int maxTries = 15; // Max tries is set to 15 as there is a chance that all five threads in the customThreadPool throws the exception at the same time.
+                int currentTry = 0;
+                while (currentTry < maxTries){
+                    try {
+                        customThreadPool.submit(() ->
+                                dsDocsStream.stream(DsRecordMinimalDto.class)
+                                        .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
+                                        .parallel() // Parallelize stream for performance boost.
+                                        .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
+                                        .filter(PreservicaUtils::validateRecord)
+                                        .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record))
+                        ).get();
+                    } catch (ExecutionException | InterruptedException e){
+                        currentTry ++;
+                        log.info("En error occurred when fetching manifestation IDs from preservica, waiting 10 seconds before retrying.");
+                        sleep(10 * 1000); // Sleep for 10 seconds pr execution.
+                    }
+                }
+                if (currentTry == maxTries){
+                    log.error("Multiple errors occurred when enriching manifestation IDs in parallel. The error still occurred after '{}' retries and the service has now stopped.",
+                            maxTries);
+                    throw new InternalServiceException("Multiple errors occurred when enriching manifestation IDs in parallel. The error still occurred after 15 retries and the " +
+                            "service has now stopped.");
+                }
 
                 hasMore = dsDocsStream.hasMore();
                 if (hasMore) {
                     mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
                 }
-            } catch (IOException | ExecutionException | InterruptedException e) {
+            } catch (IOException e) {
                 log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
                         "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
                         origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
+                throw new InternalServiceException(e);
+            } catch (InterruptedException e) {
+                log.error("Stopped enrichment of manifestations as the ForkJoinPool was interrupted more than 15 times.");
                 throw new InternalServiceException(e);
             }
         }
