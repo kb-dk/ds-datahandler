@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.datahandler.util.PreservicaUtils;
+import dk.kb.util.webservice.exception.InternalServiceException;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -22,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static dk.kb.datahandler.util.PreservicaUtils.validateInformationObjectForDomsData;
+import static java.lang.Thread.sleep;
 
 /**
  * Client for accessing Preservica 7. Currently, provides access to the Object-Details endpoint of the Content API.
@@ -220,7 +223,7 @@ public class DsPreservicaClient {
      * @param id of the InformationObject to resolve.
      * @return a fileRef ID representing the filename of the representation on the server.
      */
-    public String getFileRefFromInformationObjectAsStream(String id){
+    public String getFileRefFromInformationObjectAsStream(String id) throws InterruptedException {
         InputStream accesRepresentationXml;
         String contentObjectId = "";
 
@@ -232,6 +235,7 @@ public class DsPreservicaClient {
             return validateInformationObjectForDomsData(id);
         } catch (XMLStreamException | IOException | URISyntaxException e) {
             log.warn("Error getting or parsing ContentObject for InformationObject: '{}'", id, e);
+            return "";
         }
 
         InputStream fileRefXml;
@@ -255,7 +259,7 @@ public class DsPreservicaClient {
      * @param id of the InformationObject to retrieve representation from.
      * @return id of the ContentObject representing the newest access representation for the InformationObject.
      */
-    public InputStream getAccessRepresentationForIO(String id) throws IOException, URISyntaxException {
+    public InputStream getAccessRepresentationForIO(String id) throws IOException, URISyntaxException, InterruptedException {
         List<String> getIoAccesRepresentationEndpoint = List.of("api", "entity", "information-objects", id, "representations", "Access");
 
         return getApiResponseAsInputStream(id, getIoAccesRepresentationEndpoint);
@@ -266,7 +270,7 @@ public class DsPreservicaClient {
      * @param id of the ContentObject to retrieve fileRef for
      * @return a fileRef representing the filename on the server for the representation of the ContentObject.
      */
-    public InputStream getFileRefForContentObject(String id) throws IOException, URISyntaxException {
+    public InputStream getFileRefForContentObject(String id) throws IOException, URISyntaxException, InterruptedException {
         List<String> getFileRefForContentObjectEndpoint = List.of("api", "entity", "content-objects", id, "identifiers");
 
         return getApiResponseAsInputStream(id, getFileRefForContentObjectEndpoint);
@@ -277,7 +281,7 @@ public class DsPreservicaClient {
      * @param id of the information object to retrieve identifiers for.
      * @return an input stream containing the response from the API.
      */
-    public InputStream getIdentifiersAsStream(String id) throws URISyntaxException, IOException{
+    public InputStream getIdentifiersAsStream(String id) throws URISyntaxException, IOException, InterruptedException {
         List<String> getInformationObjectIdentifiersEndpoint = List.of("api", "entity", "information-objects", id, "identifiers");
 
         return getApiResponseAsInputStream(id, getInformationObjectIdentifiersEndpoint);
@@ -287,34 +291,43 @@ public class DsPreservicaClient {
      * @param id of the information object to retrieve.
      * @return the information object as an InputStream.
      */
-    public InputStream getInformationObjectAsStream(String id) throws URISyntaxException, IOException {
+    public InputStream getInformationObjectAsStream(String id) throws URISyntaxException, IOException, InterruptedException {
         List<String> getInformationObjectEndpoint = List.of("api", "entity", "information-objects", id);
 
         return getApiResponseAsInputStream(id, getInformationObjectEndpoint);
     }
 
 
-    private InputStream getApiResponseAsInputStream(String id, List<String> getIoAccesRepresentationEndpoint) throws URISyntaxException, IOException {
+    private InputStream getApiResponseAsInputStream(String id, List<String> preservicaEndpointPathElements) throws URISyntaxException, IOException, InterruptedException {
         URL url = new URIBuilder(baseUrl)
-                .setPathSegments(getIoAccesRepresentationEndpoint)
+                .setPathSegments(preservicaEndpointPathElements)
                 .build()
                 .toURL();
 
         HttpURLConnection connection = null;
-        try {
-            log.debug("Opening connection to url: '{}'", url);
-            connection = (HttpURLConnection) url.openConnection();
 
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("accept", "application/xml");
-            connection.setRequestProperty("Preservica-Access-Token", accessToken);
+        int maxTries = 3;
+        int currentTry = 0;
+        while (currentTry < maxTries){
+            try {
+                log.debug("Opening connection to url: '{}'", url);
+                connection = (HttpURLConnection) url.openConnection();
 
-        } catch (FileNotFoundException e){
-            log.warn("No response could be found for id: '{}'", id);
-            return null;
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("accept", "application/xml");
+                connection.setRequestProperty("Preservica-Access-Token", accessToken);
+                return connection.getInputStream();
+            } catch (FileNotFoundException e){
+                log.warn("No response could be found for id: '{}'", id);
+                return null;
+            } catch (ConnectException e){
+                currentTry ++;
+                log.info("Received a time out from Preservica. Retrying in 10 seconds, this is the '{}' retry of '{}'", currentTry, maxTries);
+                sleep(10 * 1000); //Sleeping for 10 seconds before retrying.
+            }
         }
 
-        return connection.getInputStream();
+        throw new InternalServiceException("No response could be obtained for URL: '" + url + "'.");
     }
 
 }

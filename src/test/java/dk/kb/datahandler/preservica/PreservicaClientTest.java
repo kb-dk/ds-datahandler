@@ -27,7 +27,7 @@ public class PreservicaClientTest {
 
 
     @Test
-    public void testManifestationExtractionForDoms() throws IOException {
+    public void testManifestationExtractionForDoms() throws IOException, InterruptedException {
         // ID of a DOMS record. Has no ContentObject as of 11th of July 2024.
         String informationObjectId = "6ca25068-6dd4-45ed-a0cb-ab808441c078";
         String result = DsPreservicaClient.getInstance().getFileRefFromInformationObjectAsStream(informationObjectId);
@@ -46,7 +46,7 @@ public class PreservicaClientTest {
 
     @Tag("integration")
     @Test
-    public void testGetAccessRepresentationForIO() throws IOException, URISyntaxException, XMLStreamException {
+    public void testGetAccessRepresentationForIO() throws IOException, URISyntaxException, XMLStreamException, InterruptedException {
         InputStream stream = DsPreservicaClient.getInstance().getAccessRepresentationForIO("ee36a7b5-de87-4e45-96d8-018b513a5e2e");
 
         String contentObject = PreservicaUtils.parseRepresentationResponseForContentObject(stream);
@@ -56,7 +56,7 @@ public class PreservicaClientTest {
 
     @Tag("integration")
     @Test
-    public void testGetFileRefForContentObject() throws IOException, URISyntaxException, XMLStreamException {
+    public void testGetFileRefForContentObject() throws IOException, URISyntaxException, XMLStreamException, InterruptedException {
         // Newest ContentObject at 28th of May 2024. This can change in the future.
         InputStream stream = DsPreservicaClient.getInstance().getFileRefForContentObject("2de653bc-e182-40c4-90c3-60c8b9a546c4");
         String fileRef = PreservicaUtils.parseIdentifierResponseForFileRef(stream);
@@ -65,7 +65,7 @@ public class PreservicaClientTest {
 
     @Tag("integration")
     @Test
-    public void testGetFileRefFromIO() throws IOException {
+    public void testGetFileRefFromIO() throws IOException, InterruptedException {
         // Newest ContentObject at 28th of May 2024. This can change in the future.
         String fileRef = DsPreservicaClient.getInstance().getFileRefFromInformationObjectAsStream("ee36a7b5-de87-4e45-96d8-018b513a5e2e");
         assertEquals("ce4a81eb-ab15-474f-bed5-0debc2fde97a", fileRef);
@@ -73,7 +73,7 @@ public class PreservicaClientTest {
 
     @Tag("integration")
     @Test
-    public void testNoFileRefFromIO() throws IOException {
+    public void testNoFileRefFromIO() throws IOException, InterruptedException {
         // Newest ContentObject at 28th of May 2024. This can change in the future.
         String fileRef = DsPreservicaClient.getInstance().getFileRefFromInformationObjectAsStream("abee9c4f-dacd-4518-b68b-773c8506ac7d");
         assertEquals("", fileRef);

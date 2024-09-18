@@ -5,6 +5,7 @@ import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
+import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,10 @@ public class PreservicaManifestationExtractor {
             }
         } catch (IOException e) {
             log.error("Manifestation could not be extracted. PreservicaManifestationExtractor threw the following exception: ", e);
+        } catch (InterruptedException e) {
+            log.error("The thread applying the PreservicaManifestationExtractor to record with id: '{}', was interrupted while waiting on a timeout from Preservica.", dsRecord.getId());
+            throw new InternalServiceException("The thread applying the PreservicaManifestationExtractor to record with id: '" + dsRecord.getId()+ "', was interrupted while waiting on " +
+                    "a timeout from Preservica.");
         }
 
         return dsRecord;
