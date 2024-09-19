@@ -1,21 +1,44 @@
-package dk.kb.datahandler.preservica;
+package dk.kb.datahandler.preservica.client;
 
 import dk.kb.datahandler.config.ServiceConfig;
 
+import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
+import org.mockito.MockedStatic;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @Tag("integration")
 public class PreservicaClientTest {
@@ -95,6 +118,44 @@ public class PreservicaClientTest {
         record = manifestationPlugin.apply(record);
         assertEquals("21f85387-9900-4f2a-ab4f-cf81b2fd1dea", record.getReferenceId());
     }
+    /*@Test
+    public void testTimeOutHandling() throws InterruptedException, ExecutionException, IOException, URISyntaxException {
+        int threadCount = 50;
+        int numberOfRequests = 4000;
+
+        // ID of a DOMS record. Has no ContentObject as of 11th of July 2024.
+        String informationObjectId = "6ca25068-6dd4-45ed-a0cb-ab808441c078";
+        String secondId = "9e081b87-66f4-4797-9cff-d2ce226ab300";
+
+        DsPreservicaClient client = DsPreservicaClient.getInstance();
+
+        // Initialize the executor service with a fixed thread pool
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        Random random = new Random();
+
+
+        for (int i = 0; i < threadCount; i++) {
+            // Submit tasks to the executor service
+            executorService.submit(() -> {
+                try {
+                    for (int j = 0; j < numberOfRequests; j++) {
+                        client.getFileRefFromInformationObjectAsStream(random.nextBoolean() ? informationObjectId : secondId);
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    latch.countDown(); // Decrement the latch count
+                }
+            });
+        }
+
+        // Await until all threads have finished
+        latch.await(1, TimeUnit.MINUTES);
+        // Shut down the executor service
+        executorService.shutdown();
+    }*/
 
     private static DsRecordMinimalDto getTestRecord() {
         DsRecordMinimalDto record = new DsRecordMinimalDto();

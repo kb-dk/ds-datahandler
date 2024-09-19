@@ -314,7 +314,7 @@ public class DsPreservicaClient {
     }
 
 
-    private InputStream getApiResponseAsInputStream(String id, List<String> preservicaEndpointPathElements) throws URISyntaxException, IOException, InterruptedException {
+    protected InputStream getApiResponseAsInputStream(String id, List<String> preservicaEndpointPathElements) throws URISyntaxException, IOException, InterruptedException {
         URL url = new URIBuilder(baseUrl)
                 .setPathSegments(preservicaEndpointPathElements)
                 .build()
@@ -336,9 +336,9 @@ public class DsPreservicaClient {
             } catch (FileNotFoundException e){
                 log.warn("No response could be found for id: '{}'.", id);
                 throw e;
-            } catch (ConnectException e){
+            } catch (IOException e){
                 currentTry ++;
-                log.warn("Received a time out from Preservica. Retrying in 10 seconds, this is the '{}' retry of '{}'", currentTry, maxTries);
+                log.error("Received a time out from Preservica. Retrying in 10 seconds, this is the '{}' retry of '{}'", currentTry, maxTries);
                 sleep(10 * 1000); //Sleeping for 10 seconds before retrying.
             }
         }

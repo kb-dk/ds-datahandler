@@ -495,7 +495,7 @@ public class DsDatahandlerFacade {
                 throw new InternalServiceException(e);
             } catch (ExecutionException | InterruptedException e) {
                 log.error("An unexpected error occurred in the streaming process, when enriching records with manifestation IDs.");
-                throw new RuntimeException(e);
+                throw new InternalServiceException(e);
             }
         }
 
