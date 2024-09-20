@@ -6,6 +6,7 @@ import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.util.DsStorageClient;
+import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -33,6 +35,7 @@ public class PreservicaUtils {
      */
     public static DsRecordMinimalDto fetchManifestation(DsRecordMinimalDto record, PreservicaManifestationExtractor plugin, AtomicInteger counter, AtomicLong currentTime) {
         counter.getAndIncrement();
+        log.debug("Fetching manifestation ID for record with id: '{}'", record.getId());
 
         if (counter.get() % 200 == 0){
             log.info("200 Records have been updated in '{}' milliseconds. In total '{}' records have been processed.",
@@ -208,7 +211,7 @@ public class PreservicaUtils {
      * @param id of the InformationObject to validate.
      * @return the id of the InformationObject if it is a DOMS migrated record. Otherwise, return an empty string.
      */
-    public static String validateInformationObjectForDomsData(String id) {
+    public static String validateInformationObjectForDomsData(String id) throws InterruptedException {
         boolean isDomsRecord = PreservicaUtils.checkForDomsRecord(id);
         if (isDomsRecord){
             // If the record is a DOMS record and there are no Access Content Objects. The fileRef should be set as
@@ -226,7 +229,7 @@ public class PreservicaUtils {
      * @param id of the information-object to look up.
      * @return true if input InformationObject has been migrated from DOMS. Otherwise, false.
      */
-    public static boolean checkForDomsRecord(String id){
+    public static boolean checkForDomsRecord(String id) throws InterruptedException {
         try {
             InputStream identifiersResponse = DsPreservicaClient.getInstance().getIdentifiersAsStream(id);
 
@@ -280,7 +283,7 @@ public class PreservicaUtils {
             }
             return sourceId.startsWith("doms");
         } catch (URISyntaxException | IOException | XMLStreamException e) {
-            throw new RuntimeException(e);
+            throw new InternalServiceException(e);
         }
 
 

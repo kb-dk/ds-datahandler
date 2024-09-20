@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
@@ -473,7 +475,6 @@ public class DsDatahandlerFacade {
                 log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
                         dsDocsStream.getRecordCount(), origin, counter.get());
 
-
                 customThreadPool.submit(() ->
                         dsDocsStream.stream(DsRecordMinimalDto.class)
                                 .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
@@ -483,15 +484,17 @@ public class DsDatahandlerFacade {
                                 .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record))
                 ).get();
 
-
                 hasMore = dsDocsStream.hasMore();
                 if (hasMore) {
                     mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
                 }
-            } catch (IOException | ExecutionException | InterruptedException e) {
+            } catch (IOException e) {
                 log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
                         "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
                         origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
+                throw new InternalServiceException(e);
+            } catch (ExecutionException | InterruptedException e) {
+                log.error("An unexpected error occurred in the streaming process, when enriching records with manifestation IDs.");
                 throw new InternalServiceException(e);
             }
         }
