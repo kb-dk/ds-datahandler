@@ -36,11 +36,13 @@ public class PreservicaManifestationExtractor {
                 dsRecord.setReferenceId(filename);
             }
         } catch (IOException e) {
-            log.error("Manifestation could not be extracted. PreservicaManifestationExtractor threw the following exception: ", e);
+            log.error("Manifestation could not be extracted. mTime of record in hand at this point is: '{}'. PreservicaManifestationExtractor threw the " +
+                            "following exception: ", dsRecord.getmTime(), e);
         } catch (InterruptedException e) {
-            log.error("The thread applying the PreservicaManifestationExtractor to record with id: '{}', was interrupted while waiting on a timeout from Preservica.", dsRecord.getId());
+            log.error("The thread applying the PreservicaManifestationExtractor to record with id: '{}', was interrupted while waiting on a timeout from Preservica. mTime of the" +
+                            " record in hand is: '{}'", dsRecord.getId(), dsRecord.getmTime());
             throw new InternalServiceException("The thread applying the PreservicaManifestationExtractor to record with id: '" + dsRecord.getId()+ "', was interrupted while waiting on " +
-                    "a timeout from Preservica.");
+                    "a timeout from Preservica. mTime of the record in hand is: " + dsRecord.getmTime());
         }
 
         return dsRecord;

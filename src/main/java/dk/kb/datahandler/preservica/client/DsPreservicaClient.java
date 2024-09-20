@@ -16,7 +16,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -338,8 +337,9 @@ public class DsPreservicaClient {
                 throw e;
             } catch (IOException e){
                 currentTry ++;
-                log.error("Received a time out from Preservica. Retrying in 10 seconds, this is the '{}' retry of '{}'", currentTry, maxTries);
-                sleep(10 * 1000); //Sleeping for 10 seconds before retrying.
+                log.error("Received a time out from Preservica when querying for record with ID: '{}'. Retrying in 10 seconds, this is the '{}' retry of '{}'",
+                        id, currentTry, maxTries);
+                sleep(20 * 1000); //Sleeping for 20 seconds before retrying.
             }
         }
 
