@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.6](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.6) - 2024-09-123
 ### Added
 - Added retry mechanism for `/enrichment/manifestation` endpoint.
 
