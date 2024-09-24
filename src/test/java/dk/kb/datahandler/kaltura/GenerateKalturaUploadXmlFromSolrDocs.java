@@ -20,14 +20,14 @@ import dk.kb.util.Resolver;
 /**
  * The purpose of this class is to parse a Solr document from ds-solr with records and make Kaltura XML's with downloadlink and metadata for bulk upload in Kaltura.
  * The XML files are then upload to Kaltura manual if there are few, or sent to Petur for very large scale uploads.
- * 
+ * <p>
  * The solr json document can be produced with this query: holdback_expired_date:[NOW TO *] 
  * Notice for stage you also have to add the file_id:* since we have documents without streams 
- * 
+ * <p>
  * The Kaltura upload XML has the following structure. To see the item XML see the 'kaltura_item.xml' template. 
  * Change the template if upload format changes or maybe one of the 3 tags are removed 
  * The number of items in each file must be limited or kaltura will break. The limit is currently sat at 100 items for each xml file.
- * 
+ * <p>
  * <?xml version='1.0' encoding='utf-8'?>
  * <mrss>
  *   <channel>
@@ -36,21 +36,21 @@ import dk.kb.util.Resolver;
  *     .... more items
  *   </channel>
  * </mrss>   
- * 
- * 
+ * <p>
+ *
  * The file name of the xml files should follow this syntax. Each file having 100 items.
  * DRA_2024-07-07_PROD_1.xml
  * DRA_2024-07-07_PROD_2.xml'
  * ..... 
- * 
+ * <p>
  * Before starting the job, read the constants below and change values. 
- * 
+ * <p>
  * Test file can be extracted from solr with:
- * curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20migrated_from%3ADOMS%20AND%20file_id%3A*&rows=501&useParams=' > solr_doms.json
- * curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20NOT%20migrated_from%3ADOMS%20AND%20file_id%3A*&rows=501&useParams=' > solr_preservia.json
- * 
- * Always test the download urls are correct and working befre uploading to Kaltura 
- * 
+ * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20migrated_from%3ADOMS%20AND%20file_id%3A*&rows=501&useParams=' > solr_doms.json }
+ * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20NOT%20migrated_from%3ADOMS%20AND%20file_id%3A*&rows=501&useParams=' > solr_preservia.json}
+ * <p>
+ * Always test the download urls are correct and working before uploading to Kaltura
+ *
  */
 
 public class GenerateKalturaUploadXmlFromSolrDocs {
