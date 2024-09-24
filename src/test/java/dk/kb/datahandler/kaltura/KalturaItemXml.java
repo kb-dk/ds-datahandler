@@ -15,13 +15,14 @@ public class KalturaItemXml {
     private int conversionProfileId;
     private int flavorParamsId;
     private String downloadUrl;
-     
-    public KalturaItemXml(int type, String referenceId, String name, String description, String tag1, String tag2, String tag3, int conversionProfileId, int mediaType,
+    private String migratedFrom; 
+    
+    public KalturaItemXml(int type, String referenceId, String name, String description, String migratedFrom,String tag1, String tag2, String tag3, int conversionProfileId, int mediaType,
             int flavorParamsId, String downloadUrl) {        
         
         if (type<=0 || referenceId == null || name== null || description == null
             || tag1==null  || tag2==null || tag3==null ||  conversionProfileId<=0 ||  mediaType <=0
-            || flavorParamsId <=0 ||  downloadUrl== null) {            
+            || flavorParamsId <=0 ||  downloadUrl== null) { //migrated from can be null            
             throw new InvalidArgumentServiceException("All parameters must be defined");            
         }
         
@@ -37,6 +38,7 @@ public class KalturaItemXml {
         this.mediaType = mediaType;
         this.flavorParamsId = flavorParamsId;
         this.downloadUrl = downloadUrl;
+        this.migratedFrom=migratedFrom;
     }
 
     public int getType() {
@@ -81,5 +83,8 @@ public class KalturaItemXml {
     
     public int getConversionProfileId() {
         return conversionProfileId;
+    }    
+    public String getMigratedFrom() {
+        return migratedFrom;
     }    
 }

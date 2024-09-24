@@ -18,15 +18,15 @@ import dk.kb.util.Resolver;
 
 
 /**
- * The purpose of this class is to parse a Solr document from ds-solr with records and make Kaltura XML's files with upload URL to the stream.
- * The XML files are then upload to Kaltura manuel if there are few or sent to Petur for very large scale uploads.
+ * The purpose of this class is to parse a Solr document from ds-solr with records and make Kaltura XML's with downloadlink and metadata for bulk upload in Kaltura.
+ * The XML files are then upload to Kaltura manual if there are few, or sent to Petur for very large scale uploads.
  * 
  * The solr json document can be produced with this query: holdback_expired_date:[NOW TO *] 
- * 
+ * Notice for stage you also have to add the file_id:* since we have documents without streams 
  * 
  * The Kaltura upload XML has the following structure. To see the item XML see the 'kaltura_item.xml' template. 
  * Change the template if upload format changes or maybe one of the 3 tags are removed 
- * The number of items in each file must be limited or kaltura will break. The limit is currently sat at 100 items for xml file.
+ * The number of items in each file must be limited or kaltura will break. The limit is currently sat at 100 items for each xml file.
  * 
  * <?xml version='1.0' encoding='utf-8'?>
  * <mrss>
@@ -41,13 +41,15 @@ import dk.kb.util.Resolver;
  * The file name of the xml files should follow this syntax. Each file having 100 items.
  * DRA_2024-07-07_PROD_1.xml
  * DRA_2024-07-07_PROD_2.xml'
- * .....
- * 
- * 
- * 
- * For STAGE replace PROD with STAGE * 
+ * ..... 
  * 
  * Before starting the job, read the constants below and change values. 
+ * 
+ * Test file can be extracted from solr with:
+ * curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20migrated_from%3ADOMS%20AND%20file_id%3A*&rows=501&useParams=' > solr_doms.json
+ * curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20NOT%20migrated_from%3ADOMS%20AND%20file_id%3A*&rows=501&useParams=' > solr_preservia.json
+ * 
+ * Always test the download urls are correct and working befre uploading to Kaltura 
  * 
  */
 
@@ -59,29 +61,24 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     
     static String XML_KALTURA_ITEM_FRAGMENT; //Not final since it will be loaded once in the main method
    
-    // The number of item xml blocks in each file
+    // The number of item xml blocks in each file. This is a limit Kaltura like.
     final static int NUMBER_ITEMS_IN_EACH=100;
     
-    //Kaltura STAGE
+    //Change for STAGE or PROD! (I do not know PROD values yet)
     final static int VIDEO_CONVERSION_PROFILE_ID=1406; //This is Kaltura stage for Video
     final static int AUDIO_CONVERSION_PROFILE_ID=1403; //This is Kaltura stage for Audio
     
-    //Kaltura PROD
-    //final static int VIDEO_CONVERSION_PROFILE_ID=? // Ask Asger
-    //final static int AUDIO_CONVERSION_PROFILE_ID=? // Ask Asger
-
-    //This will be different for stage?
     //The KUANA paths (stage) FTP server has not been established
+    //Name for stage will probably be: deic-download-stage.kb.dk
     final static String FTP_PRESERVICA_RADIOTV_PATH="https://deic-download.kb.dk/radio-tv/";     
     final static String FTP_BART_TV_PATH="https://deic-download.kb.dk/kuana-store/bart-access-copies-tv/";
     final static String FTP_BART_RADIO_PATH="https://deic-download.kb.dk/kuana-store/bart-access-copies-radio/";
-
     
     //This should be same on both STAGE and PROD
     final static int VIDEO_FLAVOR_PARAMS_ID=3;
     final static int AUDIO_FLAVOR_PARAMS_ID=359;
         
-    //Kaltura enums
+    //Kaltura enums. Same on stage/prod
     final static int MEDIATYPE_VIDEO=1;
     final static int MEDIATYPE_AUDIO=5;
         
@@ -91,7 +88,7 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     
     
     //Custom values that must be changed before running
-    final static String SOLR_DOCS_JSON="/home/teg/Desktop/temp/solr_docs.json";
+    final static String SOLR_DOCS_JSON="/home/teg/Desktop/temp/solr_preservica_audio.json";
     //The output folder for the xml files
     final static String OUTPUT_FOLDER="/home/teg/Desktop/temp/";
     //Fix Date in file before running job.
@@ -108,6 +105,7 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
                         
             //Load the solr json with documents and convert to javaDTO's
             ArrayList<KalturaItemXml> itemXmlList = createKalturaItemsFromSolrJson(SOLR_DOCS_JSON);
+            System.out.println("Solr document has #docs="+itemXmlList.size());
             
             //Split list into sublists
             List<List<KalturaItemXml>> lists = ListUtils.partition(itemXmlList, NUMBER_ITEMS_IN_EACH);
@@ -128,11 +126,8 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
             e.printStackTrace();
 
         }
-
-
     }
-
-    
+   
     private static String generateXmlFromListOfKalturaXML(List<KalturaItemXml> list) throws Exception {
         StringBuilder xml= new StringBuilder();
         
@@ -163,6 +158,7 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
             String referenceId= doc.getString("file_id");            
             String name = getFirstTitle(doc);
             String description = getFieldOrEmpty(doc,"description");
+            String migratedFrom=getFieldOrEmpty(doc, "migrated_from");
             String tag1= TAG1;
             String tag2= TAG2;
             String tag3= TAG3;
@@ -185,9 +181,10 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
                 System.out.println("Unknown resource_description:"+resourceType);
                 continue; //Do not add 
             }
-                        
-            String downloadUrl=generat(referenceId);
-            KalturaItemXml itemXml= new KalturaItemXml(type, referenceId, name, description, tag1, tag2, tag3, conversionProfileId,  type,flavorParamsId, downloadUrl);
+                  
+            
+            String downloadUrl=generateDownloadUrl(migratedFrom,resourceType,referenceId);
+            KalturaItemXml itemXml= new KalturaItemXml(type, referenceId, name, description, migratedFrom, tag1, tag2, tag3, conversionProfileId,  type,flavorParamsId, downloadUrl);
             itemXmlList.add(itemXml);                                                  
         }
         
@@ -220,7 +217,7 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     //Return empty string if field does not exist
     private static String getFieldOrEmpty(JSONObject doc, String field ) {
         try {
-           return doc.getString("field");
+           return doc.getString(field);
         }
         catch(Exception e) {                      
             return "";            
@@ -250,8 +247,8 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     private static String substituteValues(String xml, KalturaItemXml xmlItem) {        
         xml=xml.replaceFirst("#TYPE",""+xmlItem.getType());
         xml=xml.replaceFirst("#REFERENCE_ID",  xmlEncode(xmlItem.getReferenceId()));
-        xml=xml.replaceFirst("#NAME",  xmlEncode(xmlItem.getName()));
-        xml=xml.replaceFirst("#DESCRIPTION",  xmlEncode(xmlItem.getDescription()));
+        xml=xml.replace("#NAME",  xmlEncode(xmlItem.getName())); //Not regexp replace since text can be complex
+        xml=xml.replace("#DESCRIPTION",  xmlEncode(xmlItem.getDescription())); //Not regexp replace since text can be complex
         xml=xml.replaceFirst("#TAG1",  xmlEncode(xmlItem.getTag1()));
         xml=xml.replaceFirst("#TAG2",  xmlEncode(xmlItem.getTag2()));
         xml=xml.replaceFirst("#TAG3",  xmlEncode(xmlItem.getTag3()));
@@ -263,22 +260,52 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     }
     
     
-    //Example: https://deic-download.kb.dk/radio-tv/e/b/4/f/eb4fcb8c-99e3-415b-8cc8-33a6ffb17b73.mp4
-    //TODO. Is it DOMS-radio,DOMS-tv or preservica??
-    private static String generatePreservicaTvDownloadUrl(String fileId) {           
-        String pathSplit= fileId.substring(0,2)+"/"+fileId.substring(2,4)+"/"+fileId.substring(4,6)+"/"+fileId;       
-         return FTP_KUANA_TV_PATH+pathSplit;               
+    
+    
+    //File path examples. Notice there is no extension for bart-tv and bart-radio
+    //Example Preservica/Kuana: https://deic-download.kb.dk/radio-tv/e/b/4/f/eb4fcb8c-99e3-415b-8cc8-33a6ffb17b73.mp4
+    //Example bart-tv:   https://deic-download.kb.dk/kuana-store/bart-access-copies-tv/00/01/32
+    //Example bart-radio: https://deic-download.kb.dk/kuana-store/bart-access-copies-radio/00/00/02/00000288-7859-4782-b736-a2dc964316e8
+
+    private static String generateDownloadUrl(String migratedFrom, String resourceType,String referenceId) {
+
+        if ("DOMS".equals(migratedFrom)){ //This is bart
+          if ("VideoObject".equals(resourceType)) {              
+              return generateBartTvDownloadUrl(referenceId);
+
+          }
+          else {              
+              return generateBartRadioDownloadUrl(referenceId);
+          }          
+        }
+        else {
+          return generateKuanaTVDownloadUrl(referenceId, resourceType);              
+        }        
     }
     
-    private static String generateKuanaRadioDownloadUrl(String fileId) {           
+    
+    // 2  character folders
+    private static String generateBartTvDownloadUrl(String fileId) {           
         String pathSplit= fileId.substring(0,2)+"/"+fileId.substring(2,4)+"/"+fileId.substring(4,6)+"/"+fileId;       
-         return FTP_KUANA_RADIO_PATH+pathSplit;               
+         return FTP_BART_TV_PATH+pathSplit;     
     }
     
-    private static String generateKuanaTVDownloadUrl(String fileId) {           
+    // 2  character folders
+    private static String generateBartRadioDownloadUrl(String fileId) {           
         String pathSplit= fileId.substring(0,2)+"/"+fileId.substring(2,4)+"/"+fileId.substring(4,6)+"/"+fileId;       
-         return FTP_KUANA_TV_PATH+pathSplit;               
+         return FTP_BART_RADIO_PATH+pathSplit;               
     }
     
-    
+    // 1  character folders + add extension .mp3 or .mp4
+    private static String generateKuanaTVDownloadUrl(String fileId,String resourceType) {           
+        String pathSplit= fileId.substring(0,1)+"/"+fileId.substring(1,2)+"/"+fileId.substring(2,3)+"/"+fileId;       
+        String fileWithOutExtension=FTP_PRESERVICA_RADIOTV_PATH+pathSplit; //Must add extension .mp3 og .mp4               
+        if ("VideoObject".equals(resourceType)) {
+            return fileWithOutExtension+".mp4";            
+        }
+        else {
+            return fileWithOutExtension+".mp3";
+        }            
+    }
+        
 }
