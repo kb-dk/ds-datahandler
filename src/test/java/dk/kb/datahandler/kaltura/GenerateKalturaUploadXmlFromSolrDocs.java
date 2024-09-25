@@ -93,9 +93,9 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
 
 
     //Custom values that must be changed before running
-    final static String SOLR_DOCS_JSON="/home/teg/Desktop/temp/solr_preservica_audio.json";
+    final static String SOLR_DOCS_JSON="/home/teg/Downloads/solr_preservica_audio.json";
     //The output folder for the xml files
-    final static String OUTPUT_FOLDER="/home/teg/Desktop/temp/";
+    final static String OUTPUT_FOLDER="/home/teg/Downloads/";
     //Fix Date in file before running job.
     final static String XML_FILE_PATTERN="DRA_2024-9-23_STAGE_#NUMBER.xml";   //Kaltura stage
     //static String filePattern="DRA_2024-07-07_PROD_#NUMBER.xml";  //Kaltura production
@@ -303,7 +303,7 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
 
     // 1  character folders + add extension .mp3 or .mp4
     private static String generateKuanaTVDownloadUrl(String fileId,String resourceType) {           
-        String pathSplit= fileId.substring(0,1)+"/"+fileId.substring(1,2)+"/"+fileId.substring(2,3)+"/"+fileId;       
+        String pathSplit= fileId.substring(0,1)+"/"+fileId.substring(1,2)+"/"+fileId.substring(2,3)+"/"+fileId.substring(3,4)+"/"+fileId;       
         String fileWithOutExtension=FTP_PRESERVICA_RADIOTV_PATH+pathSplit; //Must add extension .mp3 og .mp4               
         if ("VideoObject".equals(resourceType)) {
             return fileWithOutExtension+".mp4";            
