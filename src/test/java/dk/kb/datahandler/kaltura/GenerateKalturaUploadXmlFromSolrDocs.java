@@ -21,7 +21,7 @@ import dk.kb.util.Resolver;
  * The purpose of this class is to parse a Solr document from ds-solr with records and make Kaltura XML's with downloadlink and metadata for bulk upload in Kaltura.
  * The XML files are then upload to Kaltura manual if there are few, or sent to Petur for very large scale uploads.
  * <p>
- * The solr json document can be produced with this query: holdback_expired_date:[* TO NOW] 
+ * The solr json document can be produced with this query: holdback_expired_date:[* TO NOW] AND own_production:true
  * Notice for stage you also have to add the file_id:* since we have documents without streams 
  * <p>
  * The Kaltura upload XML has the following structure. To see the item XML see the 'kaltura_item.xml' template. 
@@ -47,9 +47,9 @@ import dk.kb.util.Resolver;
  * <p>
  * Test file can be extracted from solr with:
  * <p>
- * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=migrated_from%3A%22DOMS%22%20AND%20file_id%3A*%20AND%20holdback_expired_date%3A%5B*%20TO%20NOW%5D&rows=500' > solr_doms.json }
+ * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=migrated_from:"DOMS" AND file_id:* AND holdback_expired_date:[* TO NOW] AND own_production:true&rows=500' > solr_doms.json }
  * <p>
- * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20NOT%20migrated_from%3ADOMS%20AND%20file_id%3A*%20AND%20holdback_expired_date%3A%5B*%20TO%20NOW%5D&rows=500' > solr_preservica.json}
+ * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*:* AND NOT migrated_from:DOMS AND file_id:* AND holdback_expired_date:[* TO NOW] AND own_production:true&rows=500' > solr_preservica.json}
  * <p>
  * Always test the download urls are correct and working before uploading to Kaltura
  *
