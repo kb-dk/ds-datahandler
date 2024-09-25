@@ -46,8 +46,10 @@ import dk.kb.util.Resolver;
  * Before starting the job, read the constants below and change values. 
  * <p>
  * Test file can be extracted from solr with:
- * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20migrated_from%3ADOMS%20AND%20file_id%3A*&rows=501&useParams=' > solr_doms.json }
- * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20NOT%20migrated_from%3ADOMS%20AND%20file_id%3A*&rows=501&useParams=' > solr_preservia.json}
+ * <p>
+ * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=migrated_from%3A%22DOMS%22%20AND%20file_id%3A*%20AND%20holdback_expired_date%3A%5B*%20TO%20NOW%5D&rows=500' > solr_doms.json }
+ * <p>
+ * {@code curl 'http://devel11:10007/solr/ds/select?indent=true&q.op=OR&q=*%3A*%20AND%20NOT%20migrated_from%3ADOMS%20AND%20file_id%3A*%20AND%20holdback_expired_date%3A%5B*%20TO%20NOW%5D&rows=500' > solr_preservica.json}
  * <p>
  * Always test the download urls are correct and working before uploading to Kaltura
  *
@@ -82,9 +84,12 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     final static int MEDIATYPE_VIDEO=1;
     final static int MEDIATYPE_AUDIO=5;
 
-    final static String TAG1="ds-kaltura"; //This should not be changed
-    final static String TAG2="XML-2024-09-23"; //Change this to about current date
-    final static String TAG3="test"; //Asger used this on kaltura-STAGE. Dont know what to use for PROD.
+   // This should not be changed. Used when we want to deleted all streams in kaltura.
+    final static String TAG1="ds-kaltura"; 
+   //Change this to about current date. Used to delete everything from a specifik bulk upload in kaltura. (in case of error etc.)
+    final static String TAG2="XML-2024-09-23"; 
+   //Asger used this on kaltura-STAGE. Dont know what to use for PROD.
+    final static String TAG3="test"; 
 
 
     //Custom values that must be changed before running
@@ -94,7 +99,6 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     //Fix Date in file before running job.
     final static String XML_FILE_PATTERN="DRA_2024-9-23_STAGE_#NUMBER.xml";   //Kaltura stage
     //static String filePattern="DRA_2024-07-07_PROD_#NUMBER.xml";  //Kaltura production
-
 
 
     public static void main(String[] args) {
@@ -247,8 +251,6 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     private static String substituteValues(String xml, KalturaItemXml xmlItem) {        
         xml=xml.replaceFirst("#TYPE",""+xmlItem.getType());
         xml=xml.replaceFirst("#REFERENCE_ID",  xmlEncode(xmlItem.getReferenceId()));
-        xml=xml.replace("#NAME",  xmlEncode(xmlItem.getName())); //Not regexp replace since text can be complex
-        xml=xml.replace("#DESCRIPTION",  xmlEncode(xmlItem.getDescription())); //Not regexp replace since text can be complex
         xml=xml.replaceFirst("#TAG1",  xmlEncode(xmlItem.getTag1()));
         xml=xml.replaceFirst("#TAG2",  xmlEncode(xmlItem.getTag2()));
         xml=xml.replaceFirst("#TAG3",  xmlEncode(xmlItem.getTag3()));
@@ -256,6 +258,9 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
         xml=xml.replaceFirst("#MEDIATYPE", ""+xmlItem.getMediaType());
         xml=xml.replaceFirst("#FLAVOR_PARAMS_ID",""+xmlItem.getFlavorParamsId());
         xml=xml.replaceFirst("#DOWNLOAD_URL", ""+ xmlEncode(xmlItem.getDownloadUrl()));
+        //Replace these two last for performance. Since content can be large.
+        xml=xml.replace("#NAME",  xmlEncode(xmlItem.getName())); //Not regexp replace since text can be complex
+        xml=xml.replace("#DESCRIPTION",  xmlEncode(xmlItem.getDescription())); //Not regexp replace since text can be complex
         return xml;
     }
 
