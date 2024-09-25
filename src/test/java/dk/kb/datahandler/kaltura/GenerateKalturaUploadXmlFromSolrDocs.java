@@ -21,7 +21,7 @@ import dk.kb.util.Resolver;
  * The purpose of this class is to parse a Solr document from ds-solr with records and make Kaltura XML's with downloadlink and metadata for bulk upload in Kaltura.
  * The XML files are then upload to Kaltura manual if there are few, or sent to Petur for very large scale uploads.
  * <p>
- * The solr json document can be produced with this query: holdback_expired_date:[NOW TO *] 
+ * The solr json document can be produced with this query: holdback_expired_date:[* TO NOW] 
  * Notice for stage you also have to add the file_id:* since we have documents without streams 
  * <p>
  * The Kaltura upload XML has the following structure. To see the item XML see the 'kaltura_item.xml' template. 
