@@ -284,7 +284,7 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
             }          
         }
         else {
-            return generateKuanaTVDownloadUrl(referenceId, resourceType);              
+            return generateKuanaDownloadUrl(referenceId, resourceType);              
         }        
     }
 
@@ -302,7 +302,7 @@ public class GenerateKalturaUploadXmlFromSolrDocs {
     }
 
     // 1  character folders + add extension .mp3 or .mp4
-    private static String generateKuanaTVDownloadUrl(String fileId,String resourceType) {           
+    private static String generateKuanaDownloadUrl(String fileId,String resourceType) {           
         String pathSplit= fileId.substring(0,1)+"/"+fileId.substring(1,2)+"/"+fileId.substring(2,3)+"/"+fileId.substring(3,4)+"/"+fileId;       
         String fileWithOutExtension=FTP_PRESERVICA_RADIOTV_PATH+pathSplit; //Must add extension .mp3 og .mp4               
         if ("VideoObject".equals(resourceType)) {
