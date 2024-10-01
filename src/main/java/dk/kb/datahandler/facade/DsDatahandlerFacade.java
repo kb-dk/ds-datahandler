@@ -50,6 +50,7 @@ import dk.kb.storage.model.v1.OriginCountDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
+import dk.kb.util.webservice.exception.ServiceException;
 
 import static java.lang.Thread.sleep;
 
@@ -286,7 +287,7 @@ public class DsDatahandlerFacade {
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
             }
-            catch (IOException | ApiException e) {
+            catch (IOException | ApiException | ServiceException e) {
                 log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);
                 job.setCompletedTime(System.currentTimeMillis());
                 OaiJobCache.finishJob(job, 0,true);//Error                        
