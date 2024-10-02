@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- OAI jobs will also be marked as stopped if getting ServiceException  (dk.kb class)
+- OAI jobs will also be marked as stopped if getting APIException  (dk.kb class)
 
 ## [1.9.6](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.6) - 2024-09-23
 ### Added
