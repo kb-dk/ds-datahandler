@@ -19,6 +19,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,7 +241,8 @@ public class OaiHarvestClient {
 
         HttpResponse<String> response = null;
         int attempt = 0;
-        int maxRetries = 5;
+        int maxRetries = ServiceConfig.getOaiRetryTimes();
+        int sleepSeconds = ServiceConfig.getOaiRetrySeconds();
         while (attempt < maxRetries){
             try {
                 response = client.send(request, BodyHandlers.ofString());
@@ -259,8 +261,7 @@ public class OaiHarvestClient {
                 log.error("An error occurred when sending OAI-PMH request: '{}'. Retrying '{}' times, this was the '{}' time an error occurred. Sleeps for 30 seconds before " +
                                 "retrying. The exception thrown was: '{}'",
                         request.toString(), maxRetries, attempt, e.getMessage());
-                // sleep correct time 3 x 1 and 1 times 30
-                Thread.sleep(30 * 1000);
+                Thread.sleep(sleepSeconds * 1000L);
             }
         }
 
