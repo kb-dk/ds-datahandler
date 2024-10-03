@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- OAI jobs will also be marked as stopped if getting APIException  (dk.kb class)
 
 ## [1.9.6](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.6) - 2024-09-23
 ### Added
@@ -38,6 +39,7 @@ No methods are defined to require OAuth yet!
 - After finished solr indexing the `/solr/index`-endpoint now updates the index for the suggest component as well.
 - Added the ability to enrich metadata with extra fragments from a seperate webservice when harvesting records from preservica
 - handle errors when calling fragment service
+- Added manual batchjob to generate Kaltura XML for bulk uploads.
 
 ### Changed  
 - Changed when DsPreservicaClient is initialized.
