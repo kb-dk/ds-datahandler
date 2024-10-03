@@ -45,6 +45,8 @@ public class ServiceConfig {
     private static String preservicaUser = null;
     private static String preservicaPassword = null;
     private static int preservicaKeepAliveSeconds = 600;
+    private static int oaiRetryTimes = 5;
+    private static int oaiRetrySeconds = 600;
 
     
     /**
@@ -77,9 +79,12 @@ public class ServiceConfig {
         preservicaPassword = serviceConfig.getString("preservica.password");
         preservicaKeepAliveSeconds = serviceConfig.getInteger("preservica.keepAliveSeconds", 840); // Defaulting to 14 minuts
 
+        oaiRetryTimes = serviceConfig.getInteger("oaiConfig.retryTimes", 5); // Defaulting to 5 retries
+        oaiRetrySeconds = serviceConfig.getInteger("oaiConfig.retrySeconds", 600); // Defaulting to 10 minuts
+
         log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
-                "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}'",
-                configFiles, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl);
+                "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}', oaiRetryTimes: '{}', oaiRetrySeconds: '{}'.",
+                configFiles, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl, oaiRetryTimes, oaiRetrySeconds);
 
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
@@ -175,6 +180,14 @@ public class ServiceConfig {
 
     public static int getPreservicaKeepAliveSeconds() {
         return preservicaKeepAliveSeconds;
+    }
+
+    public static int getOaiRetryTimes() {
+        return oaiRetryTimes;
+    }
+
+    public static int getOaiRetrySeconds() {
+        return oaiRetrySeconds;
     }
 
     private static void loadOaiTargets() {
