@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.7](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.7) - 2024-10-03 
 ### Added
 - OAI harvest can now have wait times configured in the config files.
 
