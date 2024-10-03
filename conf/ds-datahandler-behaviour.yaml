@@ -144,6 +144,12 @@ oaiTargets:
     description: Radio- og TV-udsendelser
     filter: dr
     fragmentServiceUrl: https://nifi-server.kb.dk
+
+# Settings for OAI-PMH harvest
+oaiSettings:
+  # If response is not HTTP 200, retry after x times after sleeping for x seconds
+  retryTimes: 3
+  retrySeconds: 30
  
 
 # Save timestamps of last OAI harvest for each target in this folder. This is used for incremental delta-imports.                

@@ -240,7 +240,7 @@ public class OaiHarvestClient {
 
         HttpResponse<String> response = null;
         int attempt = 0;
-        int maxRetries = 3;
+        int maxRetries = 5;
         while (attempt < maxRetries){
             try {
                 response = client.send(request, BodyHandlers.ofString());
@@ -248,21 +248,24 @@ public class OaiHarvestClient {
                 //log.debug("http header:"+response.headers());
                 //log.debug("http body:"+response.body());if
 
-                if (200 != response.statusCode()){
-                   throw new IOException("Response code was not 200");
+                if (200 != response.statusCode()) {
+                    log.error("Response code was not 200, it was '{}' instead.", response.statusCode());
+                    throw new IOException("Response code was not 200");
                 }
 
                 return response.body();
             } catch (IOException | InterruptedException e) {
                 attempt ++;
-                log.warn("An error occurred when sending OAI-PMH request: '{}'. Retrying 3 times, this was the '{}' time an error occurred. Sleeps for 30 seconds before retrying.",
-                        request.toString(), attempt);
+                log.error("An error occurred when sending OAI-PMH request: '{}'. Retrying '{}' times, this was the '{}' time an error occurred. Sleeps for 30 seconds before " +
+                                "retrying. The exception thrown was: '{}'",
+                        request.toString(), maxRetries, attempt, e.getMessage());
+                // sleep correct time 3 x 1 and 1 times 30
                 Thread.sleep(30 * 1000);
             }
         }
 
         if (attempt == maxRetries){
-            log.error("Gave up harvesting records after three tries, from the following OAI-PMH request: '{}'", request);
+            log.error("Gave up harvesting records after three tries, from the following OAI-PMH request: '{}'. See exception thrown in earlier log message.", request);
             throw new InternalServiceException("Failed to harvest records after three tries, from the following OAI-PMH request: '" + request + "'.");
         }
 
