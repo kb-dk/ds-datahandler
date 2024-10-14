@@ -27,16 +27,18 @@ public class KalturaManualDeleteJob {
     public static void main(String[] args) {
         
         String kalturaUrl = "https://kmc.kaltura.nordu.net";
-        String adminSecret = "XXXXXXXXXXXXXXXXXXXXXXxxx";
-        Integer partnerId = 397; // This is production kaltura! Test is 399 and stage is 398 and production is 397
-        String userId = "XXX@kb.dk"; // User must exist in kaltura.
+        String adminSecret = null;// Use token,tokenId  instead
+        Integer partnerId = 398; // 398=stage, 397=prod. 
+        String userId = "XXX@kb.dk"; //User must exist in kaltura.                 
+        String token="abc"; // <- replace with correct token matching tokenId
+        String tokenId="0_f2qyxk5i";
 
         String input_entry_ids = "/home/xxx/kaltura_entryids_to_delete.txt"; // File with entryIds til be delete. One oneeach line
         String output_entry_ids = "/home/xxx/kaltura_entryids_delete_failed.txt"; // EntryIds that failed during deletion will be added in this file.
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, adminSecret, 86400);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token,tokenId,adminSecret, 86400);
             int numberDeleteFailed = 0;
             int numberDeleteSuccess = 0;
             List<String> entryIds = readAllLines(input_entry_ids);

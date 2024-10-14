@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
@@ -408,12 +406,18 @@ public class DsDatahandlerFacade {
 
     private static DsKalturaClient getKalturaClient() throws IOException {
         String kalturaUrl= ServiceConfig.getConfig().getString("kaltura.url");
-        String adminSecret = ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed.
+        String adminSecret = ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
         Integer partnerId = ServiceConfig.getConfig().getInteger("kaltura.partnerId");  
         String userId = ServiceConfig.getConfig().getString("kaltura.userId");                               
+        String token= ServiceConfig.getConfig().getString("kaltura.token");
+        String tokenId= ServiceConfig.getConfig().getString("kaltura.tokenId");
+       
         long sessionKeepAliveSeconds=3600L; //1 hour
         log.info("creating kaltura client for partnerID:"+partnerId);
-        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,adminSecret,sessionKeepAliveSeconds);
+        log.info("secret:"+adminSecret);
+        log.info("token:"+token);
+        log.info("tokenId:"+tokenId);
+        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,sessionKeepAliveSeconds);
         return kalturaClient;
     }
 
