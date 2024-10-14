@@ -37,12 +37,14 @@ public class KalturaUploadFolderIntegrationTest {
     public static void main(String[] args)  {
 
         String kalturaUrl= "https://kmc.kaltura.nordu.net";        
-        String adminSecret = "XXXXXXXXXXXXXXXXXXXXXXxxx"; 
-        Integer partnerId = 380; // Use this partner ID for DS project 
+        String adminSecret = null;// Use token,tokenId instead
+        Integer partnerId = 398; // 398=stage, 397=prod. 
         String userId = "XXX@kb.dk"; //User must exist in kaltura.                 
-
+        String token="abc"; // <- replace with correct token matching tokenId
+        String tokenId="0_f2qyxk5i";
+        
         try {
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl,userId,partnerId,adminSecret,86400);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,86400);
 
            // String uploadFolder="/home/teg/kaltura_files/video/";
             //KalturaMediaType mediaType = KalturaMediaType.VIDEO;
