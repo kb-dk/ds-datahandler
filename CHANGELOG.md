@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgraded ds-kaltura to v.1.2.5
 - Kaltura client uses kaltura app-tokens instead of mastersecret. Two new properties added: kaltura.token and katura.tokenId. Mastersecret can be set to null in property
 
+### Changed 
+- Update refreshing of Preservica access token
 
 ## [1.9.7](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.9.7) - 2024-10-03 
 ### Added
