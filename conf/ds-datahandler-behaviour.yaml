@@ -169,12 +169,15 @@ solr:
   queryUrl: http://localhost:10011/solr/ds
   batchSize: 500
 
-# Configuration of preservica endpoints. These are used to fetch IDs/filenames for presentation manifestations
+# Configuration of preservica endpoints. These are used to fetch IDs/filenames for presentation manifestations. All settings here are related to accessing the Preservica APIs
 preservica:
   baseUrl: preservicaUrl/
   user: user
   password: password
-  keepAliveSeconds: 840 # The access token is valid for 15 minuts. If this value is not set, 14 minuts is used as the default
+  keepAliveSeconds: 600 # The access token is valid for 15 minuts. If this value is not set, 14 minuts is used as the default
+  retryTimes: 5
+  retrySeconds: 900 # Please keep retrySeconds bugger than keepAliveSeconds
+  threads: 5
 
 
 # The ds-present server used for xslt

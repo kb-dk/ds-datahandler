@@ -44,6 +44,10 @@ public class ServiceConfig {
     private static String preservicaUrl = null;
     private static String preservicaUser = null;
     private static String preservicaPassword = null;
+    private static int preservicaRetryTimes = 5;
+    private static int preservicaRetrySeconds = 600;
+    private static int preservicaThreads = 5;
+
     private static int preservicaKeepAliveSeconds = 600;
     private static int oaiRetryTimes = 5;
     private static int oaiRetrySeconds = 600;
@@ -77,7 +81,10 @@ public class ServiceConfig {
         preservicaUrl = serviceConfig.getString("preservica.baseUrl");
         preservicaUser = serviceConfig.getString("preservica.user");
         preservicaPassword = serviceConfig.getString("preservica.password");
-        preservicaKeepAliveSeconds = serviceConfig.getInteger("preservica.keepAliveSeconds", 840); // Defaulting to 14 minuts
+        preservicaKeepAliveSeconds = serviceConfig.getInteger("preservica.keepAliveSeconds", 600); // Defaulting to 10 minuts. Has to be smaller than retrySeconds.
+        preservicaRetrySeconds = serviceConfig.getInteger("preservica.retrySeconds", 900); //Defaulting to 15 minuts.
+        preservicaRetryTimes = serviceConfig.getInteger("preservica.retryTimes", 5); // Defaulting to 5 tries.
+        preservicaThreads = serviceConfig.getInteger("preservica.threads", 5); // Defaulting to five threads.
 
         oaiRetryTimes = serviceConfig.getInteger("oaiConfig.retryTimes", 5); // Defaulting to 5 retries
         oaiRetrySeconds = serviceConfig.getInteger("oaiConfig.retrySeconds", 600); // Defaulting to 10 minuts
@@ -93,6 +100,10 @@ public class ServiceConfig {
         else {
             log.info("Oai timestamp folder not found:"+oaiTimestampFolder +" .Creating new folder:"+oaiTimestampFolder);
             Files.createDirectories(Paths.get(oaiTimestampFolder));
+        }
+
+        if (preservicaRetrySeconds < preservicaKeepAliveSeconds){
+            log.error("The preservica client might be kept alive with invalid access token as preservicaRetrySeconds is less than preservicaKeepAliveSeconds");
         }
         
         
@@ -188,6 +199,18 @@ public class ServiceConfig {
 
     public static int getOaiRetrySeconds() {
         return oaiRetrySeconds;
+    }
+
+    public static int getPreservicaRetryTimes() {
+        return preservicaRetryTimes;
+    }
+
+    public static int getPreservicaRetrySeconds() {
+        return preservicaRetrySeconds;
+    }
+
+    public static int getPreservicaThreads() {
+        return preservicaThreads;
     }
 
     private static void loadOaiTargets() {

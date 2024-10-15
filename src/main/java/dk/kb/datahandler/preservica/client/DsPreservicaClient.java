@@ -321,8 +321,9 @@ public class DsPreservicaClient {
 
         HttpURLConnection connection = null;
 
-        int maxTries = 3;
+        int maxTries = ServiceConfig.getPreservicaRetryTimes();
         int currentTry = 0;
+        int retrySeconds = ServiceConfig.getPreservicaRetrySeconds();
         while (currentTry < maxTries){
             try {
                 log.debug("Opening connection to url: '{}'", url);
@@ -333,13 +334,14 @@ public class DsPreservicaClient {
                 connection.setRequestProperty("Preservica-Access-Token", accessToken);
                 return connection.getInputStream();
             } catch (FileNotFoundException e){
-                log.warn("No response could be found for id: '{}'.", id);
+                log.info("No response could be found for id: '{}'.", id);
                 throw e;
             } catch (IOException e){
                 currentTry ++;
                 log.error("Received a time out from Preservica when querying for record with ID: '{}'. Retrying in 10 seconds, this is the '{}' retry of '{}'",
                         id, currentTry, maxTries);
-                sleep(20 * 1000); //Sleeping for 20 seconds before retrying.
+                sleep(retrySeconds * 1000L); //Sleeping for X seconds before retrying.
+                DsPreservicaClient.getInstance();
             }
         }
 

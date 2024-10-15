@@ -468,8 +468,9 @@ public class DsDatahandlerFacade {
         AtomicInteger counter = new AtomicInteger(0);
         AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
 
-        // Create a custom ForkJoinPool with 5 threads
-        ForkJoinPool customThreadPool = new ForkJoinPool(5);
+        // Create a custom ForkJoinPool with configured amount of threads
+        int numberOfThreads = ServiceConfig.getPreservicaThreads();
+        ForkJoinPool customThreadPool = new ForkJoinPool(numberOfThreads);
 
         while (hasMore) {
             try (ContinuationInputStream<Long> dsDocsStream =
