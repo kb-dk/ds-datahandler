@@ -91,6 +91,10 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
                 processed++;
                 transCodingNotDoneRecords++;
                 log.debug("OAI-PMH record '{}' transcoding status not done. Record skipped",recordId);
+                if (transCodingNotDoneRecords % 1000 == 0) {
+                    log.info("'{}' records transcoding status not done filtered away. '{}' records have been processed.",
+                            transCodingNotDoneRecords, processed);
+                }
                 continue;
             }
 
