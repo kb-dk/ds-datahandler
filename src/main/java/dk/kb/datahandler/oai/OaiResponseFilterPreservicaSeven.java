@@ -44,7 +44,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      */
 
     static final Pattern TRANSCODING_PATTERN = Pattern.compile(
-            "<radiotvTranscodingStatus:radiotvTranscodingStatus(?s).*?<transcodingStatus>done</transcodingStatus>.*</radiotvTranscodingStatus:radiotvTranscodingStatus>"
+            "<radiotvTranscodingStatus:radiotvTranscodingStatus(?s).*<transcodingStatus>done</transcodingStatus>(?s).*</radiotvTranscodingStatus:radiotvTranscodingStatus>"
     );
 
     protected int emptyMetadataRecords = 0;
