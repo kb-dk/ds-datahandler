@@ -216,9 +216,11 @@ public class PreservicaUtils {
         if (isDomsRecord){
             // If the record is a DOMS record and there are no Access Content Objects. The fileRef should be set as
             // the InformationObject ID.
+            log.info("Record with ID: '{}' is a DOMS record. Setting UUID as reference ID.", id);
             return id;
         } else {
-            log.info("No Access Content Object has been found for InformationObject: '{}'", id);
+            log.info("No Access Content Object has been found for Preservica InformationObject with ID: '{}'. This record probably haven't been transcoded. Returning an empty " +
+                    "string", id);
             return "";
         }
     }

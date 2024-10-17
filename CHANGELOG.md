@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Added better logging of what actually happens during enrichment methods.
 
 
 ## [1.10.1](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.1) - 2024-10-15
