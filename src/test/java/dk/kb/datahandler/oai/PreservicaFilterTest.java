@@ -115,6 +115,16 @@ public class PreservicaFilterTest {
                         "            <transcodingStatus>idle</transcodingStatus>\n" +
                         "         </radiotvTranscodingStatus:radiotvTranscodingStatus>\n" +
                         "      </Content>\n" +
+                        "   </Metadata>\n",
+                "<Metadata schemaUri=\"http://kuana.kb.dk/types/radiotv_transcoding_status/0/1/#\">\n" +
+                        "      <Ref>858702e2-53c3-4ec4-8d60-c8786b1a247d</Ref>\n" +
+                        "      <Entity>ba464c30-6b09-429d-b733-361dce224ef9</Entity>\n" +
+                        "      <Content>\n" +
+                        "         <radiotvTranscodingStatus:radiotvTranscodingStatus xmlns:radiotvTranscodingStatus=\"http://kuana.kb.dk/types/radiotv_transcoding_status/0/1/#\"\n" +
+                        "                                                            xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +
+                        "            <transcodingStatus>someotherdonestatus</transcodingStatus>\n" +
+                        "         </radiotvTranscodingStatus:radiotvTranscodingStatus>\n" +
+                        "      </Content>\n" +
                         "   </Metadata>\n"
         };
 
