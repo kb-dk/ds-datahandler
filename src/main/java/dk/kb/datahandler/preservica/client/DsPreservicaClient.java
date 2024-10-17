@@ -223,7 +223,7 @@ public class DsPreservicaClient {
      * @param id of the InformationObject to resolve.
      * @return a fileRef ID representing the filename of the representation on the server.
      */
-    public String getFileRefFromInformationObjectAsStream(String id) throws InterruptedException {
+    public String getFileRefFromInformationObjectAsStream(String id) throws InterruptedException, IOException {
         InputStream accessRepresentationXml = InputStream.nullInputStream();
         String contentObjectId = "";
 
@@ -248,6 +248,8 @@ public class DsPreservicaClient {
             }
         } catch (XMLStreamException | IOException e) {
             log.error("Error parsing ContentObject for Preservica InformationObject: '{}'", id, e);
+        } finally {
+            accessRepresentationXml.close();
         }
 
 
@@ -271,6 +273,8 @@ public class DsPreservicaClient {
             }
         } catch (XMLStreamException | IOException e) {
             log.warn("Error parsing fileRef for ContentObject: '{}'", contentObjectId, e);
+        } finally {
+            fileRefXml.close();
         }
 
         return fileRef;
