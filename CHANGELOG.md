@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added better logging of what actually happens during enrichment methods.
+- Added status logging in Kaltura ID enrichment method. Now the method logs a short status for every 500 records processed.
 
 
 ## [1.10.1](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.1) - 2024-10-15
