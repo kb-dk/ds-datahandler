@@ -65,44 +65,60 @@ public class DsDatahandlerFacade {
      * When all mappings has been updated, the records will be enriched with the kalturaId.
      * If the job fails before all mappingss are loaded, the records will not be enriched from the mapping table.
      * </p>
-     * 
      * @param origin Only update mappings from this origin
-     * @param mTimeFrom Only update mappings for records with mTime after mTimeFrom 
-     * 
+     * @param mTimeFrom Only update mappings for records with mTime after mTimeFrom
      * @return Number of mappings updated.
-     * 
-     * 
      */
     public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws Exception {
-        log.info("Starting resolving of Kaltura entry ID's for origin: '{}'", origin);
-        if (mTimeFrom== null) {
-            mTimeFrom=0L;
+        if (mTimeFrom == null) {
+            mTimeFrom = 0L;
         }
 
-        long start=System.currentTimeMillis();
-        int batchSize=100; //No need to take this as input parameter and make method more complicated. 
+        long start = System.currentTimeMillis();
+        long timer = start;
+        int batchSize = 100; //No need to take this as input parameter and make method more complicated.
         //This is a good value and can also be used as batchSize against Kaltura.
+
+        log.info("Starting resolving of Kaltura entry ID's for origin: '{}'. Resolving in batches of '{}' records.",
+                origin, batchSize);
 
         DsStorageClient dsAPI = getDsStorageApiClient();
         DsKalturaClient kalturaClient = getKalturaClient();
 
-        long updated=0;
-        List<DsRecordMinimalDto> records= new ArrayList<DsRecordMinimalDto>();
-        while(true) {       
+
+        long processed = 0;
+        long updated = 0;
+        long recordsWithoutReferenceId = 0;
+        List<DsRecordMinimalDto> records;
+        while(true) {
+            if (processed % 500 == 0) {
+                log.info("Processed '{}' records in total. Updated '{}' mappings in total. Processing the last 500 records took '{}' milliseconds.",
+                        processed, processed, System.currentTimeMillis() - timer);
+                timer = System.currentTimeMillis();
+            }
+
             records = dsAPI.getMinimalRecords(origin, batchSize,mTimeFrom);
-            if (records.size()==0) { //no more records
+            if (records.isEmpty()) { //no more records
                 break;
             }
-            mTimeFrom=records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
+
+            mTimeFrom = records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
             log.debug("Getting DsRecordMinimal from storage for origin={}, batchSize={}, mTimeFrom={}", origin, batchSize, mTimeFrom);
             
             ArrayList<String> referenceIdsList= new ArrayList<String>();
             for (DsRecordMinimalDto record: records) {
                 if (record.getReferenceId() != null) { //This should not be null in production after preservica enrichment. But for stage/prod most will be null
                     referenceIdsList.add(record.getReferenceId());
+                } else {
+                    // Updating variable for logging.
+                    recordsWithoutReferenceId ++;
                 }
+                // Counting all processed records.
+                processed ++;
             }
-            if (referenceIdsList.size()==0) { // Should not happen in production.
+
+            // If none of the records currently in hand have a reference ID then continue to next iteration of loop.
+            if (referenceIdsList.isEmpty()) { // Should not happen in production.
                 continue;
             }
 
@@ -110,9 +126,9 @@ public class DsDatahandlerFacade {
             Map<String, String> kalturaIds = kalturaClient.getKulturaIds(referenceIdsList);
 
             if (kalturaIds.size() != referenceIdsList.size()) {
-                log.warn("Not all referenceIds was found at Kaltura"); //Should not happen
+                log.warn("Not all referenceIds were found at Kaltura"); //Should not happen
             }
-            updated+=kalturaIds.size();      
+            updated += kalturaIds.size();
 
             log.debug("Updating '{}' mappings in the DS-Storage mapping table, which handles relations between referenceIds and kalturaIds.", kalturaIds.size());
             for (String referenceId: kalturaIds.keySet()) {                            
@@ -125,10 +141,11 @@ public class DsDatahandlerFacade {
         }        
 
         //Mapping table is now updated. Enrich all records that does not have KalturaId
-        log.debug("Updating kaltura ID for ALL records.");
-        dsAPI.updateKalturaIdForRecords();//Will update all records with kalturaid using the mapping tab
-        log.info("Updated kalturaId mapping table and enriched records. Number of records updated is: '{}'. The full request lasted '{}' milliseconds.",
-                updated , (System.currentTimeMillis() - start));
+        log.debug("Updating kaltura ID for ALL records from mapping table.");
+        dsAPI.updateKalturaIdForRecords(); //Will update all records with kalturaid using the mapping tab
+        log.info("Updated kalturaId mapping table and enriched records. Number of records updated is: '{}'. Number of processed records is: '{}'. Number of records without " +
+                        "reference ID processed: '{}' The full request lasted '{}' milliseconds.",
+                updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
         return updated;
     }
 
