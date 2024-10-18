@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -100,6 +101,36 @@ public class PreservicaClientTest {
         // Newest ContentObject at 28th of May 2024. This can change in the future.
         String fileRef = DsPreservicaClient.getInstance().getFileRefFromInformationObjectAsStream("abee9c4f-dacd-4518-b68b-773c8506ac7d");
         assertEquals("", fileRef);
+    }
+
+    @Tag("slow")
+    @Tag("integration")
+    @Test
+    public void testDOMSCheck() {
+        // Test used for profiling connection to preservica and parsing response objects.
+
+        // When I did profiling I set this variable to 10000.
+        int amountOfRuns = 1000;
+        String id1 = "f37d60da-6b29-4d4f-9b18-50c45e9157a8";
+        String id2 = "ab438f89-1baf-441e-91de-568068e8f406";
+        String id3 = "689e2fff-e2db-47e8-ba16-6719a8616b38";
+        List<String> ids = List.of(id1, id2, id3);
+
+        for (int i = 0; i < amountOfRuns; i++) {
+            ids.forEach( id ->
+                    {
+                        try {
+                            String result = PreservicaUtils.validateInformationObjectForDomsData(id);
+                            assertEquals(id, result);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+            );
+        }
+
+        // Used as breakpoint to start and run the test with the debugger attached to have a look at  object in memory over time
+        System.out.println("finished");
     }
 
     @Tag("slow")

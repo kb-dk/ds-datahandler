@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static dk.kb.datahandler.util.PreservicaUtils.validateInformationObjectForDomsData;
 import static java.lang.Thread.sleep;
@@ -218,16 +219,17 @@ public class DsPreservicaClient {
      * Get the fileRef for the newest access representation for an InformationObject.
      * This method makes two distinct calls to the Preservica API. First it gets the ID of the newest access ContentObject
      * for the given InformationObject. Then the fileRef for the underlying Generation/Bitstream for the resolved
-     * ContentObject is resolved.
+     * ContentObject is resolved. If no ContentObject is available the method checks if the record in hand is a DOMS record and extracts the access copy it this way.
      * @param id of the InformationObject to resolve.
      * @return a fileRef ID representing the filename of the representation on the server.
      */
-    public String getFileRefFromInformationObjectAsStream(String id) throws InterruptedException {
-        InputStream accesRepresentationXml = InputStream.nullInputStream();
+    public String getFileRefFromInformationObjectAsStream(String id) throws InterruptedException, IOException {
+        InputStream accessRepresentationXml = InputStream.nullInputStream();
         String contentObjectId = "";
 
         try {
-            accesRepresentationXml = getAccessRepresentationForIO(id);
+            // Get the newest access representation for an InformationObject if any is present.
+            accessRepresentationXml = getAccessRepresentationForIO(id);
         } catch (FileNotFoundException e){
             // Record could be a DOMS record. Extract Identifiers from InformationObject to check if that's the case.
             return validateInformationObjectForDomsData(id);
@@ -235,35 +237,44 @@ public class DsPreservicaClient {
             log.warn("Error getting ContentObject for InformationObject: '{}'", id, e);
         }
 
+        // If the record is migrated from DOMS, the code would have returned the ID already.
+        // The following part of the method only gets executed for "native" Preservica records.
+        log.debug("The record in hand is a native preservica record. FileRef now gets extracted from ContentObject.");
         try {
-            if (accesRepresentationXml.available() != 0) {
-                log.info("Stream has '{}' bytes available", accesRepresentationXml.available());
-                contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accesRepresentationXml);
+            // Parse AccessRepresentation XML for ContentObject ID.
+            if (accessRepresentationXml.available() != 0) {
+                log.debug("Access Representation XML stream has '{}' bytes available", accessRepresentationXml.available());
+                contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accessRepresentationXml);
             }
         } catch (XMLStreamException | IOException e) {
-            log.error("Error parsing ContentObject for InformationObject: '{}'", id, e);
+            log.error("Error parsing ContentObject for Preservica InformationObject: '{}'", id, e);
+        } finally {
+            accessRepresentationXml.close();
         }
 
 
         InputStream fileRefXml = InputStream.nullInputStream();
         String fileRef = "";
         try {
+            // Get fileRef XML for ContentObject.
             fileRefXml = getFileRefForContentObject(contentObjectId);
         } catch (FileNotFoundException e){
             // Should not happen
-            log.warn("No fileRef has been found for ContentObject: '{}'", contentObjectId);
+            log.warn("No fileRef has been found for ContentObject: '{}'. Returning an empty string.", contentObjectId);
             return "";
         } catch (IOException | URISyntaxException e) {
-            log.warn("Error getting fileRef for ContentObject: '{}'", contentObjectId, e);
+            log.warn("Error getting fileRef for Preservica ContentObject: '{}'", contentObjectId, e);
         }
 
-
         try {
+            // Parse fileRef XML for the correct fileRef, which is the ID of the presentation copy on the internal filesystem.
             if (fileRefXml.available() != 0){
                 fileRef = PreservicaUtils.parseIdentifierResponseForFileRef(fileRefXml);
             }
         } catch (XMLStreamException | IOException e) {
             log.warn("Error parsing fileRef for ContentObject: '{}'", contentObjectId, e);
+        } finally {
+            fileRefXml.close();
         }
 
         return fileRef;
@@ -334,18 +345,30 @@ public class DsPreservicaClient {
                 connection.setRequestProperty("Preservica-Access-Token", accessToken);
                 return connection.getInputStream();
             } catch (FileNotFoundException e){
-                log.info("No response could be found for id: '{}'.", id);
+                log.debug("No response could be found for id: '{}' when querying endpoint: '{}'.", id, getEndpointString(preservicaEndpointPathElements));
                 throw e;
             } catch (IOException e){
                 currentTry ++;
-                log.error("Received a time out from Preservica when querying for record with ID: '{}'. Retrying in 10 seconds, this is the '{}' retry of '{}'",
-                        id, currentTry, maxTries);
+                log.error("Received a time out from Preservica when querying for record with ID: '{}'. Retrying in '{}' seconds, this is the '{}' retry of '{}'",
+                        id, retrySeconds, currentTry, maxTries);
                 sleep(retrySeconds * 1000L); //Sleeping for X seconds before retrying.
                 DsPreservicaClient.getInstance();
             }
         }
 
         throw new InternalServiceException("No response could be obtained for URL: '" + url + "'.");
+    }
+
+    /**
+     * Convert a list of endpoint path elements to a string representation of the endpoint.
+     * @param preservicaEndpointPathElements to create full endpoint string from.
+     * @return a string representation of the endpoint.
+     */
+    private String getEndpointString(List<String> preservicaEndpointPathElements) {
+        StringJoiner joiner = new StringJoiner("/", "/", "");
+        preservicaEndpointPathElements.forEach(joiner::add);
+
+        return joiner.toString();
     }
 
 }

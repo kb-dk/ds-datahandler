@@ -73,7 +73,8 @@ public class DsDatahandlerFacade {
      * 
      * 
      */
-    public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws Exception{
+    public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws Exception {
+        log.info("Starting resolving of Kaltura entry ID's for origin: '{}'", origin);
         if (mTimeFrom== null) {
             mTimeFrom=0L;
         }
@@ -93,7 +94,7 @@ public class DsDatahandlerFacade {
                 break;
             }
             mTimeFrom=records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
-            log.debug("Getting DsRecordReference from storage for origin={},batchSize={},mTimeFrom={}",origin,batchSize,mTimeFrom);
+            log.debug("Getting DsRecordMinimal from storage for origin={}, batchSize={}, mTimeFrom={}", origin, batchSize, mTimeFrom);
             
             ArrayList<String> referenceIdsList= new ArrayList<String>();
             for (DsRecordMinimalDto record: records) {
@@ -105,14 +106,15 @@ public class DsDatahandlerFacade {
                 continue;
             }
 
-            log.debug("Calling Kaltura to resolve kalturaId for referenceIds. Size:"+referenceIdsList.size());
+            log.debug("Calling Kaltura to resolve kalturaId for referenceIds. Calling with a batch of '{}' records.", referenceIdsList.size());
             Map<String, String> kalturaIds = kalturaClient.getKulturaIds(referenceIdsList);
 
             if (kalturaIds.size() != referenceIdsList.size()) {
-                log.warn("Not all referenceId was found at Kaltura"); //Should not happen
+                log.warn("Not all referenceIds was found at Kaltura"); //Should not happen
             }
             updated+=kalturaIds.size();      
-            
+
+            log.debug("Updating '{}' mappings in the DS-Storage mapping table, which handles relations between referenceIds and kalturaIds.", kalturaIds.size());
             for (String referenceId: kalturaIds.keySet()) {                            
                 //Can be optimized with method that takes multiple. But this workflow is called rarely.             
                 MappingDto mappingDto= new MappingDto();
@@ -123,8 +125,10 @@ public class DsDatahandlerFacade {
         }        
 
         //Mapping table is now updated. Enrich all records that does not have KalturaId
+        log.debug("Updating kaltura ID for ALL records.");
         dsAPI.updateKalturaIdForRecords();//Will update all records with kalturaid using the mapping tab
-        log.info("Updated kalturaId mapping table and enriched records. Number of mapppings updated:"+updated +" millis:"+(System.currentTimeMillis()-start));
+        log.info("Updated kalturaId mapping table and enriched records. Number of records updated is: '{}'. The full request lasted '{}' milliseconds.",
+                updated , (System.currentTimeMillis() - start));
         return updated;
     }
 
@@ -471,6 +475,8 @@ public class DsDatahandlerFacade {
         // Create a custom ForkJoinPool with configured amount of threads
         int numberOfThreads = ServiceConfig.getPreservicaThreads();
         ForkJoinPool customThreadPool = new ForkJoinPool(numberOfThreads);
+        log.info("Created a custom thread-pool containing '{}' threads. Using this pool of threads to query Preservica for manifestation IDs for records with origin: '{}'",
+                numberOfThreads, origin);
 
         while (hasMore) {
             try (ContinuationInputStream<Long> dsDocsStream =

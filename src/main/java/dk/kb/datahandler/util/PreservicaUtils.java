@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PreservicaUtils {
 
     private static final Logger log = LoggerFactory.getLogger(PreservicaUtils.class);
+    private static final XMLInputFactory factory = XMLInputFactory.newInstance();
 
     /**
      * Initialize a {@link PreservicaManifestationExtractor} which fetches a presentation representation through the
@@ -91,7 +92,6 @@ public class PreservicaUtils {
      */
     public static String parseRepresentationResponseForContentObject(InputStream xml) throws XMLStreamException {
         // Create an XMLEventReader
-        XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLEventReader eventReader = factory.createXMLEventReader(xml);
 
         // Variables to hold data
@@ -134,6 +134,7 @@ public class PreservicaUtils {
             }
         }
 
+        eventReader.close();
         return contentObject;
     }
 
@@ -147,7 +148,6 @@ public class PreservicaUtils {
      */
     public static String parseIdentifierResponseForFileRef(InputStream xml) throws XMLStreamException {
         // Create an XMLEventReader
-        XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLEventReader eventReader = factory.createXMLEventReader(xml);
 
         // Variables to hold data
@@ -198,6 +198,7 @@ public class PreservicaUtils {
             }
         }
 
+        eventReader.close();
         return fileRef;
     }
 
@@ -216,9 +217,11 @@ public class PreservicaUtils {
         if (isDomsRecord){
             // If the record is a DOMS record and there are no Access Content Objects. The fileRef should be set as
             // the InformationObject ID.
+            log.info("Record with ID: '{}' is a DOMS record. Setting UUID as reference ID.", id);
             return id;
         } else {
-            log.info("No Access Content Object has been found for InformationObject: '{}'", id);
+            log.info("No Access Content Object has been found for Preservica InformationObject with ID: '{}'. This record probably haven't been transcoded. Returning an empty " +
+                    "string", id);
             return "";
         }
     }
@@ -230,11 +233,9 @@ public class PreservicaUtils {
      * @return true if input InformationObject has been migrated from DOMS. Otherwise, false.
      */
     public static boolean checkForDomsRecord(String id) throws InterruptedException {
-        try {
-            InputStream identifiersResponse = DsPreservicaClient.getInstance().getIdentifiersAsStream(id);
+        try (InputStream identifiersResponse = DsPreservicaClient.getInstance().getIdentifiersAsStream(id)){
 
             // Create an XMLEventReader
-            XMLInputFactory factory = XMLInputFactory.newInstance();
             XMLEventReader eventReader = factory.createXMLEventReader(identifiersResponse);
 
             // Variables to hold data
@@ -281,6 +282,7 @@ public class PreservicaUtils {
                     }
                 }
             }
+            eventReader.close();
             return sourceId.startsWith("doms");
         } catch (URISyntaxException | IOException | XMLStreamException e) {
             throw new InternalServiceException(e);
