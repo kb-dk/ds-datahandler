@@ -475,7 +475,8 @@ public class DsDatahandlerFacade {
         // Create a custom ForkJoinPool with configured amount of threads
         int numberOfThreads = ServiceConfig.getPreservicaThreads();
         ForkJoinPool customThreadPool = new ForkJoinPool(numberOfThreads);
-        log.info("");
+        log.info("Created a custom thread-pool containing '{}' threads. Using this pool of threads to query Preservica for manifestation IDs for records with origin: '{}'",
+                numberOfThreads, origin);
 
         while (hasMore) {
             try (ContinuationInputStream<Long> dsDocsStream =
