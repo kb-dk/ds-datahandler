@@ -39,7 +39,17 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
     static final Pattern METADATA_PATTERN = Pattern.compile(
             "<Metadata\\s+schemaUri=\"http://www\\.pbcore\\.org/PBCore/PBCoreNamespace\\.html\">");
 
+    /**
+     * Pattern used for checking the transcoding status of a record. Only records with transcoding status done should be added.
+     */
+
+    static final Pattern TRANSCODING_PATTERN = Pattern.compile(
+            "<radiotvTranscodingStatus:radiotvTranscodingStatus(?s).*<transcodingStatus>done</transcodingStatus>(?s).*</radiotvTranscodingStatus:radiotvTranscodingStatus>"
+    );
+
     protected int emptyMetadataRecords = 0;
+
+    protected int transCodingNotDoneRecords = 0;
 
     /**
      * @param datasource source for records. Default implementation uses this for {@code origin}.
@@ -73,6 +83,18 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
                 log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
                                 "'{}' empty records have been found and '{}' records have been processed in total.",
                         recordId, emptyMetadataRecords, processed);
+                continue;
+            }
+
+            Matcher transcodingDoneMatcher = TRANSCODING_PATTERN.matcher(xml);
+            if (!transcodingDoneMatcher.find()) {
+                processed++;
+                transCodingNotDoneRecords++;
+                log.debug("OAI-PMH record '{}' transcoding status not done. Record skipped",recordId);
+                if (transCodingNotDoneRecords % 1000 == 0) {
+                    log.info("'{}' records transcoding status not done filtered away. '{}' records have been processed.",
+                            transCodingNotDoneRecords, processed);
+                }
                 continue;
             }
 
