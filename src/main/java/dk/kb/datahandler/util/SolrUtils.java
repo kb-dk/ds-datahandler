@@ -208,7 +208,7 @@ public class SolrUtils {
             SolrQuery query = new SolrQuery();
             query.setRequestHandler("/suggest");
             query.set("suggest.build", "true");
-            log.debug("Starts building suggest index by querying '{}' with this request: '{}'.", solrUrl, query);
+            log.info("Starts building suggest index by querying '{}' with this request: '{}'.", solrUrl, query);
 
             // Fire the query and build the suggest index
             return solrClient.query(query);
