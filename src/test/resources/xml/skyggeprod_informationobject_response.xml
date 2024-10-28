@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<RepresentationResponse xmlns="http://preservica.com/EntityAPI/v7.0" xmlns:xip="http://preservica.com/XIP/v7.0">
+  <xip:Representation>
+    <xip:InformationObject>f08674f4-ac84-4ea0-b428-01793deeaa21</xip:InformationObject>
+    <xip:Name>Access-2</xip:Name>
+    <xip:Type>Access</xip:Type>
+    <xip:ContentObjects>
+      <xip:ContentObject>c14db7e0-7db2-4eb9-a91b-b9039c037d3e</xip:ContentObject>
+    </xip:ContentObjects>
+    <xip:RepresentationFormats/>
+    <xip:RepresentationProperties/>
+  </xip:Representation>
+  <ContentObjects>
+    <ContentObject title="f08674f4-ac84-4ea0-b428-01793deeaa21" ref="c14db7e0-7db2-4eb9-a91b-b9039c037d3e" type="CO">
+      https://kuana-access-mig.kb.dk/api/entity/content-objects/c14db7e0-7db2-4eb9-a91b-b9039c037d3e
+    </ContentObject>
+  </ContentObjects>
+  <AdditionalInformation>
+    <Self>https://kuana-access-mig.kb.dk/api/entity/information-objects/f08674f4-ac84-4ea0-b428-01793deeaa21/representations/Access</Self>
+  </AdditionalInformation>
+</RepresentationResponse>

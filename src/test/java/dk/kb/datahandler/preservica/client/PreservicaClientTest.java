@@ -6,6 +6,8 @@ import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
+import dk.kb.util.Resolver;
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -149,6 +151,31 @@ public class PreservicaClientTest {
         record = manifestationPlugin.apply(record);
         assertEquals("21f85387-9900-4f2a-ab4f-cf81b2fd1dea", record.getReferenceId());
     }
+
+    @Tag("integration")
+    @Test
+    public void testProdLookup() throws IOException {
+        ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml" ,"ds-datahandler-integration-test.yaml", "ds-datahandler-prod-integration-test.yaml");
+
+        PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
+
+        DsRecordMinimalDto record = new DsRecordMinimalDto();
+        record.setId("ds.tv:oai:io:f08674f4-ac84-4ea0-b428-01793deeaa21");
+
+        record = manifestationPlugin.apply(record);
+
+        assertEquals("e3e1d1e0-8dd7-4574-bddf-93c475983357", record.getReferenceId());
+    }
+
+    @Test
+    public void testInformationObjectParsing() throws IOException, XMLStreamException {
+        String xml = Resolver.readFileFromClasspath("xml/skyggeprod_informationobject_response.xml");
+        InputStream informationObject = IOUtils.toInputStream(xml);
+
+        assertEquals("c14db7e0-7db2-4eb9-a91b-b9039c037d3e", PreservicaUtils.parseRepresentationResponseForContentObject(informationObject));
+
+    }
+
     /*@Test
     public void testTimeOutHandling() throws InterruptedException, ExecutionException, IOException, URISyntaxException {
         int threadCount = 50;
