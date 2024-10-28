@@ -5,6 +5,7 @@ import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.preservica.AccessResponseObject;
 import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.util.webservice.exception.InternalServiceException;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,10 +243,8 @@ public class DsPreservicaClient {
         log.debug("The record in hand is a native preservica record. FileRef now gets extracted from ContentObject.");
         try {
             // Parse AccessRepresentation XML for ContentObject ID.
-            if (accessRepresentationXml.available() != 0) {
-                log.debug("Access Representation XML stream has '{}' bytes available", accessRepresentationXml.available());
-                contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accessRepresentationXml);
-            }
+            log.debug("Access Representation XML stream has '{}' bytes available", accessRepresentationXml.available());
+            contentObjectId = PreservicaUtils.parseRepresentationResponseForContentObject(accessRepresentationXml);
         } catch (XMLStreamException | IOException e) {
             log.error("Error parsing ContentObject for Preservica InformationObject: '{}'", id, e);
         } finally {
@@ -268,10 +267,8 @@ public class DsPreservicaClient {
 
         try {
             // Parse fileRef XML for the correct fileRef, which is the ID of the presentation copy on the internal filesystem.
-            if (fileRefXml.available() != 0){
-                fileRef = PreservicaUtils.parseIdentifierResponseForFileRef(fileRefXml);
-            }
-        } catch (XMLStreamException | IOException e) {
+            fileRef = PreservicaUtils.parseIdentifierResponseForFileRef(fileRefXml);
+        } catch (XMLStreamException e) {
             log.warn("Error parsing fileRef for ContentObject: '{}'", contentObjectId, e);
         } finally {
             fileRefXml.close();
