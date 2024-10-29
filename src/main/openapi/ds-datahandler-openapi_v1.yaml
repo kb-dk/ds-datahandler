@@ -438,6 +438,9 @@ components:
         name:
           type: string
           description: 'Name of the OAI target.'
+        type:
+          type: string
+          description: 'Type of job. Can OAI or different enrichment jobs'
         status:
           type: string
           description: 'RUNNING or COMPLETED. Status COMPLETED can have failed and will be marked with error.'          

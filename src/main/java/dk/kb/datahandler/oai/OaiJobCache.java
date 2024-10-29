@@ -50,12 +50,7 @@ public class OaiJobCache {
         job.setRecordsHarvested(numberOfRecords);
         job.setCompletedTime(System.currentTimeMillis());        
         log.info("Setting completed for job:"+job.getDto().getName() +" time:"+job.getCompletedTime());
-    
-        //We do not want more than 10000 completed jobs 
-        if (completedJobsMap.size() > 10000) { //because preservica harvest 1 day at a time. it is increased to 10K 
-            completedJobsMap.remove(completedJobsMap.firstKey()); //Remove oldest
-        }
-        
+                 
         completedJobsMap.put(job.getId(), job);        
         
     }
@@ -85,6 +80,7 @@ public class OaiJobCache {
             DsDatahandlerJobDto jobDto = new DsDatahandlerJobDto();        
             jobDto.setId(targetJob.getId());
             jobDto.setName(targetJob.getDto().getName());
+            //jobDto.setType(null);
             jobDto.setNumberOfRecords(targetJob.getRecordsHarvested());
             jobDto.setError(targetJob.isError());
             jobDto.setStatus(targetJob.getStatus().name());

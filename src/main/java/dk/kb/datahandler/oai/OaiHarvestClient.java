@@ -41,14 +41,14 @@ public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
-    private DsDatahandlerJob oaiTargetJob = null;
+    private DsDatahandlerJob dsDatahandlerJob = null;
     private OaiTargetDto oaiTarget = null;
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
 
     public OaiHarvestClient(DsDatahandlerJob oaiTargetJob, String from){
-        this.oaiTargetJob=oaiTargetJob;
+        this.dsDatahandlerJob=oaiTargetJob;
         this.oaiTarget=oaiTargetJob.getDto();
         this.from=from;
     }
@@ -84,7 +84,7 @@ public class OaiHarvestClient {
         String errorMessage = getErrorMessage(document);
          if (errorMessage != null && errorMessage.trim().length() >1) {                       
             log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
-            oaiTargetJob.setCompletedTime(System.currentTimeMillis());            
+            dsDatahandlerJob.setCompletedTime(System.currentTimeMillis());            
             oaiResponse.setError(true);
             return oaiResponse;// will have no records
          }
