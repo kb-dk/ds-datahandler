@@ -2,7 +2,7 @@ package dk.kb.datahandler.api.v1.impl;
 
 import dk.kb.datahandler.api.v1.ServiceApi;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
-import dk.kb.datahandler.model.v1.OaiJobDto;
+import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.StatusDto;
 import dk.kb.datahandler.model.v1.WhoamiDto;
 import dk.kb.datahandler.model.v1.WhoamiTokenDto;
@@ -93,9 +93,9 @@ public class ServiceApiServiceImpl extends ImplBase implements ServiceApi {
      * 
     */
     @Override
-    public List<OaiJobDto> jobs() throws ServiceException {
+    public List<DsDatahandlerJobDto> jobs() throws ServiceException {
         
-        List<OaiJobDto> jobs = null;
+        List<DsDatahandlerJobDto> jobs = null;
         try {
             jobs = DsDatahandlerFacade.getJobs();
         } catch (Exception e) {

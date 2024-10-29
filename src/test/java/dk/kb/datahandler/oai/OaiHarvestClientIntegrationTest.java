@@ -71,7 +71,7 @@ public class OaiHarvestClientIntegrationTest {
         String from ="2021-01-01";
          */
 
-        OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);        
+        DsDatahandlerJob job = DsDatahandlerFacade.createNewJob(oaiTarget);        
 
         OaiHarvestClient client = new OaiHarvestClient(job,from);
         OaiResponse r1 = client.next();
@@ -99,7 +99,7 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
-        OaiTargetJob job = DsDatahandlerFacade.createNewJob(oaiTarget);
+        DsDatahandlerJob job = DsDatahandlerFacade.createNewJob(oaiTarget);
 
         OaiHarvestClient client = new OaiHarvestClient(job,null);
         OaiResponse r1 = client.next();

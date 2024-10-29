@@ -1,4 +1,4 @@
-package dk.kb.datahandler.oai;
+package dk.kb.datahandler.job;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -16,20 +16,21 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
-import dk.kb.datahandler.oai.DsDatahandlerJob.STATUS;
+import dk.kb.datahandler.job.DsDatahandlerJob.STATUS;
+import dk.kb.datahandler.model.v1.OaiJobDto;
 
 
 /*
  * Access to all methods working with the maps needs to be syncronized to prevent concurrent modification error. 
  * 
  */
-public class OaiJobCache {
+public class JobCache {
 
     private static HashMap<Long, DsDatahandlerJob> runningJobsMap = new HashMap<Long, DsDatahandlerJob>();
     private static TreeMap<Long, DsDatahandlerJob> completedJobsMap = new TreeMap<Long, DsDatahandlerJob>(); //ordered
-    private static Logger log = LoggerFactory.getLogger(OaiJobCache.class);
-    private OaiJobCache() { // No need for constructor       
+    private static Logger log = LoggerFactory.getLogger(DsDatahandlerJob.class);
+    
+    private JobCache() { // No need for constructor       
     }
 
     public static synchronized void addNewJob(DsDatahandlerJob job) {     
@@ -60,8 +61,8 @@ public class OaiJobCache {
         
     }
 
-    public static synchronized List<DsDatahandlerJobDto> getRunningJobsMostRecentFirst(){    
-        ArrayList<DsDatahandlerJob>  runningJobs =new  ArrayList<DsDatahandlerJob>(runningJobsMap.values());        
+    public static synchronized List<DsDatahandlerJob> getRunningJobsMostRecentFirst(){    
+        ArrayList<DsDatahandlerJob>  runningJobs =new  ArrayList<DsDatahandlerJob.>(runningJobsMap.values());        
         List<DsDatahandlerJob> sorted =runningJobs.stream()
                 .sorted(Comparator.comparing(DsDatahandlerJob::getId).reversed())
                 .collect(Collectors.toList());                
@@ -69,7 +70,7 @@ public class OaiJobCache {
         return convertToDto(sorted);        
     }
 
-    public static synchronized List<DsDatahandlerJobDto> getCompletedJobsMostRecentFirst(){    
+    public static synchronized List<OaiJobDto> getCompletedJobsMostRecentFirst(){    
         ArrayList<DsDatahandlerJob>  completedJobs =new  ArrayList<DsDatahandlerJob>(completedJobsMap.values());      
         List<DsDatahandlerJob> sorted =completedJobs.stream()
                 .sorted(Comparator.comparing(DsDatahandlerJob::getId).reversed())
@@ -78,11 +79,11 @@ public class OaiJobCache {
     }
 
     //Convert to the smaller OaiJobDto with much fewer attributes. (and no urls/user/passwords etc. for the target)
-    public static List<DsDatahandlerJobDto> convertToDto(List<DsDatahandlerJob> jobs){
+    public static List<OaiJobDto> convertToDto(List<DsDatahandlerJob> jobs){
 
-        List<DsDatahandlerJobDto> dtoList = new  ArrayList<DsDatahandlerJobDto>();
+        List<OaiJobDto> dtoList = new  ArrayList<OaiJobDto>();
         for (DsDatahandlerJob targetJob : jobs) {         
-            DsDatahandlerJobDto jobDto = new DsDatahandlerJobDto();        
+            OaiJobDto jobDto = new OaiJobDto();        
             jobDto.setId(targetJob.getId());
             jobDto.setName(targetJob.getDto().getName());
             jobDto.setNumberOfRecords(targetJob.getRecordsHarvested());

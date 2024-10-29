@@ -1,0 +1,79 @@
+package dk.kb.datahandler.job;
+
+
+import java.util.Date;
+
+
+
+public class DsDatahandlerJob {
+                        
+        private long completedTime=0L;
+        private STATUS status=STATUS.RUNNING;
+        private boolean error =false;
+        private int recordsHarvested=0;
+        private String startedTime;        
+        private String origin;
+        private JOB_TYPE type=null;
+        private Long mTime= null;
+        private String jobName=null;
+        
+        
+        enum JOB_TYPE {
+            OAI,
+            MANIFESTATION_ENRICH,
+            KALTURA_ENRICH
+          }
+        
+        enum STATUS {
+            RUNNING,
+            COMPLETED_WITH_ERROR,
+            COMPLETED        
+          }
+        
+        
+        /**
+         * TODO javadoc...
+         * 
+         */
+        public DsDatahandlerJob (JOB_TYPE type,String jobName, String origin) {                
+            this.jobName=jobName;
+            this.origin=origin;               
+            this.startedTime=(new Date()).toString();
+                                    
+        }
+
+        public boolean isError() {
+            return error;
+        }
+
+        public STATUS getStatus() {
+            return status;
+        }
+
+        public void setError(boolean error) {
+            this.error = error;
+        }
+
+        public int getRecordsHarvested() {
+            return recordsHarvested;
+        }
+
+        public void setRecordsHarvested(int recordsHarvested) {
+            this.recordsHarvested = recordsHarvested;
+        }
+
+        public void setStatus(STATUS status) {
+            this.status = status;
+        }
+
+        public long getCompletedTime() {
+            return completedTime;
+        }
+
+        public void setCompletedTime(long completedTime) {
+            this.completedTime = completedTime;
+        }
+
+       
+
+    }

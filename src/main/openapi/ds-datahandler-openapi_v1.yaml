@@ -274,7 +274,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OaiJobList'
+                $ref: '#/components/schemas/DsDathandlerJobList'
         '500':
           description: 'Internal Error'
           content:
@@ -432,7 +432,7 @@ components:
           description: BaseURL for the enrichment fragment service
           example: 'http://example.com/'
 
-    OaiJob:
+    DsDatahandlerJob:
       type: object
       properties:
         name:
@@ -459,10 +459,10 @@ components:
           type: boolean
           description: 'If true the job did not complete and not all record was harvested'
                        
-    OaiJobList:
+    DsDathandlerJobList:
       type: array
       items: 
-        $ref: '#/components/schemas/OaiJob'
+        $ref: '#/components/schemas/DsDatahandlerJob'
 
     IndexType:
       type: string
