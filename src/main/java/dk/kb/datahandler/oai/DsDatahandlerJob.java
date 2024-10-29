@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 
-public class OaiTargetJob {
+public class DsDatahandlerJob {
     
     private OaiTargetDto dto;
     private long id;
@@ -18,7 +18,7 @@ public class OaiTargetJob {
         COMPLETED        
       }
     
-    public OaiTargetJob (long id, OaiTargetDto dto) {        
+    public DsDatahandlerJob (long id, OaiTargetDto dto) {        
         this.id=id;        
         this.dto=dto;
     }

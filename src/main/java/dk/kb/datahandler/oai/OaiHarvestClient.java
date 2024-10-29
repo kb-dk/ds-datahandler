@@ -41,13 +41,13 @@ public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
-    private OaiTargetJob oaiTargetJob = null;
+    private DsDatahandlerJob oaiTargetJob = null;
     private OaiTargetDto oaiTarget = null;
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
 
-    public OaiHarvestClient(OaiTargetJob oaiTargetJob, String from){
+    public OaiHarvestClient(DsDatahandlerJob oaiTargetJob, String from){
         this.oaiTargetJob=oaiTargetJob;
         this.oaiTarget=oaiTargetJob.getDto();
         this.from=from;

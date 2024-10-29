@@ -30,14 +30,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.OaiJobDto;
+import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.oai.DsDatahandlerJob;
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.oai.OaiJobCache;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiResponseFilter;
-import dk.kb.datahandler.oai.OaiTargetJob;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.SolrUtils;
 import dk.kb.kaltura.client.DsKalturaClient;
@@ -296,7 +296,7 @@ public class DsDatahandlerFacade {
                         "'. See the config method for list of configured targets.");
             }
 
-            OaiTargetJob job = createNewJob(oaiTargetDto);        
+            DsDatahandlerJob job = createNewJob(oaiTargetDto);        
 
             //register job
             OaiJobCache.addNewJob(job);
@@ -322,10 +322,10 @@ public class DsDatahandlerFacade {
      *  
      * @return List of jobs with status
      */    
-    public static List<OaiJobDto> getJobs() {
-        List<OaiJobDto> running=OaiJobCache.getRunningJobsMostRecentFirst();
-        List<OaiJobDto> completed=OaiJobCache.getCompletedJobsMostRecentFirst();
-        List<OaiJobDto> result = new ArrayList<>();
+    public static List<DsDatahandlerJobDto> getJobs() {
+        List<DsDatahandlerJobDto> running=OaiJobCache.getRunningJobsMostRecentFirst();
+        List<DsDatahandlerJobDto> completed=OaiJobCache.getCompletedJobsMostRecentFirst();
+        List<DsDatahandlerJobDto> result = new ArrayList<>();
         result.addAll(running);
         result.addAll(completed);
         return result;
@@ -344,7 +344,7 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
-    private static Integer oaiIngestPerform(OaiTargetJob job, String from) throws IOException, ApiException {
+    private static Integer oaiIngestPerform(DsDatahandlerJob job, String from) throws IOException, ApiException {
 
         //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format
@@ -410,7 +410,7 @@ public class DsDatahandlerFacade {
      * The job will have a unique timestamp used as ID.  
      *   
      */
-    public static synchronized OaiTargetJob createNewJob(OaiTargetDto dto) {                  
+    public static synchronized DsDatahandlerJob createNewJob(OaiTargetDto dto) {                  
 
         long id = System.currentTimeMillis();
         try {
@@ -420,7 +420,7 @@ public class DsDatahandlerFacade {
             //can not happen, nothing will interrupt.
         }
 
-        OaiTargetJob  job = new OaiTargetJob(id, dto);                
+        DsDatahandlerJob  job = new DsDatahandlerJob(id, dto);                
         return job;                
     }
 
