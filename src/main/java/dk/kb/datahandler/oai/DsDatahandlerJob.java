@@ -1,6 +1,5 @@
 package dk.kb.datahandler.oai;
 
-import java.util.Objects;
 
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 
