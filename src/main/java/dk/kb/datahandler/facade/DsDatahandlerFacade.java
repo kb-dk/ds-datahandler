@@ -287,28 +287,26 @@ public class DsDatahandlerFacade {
         int totalNumber=0;
 
         log.info("Starting jobs from: "+from +" for target:"+oaiTargetName);
-                 
-            //Test no job is running before starting new for same target
-            validateNotAlreadyRunning(oaiTargetName);  //If we want to multithread preservica harvest, this has to be removed      
+                       
             OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
             if (oaiTargetDto== null) {
                 throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
                         "'. See the config method for list of configured targets.");
             }
 
-            DsDatahandlerJob job = createNewJob(oaiTargetDto);        
+            DsDatahandlerJobDto job = createNewOaiJob(oaiTargetDto);        
 
             //register job
             OaiJobCache.addNewJob(job);
 
             try {                       
-                int number= oaiIngestPerform(job , from);
+                int number= oaiIngestPerform(job , oaiTargetDto, from);
                 OaiJobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
             }
             catch (IOException | ApiException | ServiceException e) {
                 log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);
-                job.setCompletedTime(System.currentTimeMillis());
+                job.setCompletedTime(OaiJobCache.formatSystemMillis(System.currentTimeMillis()));
                 OaiJobCache.finishJob(job, 0,true);//Error                        
                 throw new Exception(e);
             }
@@ -344,21 +342,20 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
-    private static Integer oaiIngestPerform(DsDatahandlerJob job, String from) throws IOException, ApiException {
+    private static Integer oaiIngestPerform(  DsDatahandlerJobDto job,OaiTargetDto oaiTargetDto, String from) throws IOException, ApiException {
 
         //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format
         //Preservica seems to only accept full UTC format
         //Dirty but quick solution fix. Best would be if COP could fix it
-
-        OaiTargetDto oaiTargetDto = job.getDto();
+  
 
         // TODO: Change this to datasource in the OpenAPI specification
         String origin=oaiTargetDto.getDatasource();
         String targetName = oaiTargetDto.getName();
 
         DsStorageClient dsAPI = getDsStorageApiClient();
-        OaiHarvestClient client = new OaiHarvestClient(job,from);
+        OaiHarvestClient client = new OaiHarvestClient(null,oaiTargetDto,from);
         OaiResponse response = client.next();
 
         OaiResponseFilter oaiFilter;
@@ -395,7 +392,7 @@ public class DsDatahandlerFacade {
         }
 
         if (response.isError()) {
-            throw new InternalServiceException("Error during harvest for target:" + job.getDto().getName() +
+            throw new InternalServiceException("Error during harvest for target:" + oaiTargetDto.getName() +
                     " after harvesting " + oaiFilter.getProcessed() + " records");
         }
 
@@ -410,7 +407,7 @@ public class DsDatahandlerFacade {
      * The job will have a unique timestamp used as ID.  
      *   
      */
-    public static synchronized DsDatahandlerJob createNewJob(OaiTargetDto dto) {                  
+    public static synchronized DsDatahandlerJobDto createNewOaiJob(OaiTargetDto dto) {                  
 
         long id = System.currentTimeMillis();
         try {
@@ -420,7 +417,9 @@ public class DsDatahandlerFacade {
             //can not happen, nothing will interrupt.
         }
 
-        DsDatahandlerJob  job = new DsDatahandlerJob(id, dto);                
+        DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
+        job.setId(id);
+        //TODO more fieldss
         return job;                
     }
 
@@ -462,13 +461,7 @@ public class DsDatahandlerFacade {
                 "Using mTime=0 for Origin: '{}'", origin);
         return 0L;
     }
-
-    private static synchronized void validateNotAlreadyRunning(String oaiTargetName) {
-        boolean alreadyRunning= OaiJobCache.isJobRunningForTarget(oaiTargetName);        
-        if (alreadyRunning) {
-            throw new InvalidArgumentServiceException("There is already a job running for target:"+oaiTargetName);
-        }
-    }
+  
 
     /**
      * Method to update records in Preservica 7 related origins in backing {@code DsStorage} with children IDs.

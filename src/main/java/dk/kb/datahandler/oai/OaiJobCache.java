@@ -6,18 +6,16 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
-import dk.kb.datahandler.oai.DsDatahandlerJob.STATUS;
+import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 
 
 /*
@@ -26,54 +24,65 @@ import dk.kb.datahandler.oai.DsDatahandlerJob.STATUS;
  */
 public class OaiJobCache {
 
-    private static HashMap<Long, DsDatahandlerJob> runningJobsMap = new HashMap<Long, DsDatahandlerJob>();
-    private static TreeMap<Long, DsDatahandlerJob> completedJobsMap = new TreeMap<Long, DsDatahandlerJob>(); //ordered
+    private static HashMap<Long, DsDatahandlerJobDto> runningJobsMap = new HashMap<Long, DsDatahandlerJobDto>();
+    private static TreeMap<Long, DsDatahandlerJobDto> completedJobsMap = new TreeMap<Long, DsDatahandlerJobDto>(); //ordered
     private static Logger log = LoggerFactory.getLogger(OaiJobCache.class);
     private OaiJobCache() { // No need for constructor       
     }
 
-    public static synchronized void addNewJob(DsDatahandlerJob job) {     
-        job.setStatus(STATUS.RUNNING);
+    enum STATUS {
+        RUNNING,
+        COMPLETED        
+      }
+
+    /**
+     * Add a new job to running job list.
+     *  If a job with same name is already running, will throw
+     * 
+     * @param DsDatahandlerJobDto job information about the job
+     * @throws InvalidArgumentServiceException If a job with same name is already in RUNNING status. 
+     * 
+     */
+    public static synchronized void addNewJob(DsDatahandlerJobDto job) throws InvalidArgumentServiceException{             
+        validateNotAlreadyRunning(job.getName());        
+        job.setStatus(STATUS.RUNNING.toString());
         runningJobsMap.put(job.getId(), job);                
     }
 
+    
+    
     /*
      * Change status and move from running map to completed map
      */
-    public static synchronized void finishJob(DsDatahandlerJob job, int numberOfRecords, boolean error) {
+    public static synchronized void finishJob(DsDatahandlerJobDto job, int numberOfRecords, boolean error) {
 
         runningJobsMap.remove(job.getId());        
         if (error) {
             job.setError(true);            
         }        
-        job.setStatus(STATUS.COMPLETED);
-        job.setRecordsHarvested(numberOfRecords);
-        job.setCompletedTime(System.currentTimeMillis());        
-        log.info("Setting completed for job:"+job.getDto().getName() +" time:"+job.getCompletedTime());
+        job.setStatus(STATUS.COMPLETED.toString());
+        job.setNumberOfRecords(numberOfRecords);
+        job.setCompletedTime(OaiJobCache.formatSystemMillis(System.currentTimeMillis()));        
+        log.info("Setting completed for job:"+job.getName() +" time:"+job.getCompletedTime());
                  
         completedJobsMap.put(job.getId(), job);        
         
     }
 
     public static synchronized List<DsDatahandlerJobDto> getRunningJobsMostRecentFirst(){    
-        ArrayList<DsDatahandlerJob>  runningJobs =new  ArrayList<DsDatahandlerJob>(runningJobsMap.values());        
-        List<DsDatahandlerJob> sorted =runningJobs.stream()
-                .sorted(Comparator.comparing(DsDatahandlerJob::getId).reversed())
-                .collect(Collectors.toList());                
-
-        return convertToDto(sorted);        
+        ArrayList<DsDatahandlerJobDto>  runningJobs =new  ArrayList<DsDatahandlerJobDto>(runningJobsMap.values());               
+         //TODO sort reversed                
+        return runningJobs;   
     }
 
     public static synchronized List<DsDatahandlerJobDto> getCompletedJobsMostRecentFirst(){    
-        ArrayList<DsDatahandlerJob>  completedJobs =new  ArrayList<DsDatahandlerJob>(completedJobsMap.values());      
-        List<DsDatahandlerJob> sorted =completedJobs.stream()
-                .sorted(Comparator.comparing(DsDatahandlerJob::getId).reversed())
-                .collect(Collectors.toList());                
-        return convertToDto(sorted);        
+        ArrayList<DsDatahandlerJobDto>  completedJobs =new  ArrayList<DsDatahandlerJobDto>(completedJobsMap.values());                           
+        //TODO sort reversed
+        return completedJobs;        
     }
 
     //Convert to the smaller OaiJobDto with much fewer attributes. (and no urls/user/passwords etc. for the target)
-    public static List<DsDatahandlerJobDto> convertToDto(List<DsDatahandlerJob> jobs){
+    public static List<DsDatahandlerJobDto> XconvertToDto(List<DsDatahandlerJob> jobs){
 
         List<DsDatahandlerJobDto> dtoList = new  ArrayList<DsDatahandlerJobDto>();
         for (DsDatahandlerJob targetJob : jobs) {         
@@ -99,16 +108,16 @@ public class OaiJobCache {
     }
 
     public static synchronized boolean isJobRunningForTarget(String targetName) {
-        Collection<DsDatahandlerJob> running = runningJobsMap.values();
-        for (DsDatahandlerJob job : running) {            
-            if (job.getDto().getName().equals(targetName)) {
+        Collection<DsDatahandlerJobDto> running = runningJobsMap.values();
+        for (DsDatahandlerJobDto job : running) {            
+            if (job.getName().equals(targetName)) {
               return true;
             }               
         }        
         return false;
     }
 
-    private static String formatSystemMillis(long millis) {        
+    public static String formatSystemMillis(long millis) {        
         LocalDateTime myDateObj=Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime();                 
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss",Locale.getDefault());
         String formattedDate = myDateObj.format(dateFormat);
@@ -116,5 +125,12 @@ public class OaiJobCache {
 
     }
 
+    private static synchronized void validateNotAlreadyRunning(String jobName) {
+        boolean alreadyRunning= OaiJobCache.isJobRunningForTarget(jobName);        
+        if (alreadyRunning) {
+            throw new InvalidArgumentServiceException("There is already a job running for target:"+jobName);
+        }
+    }
+    
 }
 

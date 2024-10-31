@@ -1,5 +1,7 @@
 package dk.kb.datahandler.preservica;
 
+import dk.kb.datahandler.facade.DsDatahandlerFacade;
+import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.*;
 import dk.kb.storage.invoker.v1.ApiException;
@@ -57,9 +59,9 @@ public class PreservicaDataTest {
         Document doc = db.parse(xml);
 
         //Empty test OAI Target
-        OaiTargetDto dto = new OaiTargetDto();
-        DsDatahandlerJob job = new DsDatahandlerJob(1, dto);
-        OaiHarvestClient client = new OaiHarvestClient(job, "test");
+        OaiTargetDto oaiDto = new OaiTargetDto();
+        DsDatahandlerJobDto job = DsDatahandlerFacade.createNewOaiJob(oaiDto);
+        OaiHarvestClient client = new OaiHarvestClient(job,oaiDto, "test");
         OaiRecord oaiRecord = client.extractRecordsFromXml(doc).get(0);
         String testStorageId = "ds.test:" + oaiRecord.getId();
 

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
+import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +28,10 @@ public class OaiHarvestClientIntegrationTest {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClientIntegrationTest.class);
 
-    private static String localStorage = null;
-
     @BeforeAll
     static void setup() {
         try {
             ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml", "ds-datahandler-integration-test.yaml");
-            localStorage = ServiceConfig.getConfig().getString("integration.local.storage");
         } catch (IOException e) {
             e.printStackTrace();
             log.error("Integration yaml 'ds-datahandler-integration-test.yaml' file most be present. Call 'kb init'");
@@ -71,9 +69,9 @@ public class OaiHarvestClientIntegrationTest {
         String from ="2021-01-01";
          */
 
-        DsDatahandlerJob job = DsDatahandlerFacade.createNewJob(oaiTarget);        
+        DsDatahandlerJobDto job = DsDatahandlerFacade.createNewOaiJob(oaiTarget);        
 
-        OaiHarvestClient client = new OaiHarvestClient(job,from);
+        OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,from);
         OaiResponse r1 = client.next();
         assertEquals(1000, r1.getRecords().size());
         assertNotNull(r1.getResumptionToken());
@@ -99,11 +97,11 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
-        DsDatahandlerJob job = DsDatahandlerFacade.createNewJob(oaiTarget);
+        DsDatahandlerJobDto job = DsDatahandlerFacade.createNewOaiJob(oaiTarget);
 
-        OaiHarvestClient client = new OaiHarvestClient(job,null);
+        OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,null);
         OaiResponse r1 = client.next();
-        assertEquals(193, r1.getRecords().size());
+        assertEquals(200, r1.getRecords().size()); //there is over 200 now. 200 is batch size.
         assertNotNull(r1.getResumptionToken());
 
         //System.out.println(r1.getRecords().get(0).getMetadata());
