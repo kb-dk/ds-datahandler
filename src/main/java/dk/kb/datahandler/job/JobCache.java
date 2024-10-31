@@ -1,4 +1,4 @@
-package dk.kb.datahandler.oai;
+package dk.kb.datahandler.job;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -22,12 +22,12 @@ import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
  * Access to all methods working with the maps needs to be syncronized to prevent concurrent modification error. 
  * 
  */
-public class OaiJobCache {
+public class JobCache {
 
     private static HashMap<Long, DsDatahandlerJobDto> runningJobsMap = new HashMap<Long, DsDatahandlerJobDto>();
     private static TreeMap<Long, DsDatahandlerJobDto> completedJobsMap = new TreeMap<Long, DsDatahandlerJobDto>(); //ordered
-    private static Logger log = LoggerFactory.getLogger(OaiJobCache.class);
-    private OaiJobCache() { // No need for constructor       
+    private static Logger log = LoggerFactory.getLogger(JobCache.class);
+    private JobCache() { // No need for constructor       
     }
 
     enum STATUS {
@@ -62,7 +62,7 @@ public class OaiJobCache {
         }        
         job.setStatus(STATUS.COMPLETED.toString());
         job.setNumberOfRecords(numberOfRecords);
-        job.setCompletedTime(OaiJobCache.formatSystemMillis(System.currentTimeMillis()));        
+        job.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));        
         log.info("Setting completed for job:"+job.getName() +" time:"+job.getCompletedTime());
                  
         completedJobsMap.put(job.getId(), job);        
@@ -79,32 +79,6 @@ public class OaiJobCache {
         ArrayList<DsDatahandlerJobDto>  completedJobs =new  ArrayList<DsDatahandlerJobDto>(completedJobsMap.values());                           
         //TODO sort reversed
         return completedJobs;        
-    }
-
-    //Convert to the smaller OaiJobDto with much fewer attributes. (and no urls/user/passwords etc. for the target)
-    public static List<DsDatahandlerJobDto> XconvertToDto(List<DsDatahandlerJob> jobs){
-
-        List<DsDatahandlerJobDto> dtoList = new  ArrayList<DsDatahandlerJobDto>();
-        for (DsDatahandlerJob targetJob : jobs) {         
-            DsDatahandlerJobDto jobDto = new DsDatahandlerJobDto();        
-            jobDto.setId(targetJob.getId());
-            jobDto.setName(targetJob.getDto().getName());
-            //jobDto.setType(null);
-            jobDto.setNumberOfRecords(targetJob.getRecordsHarvested());
-            jobDto.setError(targetJob.isError());
-            jobDto.setStatus(targetJob.getStatus().name());
-            jobDto.setStartedTime(formatSystemMillis(targetJob.getId()));        
-            
-            if (targetJob.getCompletedTime() != 0) {
-                jobDto.setCompletedTime(formatSystemMillis(targetJob.getCompletedTime()));                     
-            }
-            
-            dtoList.add(jobDto);
-
-        }
-
-        return dtoList;
-
     }
 
     public static synchronized boolean isJobRunningForTarget(String targetName) {
@@ -126,7 +100,7 @@ public class OaiJobCache {
     }
 
     private static synchronized void validateNotAlreadyRunning(String jobName) {
-        boolean alreadyRunning= OaiJobCache.isJobRunningForTarget(jobName);        
+        boolean alreadyRunning= JobCache.isJobRunningForTarget(jobName);        
         if (alreadyRunning) {
             throw new InvalidArgumentServiceException("There is already a job running for target:"+jobName);
         }

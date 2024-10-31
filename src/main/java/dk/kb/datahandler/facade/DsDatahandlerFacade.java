@@ -32,9 +32,9 @@ import org.w3c.dom.Node;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.DsDatahandlerJob;
+
 import dk.kb.datahandler.oai.OaiHarvestClient;
-import dk.kb.datahandler.oai.OaiJobCache;
+import dk.kb.datahandler.job.JobCache;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiResponseFilter;
@@ -297,17 +297,17 @@ public class DsDatahandlerFacade {
             DsDatahandlerJobDto job = createNewOaiJob(oaiTargetDto);        
 
             //register job
-            OaiJobCache.addNewJob(job);
+            JobCache.addNewJob(job);
 
             try {                       
                 int number= oaiIngestPerform(job , oaiTargetDto, from);
-                OaiJobCache.finishJob(job, number,false);//No error
+                JobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
             }
             catch (IOException | ApiException | ServiceException e) {
                 log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);
-                job.setCompletedTime(OaiJobCache.formatSystemMillis(System.currentTimeMillis()));
-                OaiJobCache.finishJob(job, 0,true);//Error                        
+                job.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));
+                JobCache.finishJob(job, 0,true);//Error                        
                 throw new Exception(e);
             }
         
@@ -321,8 +321,8 @@ public class DsDatahandlerFacade {
      * @return List of jobs with status
      */    
     public static List<DsDatahandlerJobDto> getJobs() {
-        List<DsDatahandlerJobDto> running=OaiJobCache.getRunningJobsMostRecentFirst();
-        List<DsDatahandlerJobDto> completed=OaiJobCache.getCompletedJobsMostRecentFirst();
+        List<DsDatahandlerJobDto> running=JobCache.getRunningJobsMostRecentFirst();
+        List<DsDatahandlerJobDto> completed=JobCache.getCompletedJobsMostRecentFirst();
         List<DsDatahandlerJobDto> result = new ArrayList<>();
         result.addAll(running);
         result.addAll(completed);

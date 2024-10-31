@@ -20,6 +20,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.job.JobCache;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +36,6 @@ import dk.kb.util.xml.XMLEscapeSanitiser;
 
 import org.w3c.dom.ls.*;
 import org.xml.sax.SAXException;
-
-import static java.lang.Thread.sleep;
 
 public class OaiHarvestClient {
 
@@ -85,7 +84,7 @@ public class OaiHarvestClient {
         String errorMessage = getErrorMessage(document);
          if (errorMessage != null && errorMessage.trim().length() >1) {                       
             log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
-            dsDatahandlerJob.setCompletedTime(OaiJobCache.formatSystemMillis(System.currentTimeMillis()));            
+            dsDatahandlerJob.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));            
             oaiResponse.setError(true);
             return oaiResponse;// will have no records
          }
