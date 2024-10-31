@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.xml.XMLEscapeSanitiser;
 
@@ -41,15 +42,15 @@ public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
-    private DsDatahandlerJob dsDatahandlerJob = null;
+    private DsDatahandlerJobDto dsDatahandlerJob = null;
     private OaiTargetDto oaiTarget = null;
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
 
-    public OaiHarvestClient(DsDatahandlerJob oaiTargetJob, String from){
-        this.dsDatahandlerJob=oaiTargetJob;
-        this.oaiTarget=oaiTargetJob.getDto();
+    public OaiHarvestClient(DsDatahandlerJobDto job, OaiTargetDto oaiTarget,String from){
+        this.dsDatahandlerJob=job;
+        this.oaiTarget=oaiTarget;
         this.from=from;
     }
 
@@ -84,7 +85,7 @@ public class OaiHarvestClient {
         String errorMessage = getErrorMessage(document);
          if (errorMessage != null && errorMessage.trim().length() >1) {                       
             log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
-            dsDatahandlerJob.setCompletedTime(System.currentTimeMillis());            
+            dsDatahandlerJob.setCompletedTime(OaiJobCache.formatSystemMillis(System.currentTimeMillis()));            
             oaiResponse.setError(true);
             return oaiResponse;// will have no records
          }

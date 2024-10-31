@@ -435,29 +435,29 @@ components:
     DsDatahandlerJob:
       type: object
       properties:
-        name:
-          type: string
-          description: 'Name of the OAI target.'
-        type:
-          type: string
-          description: 'Type of job. Can OAI or different enrichment jobs'
-        status:
-          type: string
-          description: 'RUNNING or COMPLETED. Status COMPLETED can have failed and will be marked with error.'          
         id:
           type: integer
           format: int64
-          description: 'System time in millis when job was started'
+          description: 'System time in millis when job was started'     
+        name:
+          type: string
+          description: 'Name of the job'
+        type:
+          type: string
+          description: 'Type of job. Can be OAI or different enrichment jobs'
+        status:
+          type: string
+          description: 'RUNNING or COMPLETED. Status COMPLETED can have failed and will be marked with error.'              
         startedTime:
           type: string
           description: 'Format YYYY-MM-DD HH:MM:SS'                   
         completedTime:
           type: string
-          description: 'Format YYYY-MM-DD HH:MM:SS. Empty if job has not finished'
+          description: 'Format YYYY-MM-DD HH:MM:SS'
         numberOfRecords:
           type: integer
           format: int32
-          description: 'number of records harvested by job'
+          description: 'Number of processed records. This may not be available for all jobs.'
         error:
           type: boolean
           description: 'If true the job did not complete and not all record was harvested'

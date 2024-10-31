@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
 
+import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.OaiJobCache;
 import dk.kb.datahandler.oai.DsDatahandlerJob;
@@ -24,7 +25,7 @@ public class DsDatahandlerFacadeTest {
                 .name("THERE_CAN_ONLY_BE_ONE");
         
         // OK
-        DsDatahandlerJob job = DsDatahandlerFacade.createNewJob(oaiTarget);
+        DsDatahandlerJobDto job = DsDatahandlerFacade.createNewOaiJob(oaiTarget);
         OaiJobCache.addNewJob(job);
 
         // Try add another
