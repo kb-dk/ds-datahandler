@@ -1,5 +1,7 @@
 package dk.kb.datahandler.job;
 
+import static java.lang.Thread.sleep;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -106,5 +108,24 @@ public class JobCache {
         }
     }
     
+    /**
+     * Syncronized method to make sure all ID's are different.
+     * 
+     * @return system.currentTime in millis.
+     */
+    
+    public static synchronized  long getNextId() {
+        long id = System.currentTimeMillis();
+        try {
+            sleep(1); // So next ID is different.
+        }
+        catch(Exception e) {
+            //can not happen, nothing will interrupt.
+        }
+
+        return id;
+        
+        
+    }
 }
 

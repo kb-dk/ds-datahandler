@@ -304,7 +304,7 @@ public class DsDatahandlerFacade {
                 JobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
             }
-            catch (IOException | ApiException | ServiceException e) {
+            catch (Exception e) {
                 log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);
                 job.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));
                 JobCache.finishJob(job, 0,true);//Error                        
@@ -409,17 +409,12 @@ public class DsDatahandlerFacade {
      */
     public static synchronized DsDatahandlerJobDto createNewOaiJob(OaiTargetDto dto) {                  
 
-        long id = System.currentTimeMillis();
-        try {
-            sleep(1); // So next ID is different.
-        }
-        catch(Exception e) {
-            //can not happen, nothing will interrupt.
-        }
+       long id=JobCache.getNextId();
 
         DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
         job.setId(id);
-        //TODO more fieldss
+        job.setName(dto.getName()); //name is key in job cache. Only start one OAI from each target.
+        job.setType("OAI");
         return job;                
     }
 
@@ -449,6 +444,8 @@ public class DsDatahandlerFacade {
         return storageClient;
     }
 
+    
+/* Not used anymore it seems
     private static long getLastModifiedTimeForOrigin(List<OriginCountDto> originStatistics, String origin) {
         for (OriginCountDto dto :originStatistics) {
             if (dto.getOrigin() != null && dto.getOrigin().equals(origin)) {
@@ -461,7 +458,7 @@ public class DsDatahandlerFacade {
                 "Using mTime=0 for Origin: '{}'", origin);
         return 0L;
     }
-  
+  */
 
     /**
      * Method to update records in Preservica 7 related origins in backing {@code DsStorage} with children IDs.
