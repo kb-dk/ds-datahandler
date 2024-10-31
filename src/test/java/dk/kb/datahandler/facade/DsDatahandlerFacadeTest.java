@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
-import dk.kb.datahandler.oai.OaiJobCache;
-import dk.kb.datahandler.oai.DsDatahandlerJob;
+import dk.kb.datahandler.job.JobCache;
 
 public class DsDatahandlerFacadeTest {
 
@@ -26,7 +25,7 @@ public class DsDatahandlerFacadeTest {
         
         // OK
         DsDatahandlerJobDto job = DsDatahandlerFacade.createNewOaiJob(oaiTarget);
-        OaiJobCache.addNewJob(job);
+        JobCache.addNewJob(job);
 
         // Try add another
         try {
