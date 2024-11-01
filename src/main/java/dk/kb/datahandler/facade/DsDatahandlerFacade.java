@@ -221,7 +221,7 @@ public class DsDatahandlerFacade {
      */    
     public static String indexSolrFull(String origin) throws InternalServiceException {
 
-        DsDatahandlerJobDto job = JobCache.createIndexSolrJob(origin,0);
+        DsDatahandlerJobDto job = JobCache.createIndexSolrJob(origin,0L);
 
         String response=null;
         try {

@@ -36,7 +36,7 @@ public class JobCache {
     private JobCache() { // No need for constructor       
     }
 
-    enum STATUS {
+    enum  STATUS {
         RUNNING,
         COMPLETED        
       }
@@ -145,7 +145,7 @@ public class JobCache {
      * The job will have a unique timestamp used as ID.  
      *   
      */
-    public static synchronized DsDatahandlerJobDto createIndexSolrJob(String origin,long mTime) {                  
+    public static synchronized DsDatahandlerJobDto createIndexSolrJob(String origin, Long mTime) {                  
 
        long id=JobCache.getNextId();
 
@@ -153,7 +153,7 @@ public class JobCache {
         job.setId(id);
         job.setName("SOLR_INDEX:"+origin); //name is key in job cache. Only one job with this name can be started
         job.setType("SOLR_INDEX");
-        job.setFrom(""+mTime);
+        job.setFrom(parseMTime(mTime));
         //register job
         JobCache.addNewJob(job);
                 
@@ -168,15 +168,14 @@ public class JobCache {
      * The job will have a unique timestamp used as ID.  
      *   
      */
-    public static synchronized DsDatahandlerJobDto createPreservicaManifestationJob(String origin, long mTime) {                  
-
+    public static synchronized DsDatahandlerJobDto createPreservicaManifestationJob(String origin, Long mTime) {                  
        long id=JobCache.getNextId();
 
         DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
         job.setId(id);
         job.setName("PRESERVICA_MANIFESTATION:"+origin); //name is key in job cache. Only one job with this name can be started.
         job.setType("PRESERVICA_MANIFESTATION");
-        job.setFrom(""+mTime);
+        job.setFrom(parseMTime(mTime));
         
         //register job
         JobCache.addNewJob(job);
@@ -191,7 +190,7 @@ public class JobCache {
      * The job will have a unique timestamp used as ID.  
      *   
      */
-    public static synchronized DsDatahandlerJobDto createKalturaEnrichmentJob(String origin, long mTime) {                  
+    public static synchronized DsDatahandlerJobDto createKalturaEnrichmentJob(String origin, Long mTime) {                  
 
        long id=JobCache.getNextId();
 
@@ -199,7 +198,7 @@ public class JobCache {
         job.setId(id);
         job.setName("KALTURA:"+origin); //name is key in job cache. Only one job with this name can be started.
         job.setType("KALTURA_ENTRY_ID");
-        job.setFrom(""+mTime);
+        job.setFrom(parseMTime(mTime));
         
         //register job
         JobCache.addNewJob(job);
@@ -207,6 +206,9 @@ public class JobCache {
         return job;                
     }
     
+    private static String parseMTime(Long mTime) {
+        return (mTime==null) ? "0":""+mTime;                 
+    }
     
     /**
      * Syncronized method to make sure all ID's are different.
