@@ -1,16 +1,13 @@
 package dk.kb.datahandler.preservica;
 
-import dk.kb.datahandler.facade.DsDatahandlerFacade;
+import dk.kb.datahandler.job.JobCache;
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.*;
-import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
-import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.Resolver;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -60,7 +57,7 @@ public class PreservicaDataTest {
 
         //Empty test OAI Target
         OaiTargetDto oaiDto = new OaiTargetDto();
-        DsDatahandlerJobDto job = DsDatahandlerFacade.createNewOaiJob(oaiDto);
+        DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiDto,null);
         OaiHarvestClient client = new OaiHarvestClient(job,oaiDto, "test");
         OaiRecord oaiRecord = client.extractRecordsFromXml(doc).get(0);
         String testStorageId = "ds.test:" + oaiRecord.getId();
