@@ -151,7 +151,7 @@ public class DsDatahandlerFacade {
         }
         catch (Exception e) {
             JobCache.finishJob(job ,(int) updated, true);  //error            
-            throw e;         
+            throw new InternalServiceException("Error updating kalturaIds",e);         
         }
 
         
@@ -312,7 +312,7 @@ public class DsDatahandlerFacade {
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *
      */
-    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String from) throws IOException, ApiException{
+    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String from) throws InternalServiceException{
         int totalNumber=0;
 
         log.info("Starting jobs from: "+ from +" for target:"+oaiTargetName);
@@ -333,7 +333,7 @@ public class DsDatahandlerFacade {
             catch (Exception e) {
                 log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);                
                 JobCache.finishJob(job, totalNumber,true);//Error                        
-                throw e;
+                throw new InternalServiceException("Error harvesting oai target:"+oaiTargetName,e);
             }
         
         return totalNumber;
