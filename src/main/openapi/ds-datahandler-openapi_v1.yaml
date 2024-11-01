@@ -445,6 +445,9 @@ components:
         type:
           type: string
           description: 'Type of job. Can be OAI or different enrichment jobs'
+        from:
+          type: string          
+          description: 'Some jobs can be started from a given mTime or date.'
         status:
           type: string
           description: 'RUNNING or COMPLETED. Status COMPLETED can have failed and will be marked with error.'              

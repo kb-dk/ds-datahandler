@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
+import dk.kb.datahandler.job.JobCache;
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import org.slf4j.Logger;
@@ -69,7 +70,7 @@ public class OaiHarvestClientIntegrationTest {
         String from ="2021-01-01";
          */
 
-        DsDatahandlerJobDto job = DsDatahandlerFacade.createNewOaiJob(oaiTarget);        
+        DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTarget,from);        
 
         OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,from);
         OaiResponse r1 = client.next();
@@ -97,7 +98,7 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
-        DsDatahandlerJobDto job = DsDatahandlerFacade.createNewOaiJob(oaiTarget);
+        DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTarget,null);
 
         OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,null);
         OaiResponse r1 = client.next();

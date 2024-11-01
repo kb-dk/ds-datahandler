@@ -23,7 +23,6 @@ import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -44,13 +43,9 @@ import dk.kb.kaltura.client.DsKalturaClient;
 import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.MappingDto;
-import dk.kb.storage.model.v1.OriginCountDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
-import dk.kb.util.webservice.exception.ServiceException;
-
-import static java.lang.Thread.sleep;
 
 
 public class DsDatahandlerFacade {
@@ -90,6 +85,8 @@ public class DsDatahandlerFacade {
         long updated = 0;
         long recordsWithoutReferenceId = 0;
         List<DsRecordMinimalDto> records;
+        DsDatahandlerJobDto job = JobCache.createKalturaEnrichmentJob(origin,mTimeFrom);
+        try {
         while(true) {
             if (processed % 500 == 0) {
                 log.info("Processed '{}' records in total. Updated '{}' mappings in total. Processing the last 500 records took '{}' milliseconds.",
@@ -146,7 +143,16 @@ public class DsDatahandlerFacade {
         log.info("Updated kalturaId mapping table and enriched records. Number of records updated is: '{}'. Number of processed records is: '{}'. Number of records without " +
                         "reference ID processed: '{}' The full request lasted '{}' milliseconds.",
                 updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
+        
+        JobCache.finishJob(job ,(int) updated, false); //no error
         return updated;
+        }
+        catch (Exception e) {
+            JobCache.finishJob(job ,(int) updated, true);  //error            
+            throw new Exception (e);            
+        }
+        
+        
     }
 
 
@@ -167,7 +173,6 @@ public class DsDatahandlerFacade {
         String fileName = "";
 
         try {
-
             while ((entry = zis.getNextEntry()) != null) {
 
                 fileName = entry.getName();
@@ -212,13 +217,22 @@ public class DsDatahandlerFacade {
      * @param mTimeFrom Will only index records with a last modification time (mTime) after this value. 
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
-    public static String indexSolrFull(String origin, Long mTimeFrom) {
+    public static String indexSolrFull(String origin) throws Exception {
 
-        if (mTimeFrom==null) {
-            mTimeFrom=0L;
+        DsDatahandlerJobDto job = JobCache.createIndexSolrJob(origin,0);
+
+        String response=null;
+        try {
+          response= SolrUtils.indexOrigin(origin, 0L);
+          
         }
-
-        return SolrUtils.indexOrigin(origin, mTimeFrom);
+        catch(Exception e){
+            JobCache.finishJob(job, -1,true); //error
+            throw e; 
+        }        
+        
+        JobCache.finishJob(job, -1,false);//No error. We do not know how many records processed. But can be parsed from response.
+        return response;
     }
 
     /**
@@ -227,10 +241,19 @@ public class DsDatahandlerFacade {
      * Then fetch newer records from ds-storage, transform to solr documents in ds-present and index into solr.
      * @param origin to index records from.
      */
-    public static String indexSolrDelta(String origin) throws IOException, SolrServerException {
+    public static String indexSolrDelta(String origin) throws Exception {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
-
-        return SolrUtils.indexOrigin(origin, lastStorageMTime);
+        String response=null;
+        DsDatahandlerJobDto job = JobCache.createIndexSolrJob(origin,lastStorageMTime);
+        try {
+         response= SolrUtils.indexOrigin(origin, lastStorageMTime);
+        }
+        catch(Exception e){
+            JobCache.finishJob(job, -1,true); //error
+            throw e; 
+        }                
+        JobCache.finishJob(job, -1,false);//No error. We do not know how many records processed. (But can be parsed from response maybe)         
+        return response;
     }
 
     /**
@@ -286,7 +309,7 @@ public class DsDatahandlerFacade {
     protected static Integer oaiIngestJobScheduler(String oaiTargetName, String from) throws Exception {
         int totalNumber=0;
 
-        log.info("Starting jobs from: "+from +" for target:"+oaiTargetName);
+        log.info("Starting jobs from: "+ from +" for target:"+oaiTargetName);
                        
             OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
             if (oaiTargetDto== null) {
@@ -294,20 +317,16 @@ public class DsDatahandlerFacade {
                         "'. See the config method for list of configured targets.");
             }
 
-            DsDatahandlerJobDto job = createNewOaiJob(oaiTargetDto);        
-
-            //register job
-            JobCache.addNewJob(job);
-
+            DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTargetDto,from);        
+        
             try {                       
                 int number= oaiIngestPerform(job , oaiTargetDto, from);
                 JobCache.finishJob(job, number,false);//No error
                 totalNumber+=number;
             }
             catch (Exception e) {
-                log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);
-                job.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));
-                JobCache.finishJob(job, 0,true);//Error                        
+                log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);                
+                JobCache.finishJob(job, totalNumber,true);//Error                        
                 throw new Exception(e);
             }
         
@@ -401,22 +420,6 @@ public class DsDatahandlerFacade {
     }
 
 
-    /**
-     * Generates a {@link OaiTargetJob} from a {@link OaiTargetDto}.
-     * <p>
-     * The job will have a unique timestamp used as ID.  
-     *   
-     */
-    public static synchronized DsDatahandlerJobDto createNewOaiJob(OaiTargetDto dto) {                  
-
-       long id=JobCache.getNextId();
-
-        DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
-        job.setId(id);
-        job.setName(dto.getName()); //name is key in job cache. Only start one OAI from each target.
-        job.setType("OAI");
-        return job;                
-    }
 
 
     private static DsKalturaClient getKalturaClient() throws IOException {
@@ -469,6 +472,9 @@ public class DsDatahandlerFacade {
      * @return a count of records that have been updated.
      */
     public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException {
+        
+        DsDatahandlerJobDto job= JobCache.createKalturaEnrichmentJob(origin, mTimeFrom); //Start job
+        
         DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
         PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
 
@@ -485,6 +491,9 @@ public class DsDatahandlerFacade {
         log.info("Created a custom thread-pool containing '{}' threads. Using this pool of threads to query Preservica for manifestation IDs for records with origin: '{}'",
                 numberOfThreads, origin);
 
+        
+        
+        
         while (hasMore) {
             try (ContinuationInputStream<Long> dsDocsStream =
                     storageClient.getMinimalRecordsModifiedAfterJSON(origin, mTimeFrom, 1000L)){
@@ -508,15 +517,18 @@ public class DsDatahandlerFacade {
                 log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
                         "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
                         origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
+                JobCache.finishJob(job, counter.get(), true);
                 throw new InternalServiceException(e);
             } catch (ExecutionException | InterruptedException e) {
                 log.error("An unexpected error occurred in the streaming process, when enriching records with manifestation IDs.");
+                JobCache.finishJob(job, counter.get(), true);
                 throw new InternalServiceException(e);
             }
         }
 
         log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
         customThreadPool.shutdown(); // Shutting down the thread pool when done.
+        JobCache.finishJob(job, counter.get(), false);
         return processedRecords;
     }
 

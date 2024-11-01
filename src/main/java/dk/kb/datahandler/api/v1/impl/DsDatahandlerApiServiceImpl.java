@@ -156,7 +156,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         try {
             switch (type){
                 case FULL:
-                    return DsDatahandlerFacade.indexSolrFull(origin,mTimeFrom);
+                    return DsDatahandlerFacade.indexSolrFull(origin);
                 case DELTA:
                     return DsDatahandlerFacade.indexSolrDelta(origin);
                 default:

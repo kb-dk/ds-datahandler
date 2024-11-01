@@ -8,6 +8,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -16,7 +18,9 @@ import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
+import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 
 
@@ -48,6 +52,7 @@ public class JobCache {
     public static synchronized void addNewJob(DsDatahandlerJobDto job) throws InvalidArgumentServiceException{             
         validateNotAlreadyRunning(job.getName());        
         job.setStatus(STATUS.RUNNING.toString());
+        job.setStartedTime(formatSystemMillis(System.currentTimeMillis()));
         runningJobsMap.put(job.getId(), job);                
     }
 
@@ -57,14 +62,14 @@ public class JobCache {
      * Change status and move from running map to completed map
      */
     public static synchronized void finishJob(DsDatahandlerJobDto job, int numberOfRecords, boolean error) {
-
+        job.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));
         runningJobsMap.remove(job.getId());        
         if (error) {
             job.setError(true);            
         }        
         job.setStatus(STATUS.COMPLETED.toString());
         job.setNumberOfRecords(numberOfRecords);
-        job.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));        
+        job.setCompletedTime(formatSystemMillis(System.currentTimeMillis()));        
         log.info("Setting completed for job:"+job.getName() +" time:"+job.getCompletedTime());
                  
         completedJobsMap.put(job.getId(), job);        
@@ -73,13 +78,17 @@ public class JobCache {
 
     public static synchronized List<DsDatahandlerJobDto> getRunningJobsMostRecentFirst(){    
         ArrayList<DsDatahandlerJobDto>  runningJobs =new  ArrayList<DsDatahandlerJobDto>(runningJobsMap.values());               
-         //TODO sort reversed                
+
+        //Sort with most recent first.
+        Collections.sort(runningJobs, Comparator.comparing(DsDatahandlerJobDto::getId, Comparator.reverseOrder()));        
         return runningJobs;   
     }
 
     public static synchronized List<DsDatahandlerJobDto> getCompletedJobsMostRecentFirst(){    
         ArrayList<DsDatahandlerJobDto>  completedJobs =new  ArrayList<DsDatahandlerJobDto>(completedJobsMap.values());                           
-        //TODO sort reversed
+
+        //Sort with most recent first.
+        Collections.sort(completedJobs, Comparator.comparing(DsDatahandlerJobDto::getId,  Comparator.reverseOrder()));
         return completedJobs;        
     }
 
@@ -104,9 +113,100 @@ public class JobCache {
     private static synchronized void validateNotAlreadyRunning(String jobName) {
         boolean alreadyRunning= JobCache.isJobRunningForTarget(jobName);        
         if (alreadyRunning) {
-            throw new InvalidArgumentServiceException("There is already a job running for target:"+jobName);
+            throw new InvalidArgumentServiceException("There is already a job running with name:"+jobName);
         }
     }
+    
+
+    /**
+     * Generates a {@link DsDatahandlerJobDto from a {@link OaiTargetDto}.
+     * <p>
+     * The job will have a unique timestamp used as ID.  
+     *   
+     */
+    public static synchronized DsDatahandlerJobDto createNewOaiJob(OaiTargetDto dto, String from) {                  
+
+       long id=JobCache.getNextId();
+
+        DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
+        job.setId(id);
+        job.setName("OAI:"+dto.getName()); //name is key in job cache. Only start one OAI from each target.
+        job.setType("OAI");
+        job.setFrom(from);
+        //register job
+        JobCache.addNewJob(job);
+        
+        return job;                
+    }
+    
+    /**
+     * Generates a {@link DsDatahandlerJobDto from a the origin for solr indexing}.
+     * <p>
+     * The job will have a unique timestamp used as ID.  
+     *   
+     */
+    public static synchronized DsDatahandlerJobDto createIndexSolrJob(String origin,long mTime) {                  
+
+       long id=JobCache.getNextId();
+
+        DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
+        job.setId(id);
+        job.setName("SOLR_INDEX:"+origin); //name is key in job cache. Only one job with this name can be started
+        job.setType("SOLR_INDEX");
+        job.setFrom(""+mTime);
+        //register job
+        JobCache.addNewJob(job);
+                
+        return job;                
+    }
+    
+    
+
+    /**
+     * Generates a {@link DsDatahandlerJobDto from a the origin for manifestation enrichment}.
+     * <p>
+     * The job will have a unique timestamp used as ID.  
+     *   
+     */
+    public static synchronized DsDatahandlerJobDto createPreservicaManifestationJob(String origin, long mTime) {                  
+
+       long id=JobCache.getNextId();
+
+        DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
+        job.setId(id);
+        job.setName("PRESERVICA_MANIFESTATION:"+origin); //name is key in job cache. Only one job with this name can be started.
+        job.setType("PRESERVICA_MANIFESTATION");
+        job.setFrom(""+mTime);
+        
+        //register job
+        JobCache.addNewJob(job);
+                
+        return job;                
+    }
+    
+    
+    /**
+     * Generates a {@link DsDatahandlerJobDto from a the origin for solr indexing}.
+     * <p>
+     * The job will have a unique timestamp used as ID.  
+     *   
+     */
+    public static synchronized DsDatahandlerJobDto createKalturaEnrichmentJob(String origin, long mTime) {                  
+
+       long id=JobCache.getNextId();
+
+        DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
+        job.setId(id);
+        job.setName("KALTURA:"+origin); //name is key in job cache. Only one job with this name can be started.
+        job.setType("KALTURA_ENTRY_ID");
+        job.setFrom(""+mTime);
+        
+        //register job
+        JobCache.addNewJob(job);
+                
+        return job;                
+    }
+    
     
     /**
      * Syncronized method to make sure all ID's are different.
