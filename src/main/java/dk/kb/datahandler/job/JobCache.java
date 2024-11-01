@@ -43,7 +43,7 @@ public class JobCache {
 
     /**
      * Add a new job to running job list.
-     *  If a job with same name is already running, will throw
+     * If a job with same name is already running will throw exception.
      * 
      * @param DsDatahandlerJobDto job information about the job
      * @throws InvalidArgumentServiceException If a job with same name is already in RUNNING status. 

@@ -156,6 +156,10 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         try {
             switch (type){
                 case FULL:
+                    if (mTimeFrom != 0 || mTimeFrom >0) {
+                        log.warn("Ignoring mTimeFrom parameter:"+mTimeFrom +" for full solr index.");
+                    }
+                    
                     return DsDatahandlerFacade.indexSolrFull(origin);
                 case DELTA:
                     return DsDatahandlerFacade.indexSolrDelta(origin);
