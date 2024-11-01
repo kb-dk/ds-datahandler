@@ -59,6 +59,7 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setUsername(null);
         oaiTarget.setPassword(null);;
         oaiTarget.setDatasource("test");
+        oaiTarget.setName("Unittest1");
         String from=null;
 
         /*
@@ -80,6 +81,8 @@ public class OaiHarvestClientIntegrationTest {
         //Fetch next 1000        
         OaiResponse r2= client.next();
         assertEquals(1000, r2.getRecords().size());
+    
+        JobCache.finishJob(job, 0, false);
     }
 
 
@@ -92,6 +95,7 @@ public class OaiHarvestClientIntegrationTest {
         // name: pvica6.devel
         OaiTargetDto oaiTarget = new OaiTargetDto();
         oaiTarget.setUrl(conf.getString("integration.oaiTargets[1].url")); //Public KB service
+        oaiTarget.setName("Unitest2");
         oaiTarget.setMetadataprefix(conf.getString("integration.oaiTargets[1].metadataPrefix"));
         oaiTarget.setUsername(conf.getString("integration.oaiTargets[1].user"));
         oaiTarget.setPassword(conf.getString("integration.oaiTargets[1].password"));;
@@ -114,6 +118,8 @@ public class OaiHarvestClientIntegrationTest {
         // and next
         OaiResponse r3= client.next();
         assertEquals(200, r3.getRecords().size());
+        
+        JobCache.finishJob(job, 0, false);
     }
 
 }

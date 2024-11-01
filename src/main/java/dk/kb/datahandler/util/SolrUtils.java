@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.job.JobCache;
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.solr.SolrResponseHeader;
