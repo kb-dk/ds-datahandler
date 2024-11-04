@@ -6,10 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+
+## [1.10.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.3) - 2024-10-28
+
 - All 4 jobs types (OAI,Manifestation,Kaltura entry id, solr index) now registers as a job in the job cache. 
 Only one job can be running at the same time for the type and origin. The job status method will 
 return all running and completed jobs since restart.
-
+- Fixed solr indexing job start failure.
 
 ## [1.10.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.2) - 2024-10-28
 ### Added
