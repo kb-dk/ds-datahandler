@@ -151,15 +151,11 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     @Override
-    public String indexSolr(@NotNull String origin, Long mTimeFrom, IndexTypeDto type) {
+    public String indexSolr(@NotNull String origin,IndexTypeDto type) {
         log.debug("indexSolr(origin='{}', ...) called with call details: {}", origin, getCallDetails());
         try {
             switch (type){
-                case FULL:
-                    if (mTimeFrom != 0 || mTimeFrom >0) {
-                        log.warn("Ignoring mTimeFrom parameter:"+mTimeFrom +" for full solr index.");
-                    }
-                    
+                case FULL:                                      
                     return DsDatahandlerFacade.indexSolrFull(origin);
                 case DELTA:
                     return DsDatahandlerFacade.indexSolrDelta(origin);

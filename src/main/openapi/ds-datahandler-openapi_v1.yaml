@@ -122,14 +122,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: ["${config:present.origins[*]}"]
-        - name: mTimeFrom
-          in: query
-          description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
-          required: false
-          schema:
-              type: integer
-              format: int64
+            enum: ["${config:present.origins[*]}"]        
         - name: type
           in: query
           description: |
