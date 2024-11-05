@@ -3,6 +3,7 @@ package dk.kb.datahandler.job;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +16,11 @@ import org.apache.solr.client.solrj.request.QueryingApi.QueryResponse;
 public class SolrSearchProductionIDJob {
 
     public static void main(String [] args) throws Exception {
+    
+        //This is a file where each line just is production id.
         Path path = Paths.get("/home/teg/Desktop/dr_production_id.txt");
+        
+        
         //http://devel11:10007/solr/#/ds/
         //http://localhost:50006/solr/ds.1.prod/"
         String prodUrl="http://localhost:50006/solr/ds.1.prod/";
@@ -38,6 +43,7 @@ public class SolrSearchProductionIDJob {
         int found=0;
         int not_found=0;
         int totalStreams=0;
+        HashSet<String> foundIds = new HashSet<String>();
         for (String prod_id: lines) {
         
             String prod_id_formatted=reformatDrProductionId(prod_id);
@@ -52,6 +58,7 @@ public class SolrSearchProductionIDJob {
              System.out.println(prod_id +" results:"+res.getResults().getNumFound());
              if (results>0) {
                  found++;
+             foundIds.add(prod_id_formatted);
              }
              else {
                  not_found++;
@@ -61,7 +68,7 @@ public class SolrSearchProductionIDJob {
         System.out.println("Found:"+found);
         System.out.println("Total streams:"+totalStreams);
         System.out.println("Not found:"+not_found);
-        
+        System.out.println("Ids found:"+foundIds);
     }
     
     private static String reformatDrProductionId(String productionId) {
