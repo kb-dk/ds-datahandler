@@ -58,7 +58,7 @@ public class KalturaManualFileUploader {
                 String title=titles.get(0);//take first title. We still need a better title field in solr.
                 String description = (String) doc.getFieldValue("description");             
                 String refId=file;// This is our external id 
-                System.out.println("Uploaded file:"+file +" with title:"+title);
+                System.out.println("Uploading file:"+file +" with title:"+title);
                 String filePath=uploadFolder+file;
                 String tag="DS-KALTURA"; //So we can the uploaded collection easy in Kaltura.                
                 
