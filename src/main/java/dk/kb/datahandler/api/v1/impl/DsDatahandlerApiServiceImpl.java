@@ -39,7 +39,7 @@ import java.util.List;
  */
 @InInterceptors(interceptors = "dk.kb.datahandler.webservice.KBAuthorizationInterceptor")
 public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApi {
-    private Logger log = LoggerFactory.getLogger(this.toString());
+    private static final Logger log = LoggerFactory.getLogger(DsDatahandlerApiServiceImpl.class);
 
 
     /* How to access the various web contexts. See https://cxf.apache.org/docs/jax-rs-basics.html#JAX-RSBasics-Contextannotations */
