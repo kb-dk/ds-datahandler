@@ -27,7 +27,7 @@ import java.util.Set;
  * Meta endpoints.
  */
 public class ServiceApiServiceImpl extends ImplBase implements ServiceApi {
-    private final Logger log = LoggerFactory.getLogger(this.toString());
+    private final static Logger log = LoggerFactory.getLogger(ServiceApiServiceImpl.class);
 
 
 
