@@ -46,7 +46,7 @@ public class KalturaManualRejectJob {
             for (String entryId : entryIds) {
                 try { // We need to continue with the rest if one fails.
                     boolean success = client.blockStreamByEntryId(entryId);
-                    System.out.println("success:" + success);
+                    System.out.println("success:" + success  +" rejected entry id:"+entryId);
                     if (success) {
                         numberRejectSuccess++;
                     } else {
