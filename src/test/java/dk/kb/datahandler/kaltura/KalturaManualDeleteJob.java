@@ -27,14 +27,14 @@ public class KalturaManualDeleteJob {
     public static void main(String[] args) {
         
         String kalturaUrl = "https://kmc.kaltura.nordu.net";
-        String adminSecret = null;// Use token,tokenId  instead
-        Integer partnerId = 398; // 398=stage, 397=prod. 
-        String userId = "XXX@kb.dk"; //User must exist in kaltura.                 
+        String adminSecret = "e397995cc8fac35496de3849f73df07f";// Use token,tokenId  instead
+        Integer partnerId = 397; // 398=stage, 397=prod. 
+        String userId = "teg@kb.dk"; //User must exist in kaltura.                 
         String token="abc"; // <- replace with correct token matching tokenId
         String tokenId="0_f2qyxk5i";
 
-        String input_entry_ids = "/home/xxx/kaltura_entryids_to_delete.txt"; // File with entryIds til be delete. One oneeach line
-        String output_entry_ids = "/home/xxx/kaltura_entryids_delete_failed.txt"; // EntryIds that failed during deletion will be added in this file.
+        String input_entry_ids = "/home/teg/delete_kaltura/delete_kaltura_entry_id.csv"; // File with entryIds til be delete. One oneeach line
+        String output_entry_ids = "/home/teg/delete_kaltura/delete_kaltura_entry_id_failed.csv"; // EntryIds that failed during deletion will be added in this file.
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
@@ -46,7 +46,7 @@ public class KalturaManualDeleteJob {
             for (String entryId : entryIds) {
                 try { // We need to continue with the rest if one fails.
                     boolean success = client.deleteStreamByEntryId(entryId);
-                    System.out.println("success:" + success);
+                    System.out.println("success:" + success +" deleted entry_id:"+entryId);
                     if (success) {
                         numberDeleteSuccess++;
                     } else {
