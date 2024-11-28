@@ -33,8 +33,8 @@ public class KalturaManualRejectJob {
         String token="abc"; // <- replace with correct token matching tokenId
         String tokenId="0_f2qyxk5i";
 
-        String input_entry_ids = "/home/teg/kaltura_entryids_to_reject.txt"; // File with entryIds to reject. One entryId on each line
-        String output_entry_ids = "/home/teg/kaltura_entryids_reject_failed.txt"; // EntryIds that failed reject will be added in this file.
+        String input_entry_ids = "/home/teg/reject_kaltura/kaltura_reject_kaltura_id_only.csv"; // File with entryIds to reject. One entryId on each line
+        String output_entry_ids = "/home/teg/reject_kaltura/kaltura_reject_kaltura_id_only_failed.csv"; // EntryIds that failed reject will be added in this file.
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
@@ -51,7 +51,7 @@ public class KalturaManualRejectJob {
                         numberRejectSuccess++;
                     } else {
                         numberRejectFailed++;
-                        System.out.println("Failed deleting entryId:" + entryId);
+                        System.out.println("Failed rejecting entryId:" + entryId);
                         addLineToFile(output_entry_ids, entryId);
                     }
 
