@@ -22,9 +22,9 @@ public class KalturaManualRejectJob {
      * Input is a text file where each line is a Kaltura entryIds 
      * Output is a text file of entryIds that failed reject 
      * The most likely cause of failed entryIds is that they can does not exist in the KMC.
-     * 
-     * When running job on 1000 entries a few will fail and has to be tried again.
-     * They are logged in the failed log-file 
+     *   
+     * They are logged in the failed log-file. Notice many entries may already has
+     * been deleted in kaltura in delete job, so many will fail since they do not exist. 
      * 
      * </p>
      */
