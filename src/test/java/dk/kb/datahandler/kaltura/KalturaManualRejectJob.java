@@ -22,13 +22,17 @@ public class KalturaManualRejectJob {
      * Input is a text file where each line is a Kaltura entryIds 
      * Output is a text file of entryIds that failed reject 
      * The most likely cause of failed entryIds is that they can does not exist in the KMC.
+     * 
+     * When running job on 1000 entries a few will fail and has to be tried again.
+     * They are logged in the failed log-file 
+     * 
      * </p>
      */
     public static void main(String[] args) {
         
         String kalturaUrl = "https://kmc.kaltura.nordu.net";
         String adminSecret = "";// Use token,tokenId  instead
-        Integer partnerId = 398; // 398=stage, 397=prod. 
+        Integer partnerId = 397; // 398=stage, 397=prod. 
         String userId = "xxx@kb.dk"; //User must exist in kaltura.                 
         String token="abc"; // <- replace with correct token matching tokenId
         String tokenId="0_f2qyxk5i";
