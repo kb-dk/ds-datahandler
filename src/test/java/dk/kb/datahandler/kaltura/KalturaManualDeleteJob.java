@@ -23,11 +23,13 @@ public class KalturaManualDeleteJob {
      * Output is a text file of entryIds that failed deletion.
      * If delete is most likely because the entryId was not found in Kaltura.
      * 
+     * Notice. Out of 300K deletions about 20 failed and had to be tried again
+     * 
      */
     public static void main(String[] args) {
         
         String kalturaUrl = "https://kmc.kaltura.nordu.net";
-        String adminSecret = "e397995cc8fac35496de3849f73df07f";// Use token,tokenId  instead
+        String adminSecret = "";// Use token,tokenId  instead
         Integer partnerId = 397; // 398=stage, 397=prod. 
         String userId = "teg@kb.dk"; //User must exist in kaltura.                 
         String token="abc"; // <- replace with correct token matching tokenId
