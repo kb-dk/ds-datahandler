@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - make all loggers static
+- Only build suggest index if there was new documents indexed.
 ### Added
 
 ## [1.10.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.3) - 2024-10-28
