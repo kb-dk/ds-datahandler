@@ -172,8 +172,7 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
             <!-- Latest version is 4.0.3. Not tested -->
-            <version>3.6.2</version>
-            <!--<version>3.4.0</version>-->
+            <version>3.6.4</version>            
             <scope>runtime</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/javax.xml.ws/jaxws-api -->
