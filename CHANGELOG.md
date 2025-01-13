@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Fixed
+- Fixed inclusion of the same dependencies from multiple sources.
+
 
 ## [1.10.4](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.4) - 2025-01-07
 ### Changed
