@@ -96,8 +96,8 @@ public class SolrUtils {
         SolrIndexResponse finalResponse = new SolrIndexResponse();
         log.info("Starting indexing of records with sinceTime: '{}' from origin: '{}'", sinceTime, origin);
 
-
         AtomicLong bytesCounter = new AtomicLong();
+        
         while (hasMore) {
             try (ContinuationInputStream<Long> solrDocsStream =
                          presentClient.getRecordsJSON(origin, sinceTime,batchSize, FormatDto.SOLRJSON)) {
@@ -127,30 +127,38 @@ public class SolrUtils {
 
                 if (solrDocsStream.getRecordCount() != null) {
                     documents += solrDocsStream.getRecordCount();
+                    log.info("indexed #records="+solrDocsStream.getRecordCount());
                 }
 
                 updateFinalResponse(solrResponse, finalResponse, documents);
 
-                hasMore=solrDocsStream.hasMore();
-                if (hasMore) {
+                hasMore=solrDocsStream.hasMore();        
+                if (hasMore) {                    
                     sinceTime=solrDocsStream.getContinuationToken(); //Next batch start from here.
-                } else {
-                    buildSuggestIndex();
-                    log.info("Updated solr suggest index.");
-                }
+                } 
+                
             } catch (IOException e) {
                 log.warn("An error occurred when streaming records from DsPresent. DsPresentClient.getRecordsJSON() " +
                         "was called with the following params: origin='{}', mTime='{}', maxRecords='{}', format='{}'",
                         origin, sinceTime, batchSize, FormatDto.SOLRJSON);
                 throw new InternalServiceException(e);
-            } catch (SolrServerException e) {
-                log.warn("An error occurred when updating the solr suggester index.");
-                throw new InternalServiceException(e);
             }
         }
         log.info("Solr index completed for origin: '{}', mTime: {}, #docs: {}",
                 origin, sinceTime, documents);
-
+        
+        //Build suggest only if there was any new documents.
+        if (finalResponse.getAllDocumentsIndexed() >0) {        
+           try {
+            log.info("Start building solr suggest index because at least 1 documents was indexed. #=:"+finalResponse.getAllDocumentsIndexed());     
+            buildSuggestIndex();          
+            log.info("Finished building solr suggest index.");
+           }
+           catch (IOException | SolrServerException e) {
+             log.warn("An error occurred when updating the solr suggester index.");
+             throw new InternalServiceException(e);
+           }
+        }                
         return solrIndexObjectAsJSON(finalResponse);
     }
 

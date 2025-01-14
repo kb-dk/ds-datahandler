@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- make all loggers static
+- Only build suggest index if there was new documents indexed.
 
 ### Fixed
 - Fixed inclusion of the same dependencies from multiple sources.
