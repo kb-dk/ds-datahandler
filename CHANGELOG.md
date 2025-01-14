@@ -5,9 +5,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+
+### Changed
 - make all loggers static
 - Only build suggest index if there was new documents indexed.
-### Added
+
+### Fixed
+- Fixed inclusion of the same dependencies from multiple sources.
+
+
+## [1.10.4](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.4) - 2025-01-07
+### Changed
+- make all loggers static
+- Upgraded dependency cxf-rt-transports-http to v.3.6.4 (fix memory leak)
 
 ## [1.10.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.3) - 2024-10-28
 
