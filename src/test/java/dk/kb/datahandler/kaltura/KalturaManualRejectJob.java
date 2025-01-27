@@ -22,19 +22,23 @@ public class KalturaManualRejectJob {
      * Input is a text file where each line is a Kaltura entryIds 
      * Output is a text file of entryIds that failed reject 
      * The most likely cause of failed entryIds is that they can does not exist in the KMC.
+     *   
+     * They are logged in the failed log-file. Notice many entries may already has
+     * been deleted in kaltura in delete job, so many will fail since they do not exist. 
+     * 
      * </p>
      */
     public static void main(String[] args) {
         
         String kalturaUrl = "https://kmc.kaltura.nordu.net";
         String adminSecret = "";// Use token,tokenId  instead
-        Integer partnerId = 398; // 398=stage, 397=prod. 
+        Integer partnerId = 397; // 398=stage, 397=prod. 
         String userId = "xxx@kb.dk"; //User must exist in kaltura.                 
         String token="abc"; // <- replace with correct token matching tokenId
         String tokenId="0_f2qyxk5i";
 
-        String input_entry_ids = "/home/teg/kaltura_entryids_to_reject.txt"; // File with entryIds to reject. One entryId on each line
-        String output_entry_ids = "/home/teg/kaltura_entryids_reject_failed.txt"; // EntryIds that failed reject will be added in this file.
+        String input_entry_ids = "/home/teg/reject_kaltura/kaltura_reject_kaltura_id_only.csv"; // File with entryIds to reject. One entryId on each line
+        String output_entry_ids = "/home/teg/reject_kaltura/kaltura_reject_kaltura_id_only_failed.csv"; // EntryIds that failed reject will be added in this file.
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
@@ -46,12 +50,12 @@ public class KalturaManualRejectJob {
             for (String entryId : entryIds) {
                 try { // We need to continue with the rest if one fails.
                     boolean success = client.blockStreamByEntryId(entryId);
-                    System.out.println("success:" + success);
+                    System.out.println("success:" + success  +" rejected entry id:"+entryId);
                     if (success) {
                         numberRejectSuccess++;
                     } else {
                         numberRejectFailed++;
-                        System.out.println("Failed deleting entryId:" + entryId);
+                        System.out.println("Failed rejecting entryId:" + entryId);
                         addLineToFile(output_entry_ids, entryId);
                     }
 
