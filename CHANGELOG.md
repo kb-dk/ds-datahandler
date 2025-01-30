@@ -5,16 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- Bumped SwaggerUI dependency to v5.18.2
-
-### Added
 
 ### Changed
 - make all loggers static
 - Only build suggest index if there was new documents indexed.
+- Bumped SwaggerUI dependency to v5.18.2
+- Bumped multiple OpenAPI dependency versions
 
 ### Fixed
 - Fixed inclusion of the same dependencies from multiple sources.
+- Fixed /api-docs wrongly showing petstore example API spec
 
 
 ## [1.10.4](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.4) - 2025-01-07

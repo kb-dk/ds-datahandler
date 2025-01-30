@@ -32,6 +32,21 @@
         <url-pattern>/v1/*</url-pattern>
     </servlet-mapping>
 
+    <!-- A servlet for redirecting all requests to either /api-docs or /v1/api-docs to /api as this seems to be the only way to make /api-docs not show the Swagger Petstore
+     example in our current setup.-->
+    <servlet>
+        <servlet-name>RedirectApiDocsServlet</servlet-name>
+        <servlet-class>dk.kb.util.webservice.RedirectApiDocsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RedirectApiDocsServlet</servlet-name>
+        <url-pattern>/v1/api-docs/*</url-pattern> <!-- Catch all requests to /api-docs -->
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>RedirectApiDocsServlet</servlet-name>
+        <url-pattern>/api-docs/*</url-pattern> <!-- Catch all requests to /api-docs -->
+    </servlet-mapping>
+
     <listener>
         <listener-class>dk.kb.datahandler.webservice.ContextListener</listener-class>
     </listener>
