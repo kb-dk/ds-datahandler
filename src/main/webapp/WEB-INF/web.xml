@@ -36,7 +36,7 @@
      example in our current setup.-->
     <servlet>
         <servlet-name>RedirectApiDocsServlet</servlet-name>
-        <servlet-class>dk.kb.datahandler.webservice.RedirectApiDocsServlet</servlet-class>
+        <servlet-class>dk.kb.util.webservice.RedirectApiDocsServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>RedirectApiDocsServlet</servlet-name>
