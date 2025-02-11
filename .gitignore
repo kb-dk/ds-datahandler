@@ -34,3 +34,7 @@ hs_err_pid*
 
 # Contains username and password for test instance
 oai_harvest.conf
+
+# We use pom.xml as the source of truth and don't rely on a specific IDE
+.idea
+*.iml
