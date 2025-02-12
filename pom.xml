@@ -106,14 +106,6 @@
         <dependency>
             <groupId>dk.kb.util</groupId>
             <artifactId>kb-util</artifactId>
-            <version>1.6.3</version>
-            <exclusions>
-                <exclusion>
-                    <!-- kb-util has 2.3.3, but transitive resolving has 2.4.0 somewhere-->
-                    <groupId>jakarta.xml.bind</groupId>
-                    <artifactId>jakarta.xml.bind-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
               
      <!-- Client for ds-storage This will also require the org.openapitools dependency-->
@@ -234,7 +226,6 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>5.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
@@ -249,7 +240,6 @@
         <dependency>
             <groupId>net.sf.saxon</groupId>
             <artifactId>Saxon-HE</artifactId>
-            <version>10.6</version>
         </dependency>
         <!-- To get date parsing to work? -->
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-modules-java8 -->
