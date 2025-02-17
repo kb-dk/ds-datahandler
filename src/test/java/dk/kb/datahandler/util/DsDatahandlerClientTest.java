@@ -27,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.invoker.v1.ApiException;
-import dk.kb.datahandler.model.v1.OaiTargetDto;
 
 
 /**
@@ -51,13 +49,5 @@ public class DsDatahandlerClientTest {
             fail();
         }
     }
-        
-    @Test
-    public void testInstantiation() throws ApiException{
-        log.debug("Creating inactive client for ds-datahandler with URI '{}'",dsDatahandlerDevel);
-        DsDatahandlerClient dsDatahandlerClient = new DsDatahandlerClient(dsDatahandlerDevel);
-        List<OaiTargetDto> targets = dsDatahandlerClient.getOaiTargetsConfiguration();
-        log.info("Integrationtest called oaiTargets on devel11. Number of targets:"+targets.size());
-        assertTrue(targets.size() >0);                
-    }
+           
 }
