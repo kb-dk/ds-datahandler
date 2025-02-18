@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- removed generation of java-client API since datahandler is not supposed to be called from other modules.
 - make all loggers static
 - Only build suggest index if there was new documents indexed.
 - Bumped SwaggerUI dependency to v5.18.2
