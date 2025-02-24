@@ -23,8 +23,7 @@ paths:
        summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records. Record format METS with mods. Record  ID from the record is <mods:identifier>. Record ID in storage will be origin:uuid-extracted-from<mods:identifier>'      
        security: 
         - KBOAuth:
-          - any   
-        
+          - any           
        operationId: importFromZip
        requestBody:
          content:
@@ -71,8 +70,7 @@ paths:
       summary: 'Start full ingest of a OAI target into DS-storage. From time will be 1900-01-01. When called the job will finished if no errors are encountered even if the socket is closed from the client triggering the call. After full ingest ds-storage will be called again and all older recorders from before the ingest fill be deleted.'
       security: 
         - KBOAuth:
-          - any   
- 
+          - any    
       operationId: oaiIngestFull
       parameters:
         - name: oaiTarget
