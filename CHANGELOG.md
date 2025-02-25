@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Only build suggest index if there was new documents indexed.
 - Bumped SwaggerUI dependency to v5.18.2
 - Bumped multiple OpenAPI dependency versions
+- Bumped kb-util to v1.6.8 for service2service oauth support.
 
 ### Fixed
 - Fixed inclusion of the same dependencies from multiple sources.
