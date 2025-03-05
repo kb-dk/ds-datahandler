@@ -2,11 +2,12 @@ package dk.kb.datahandler.util;
 
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.preservica.client.DsPreservicaClient;
-import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
+import dk.kb.util.webservice.exception.ServiceException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +57,12 @@ public class PreservicaUtils {
     public static void safeRecordPost(DsStorageClient storageClient, DsRecordMinimalDto record) {
         try {
             storageClient.updateReferenceIdForRecord(record.getId(), record.getReferenceId());
-        } catch (ApiException e) {
-            log.error("ApiException has been thrown. Record probably already exists.");
+        }
+        catch(ServiceException e ) {
+            log.warn("ServiceException has been thrown. Record probably already exists.");
+        }        
+        catch (Exception e) {
+            log.error("Unexpected error from ds-storage updateReferenceIdForRecord",e);
         }
     }
 

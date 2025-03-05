@@ -14,10 +14,11 @@
  */
 package dk.kb.datahandler.oai;
 
-import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.storage.util.DsStorageClient;
+import dk.kb.util.webservice.exception.ServiceException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public class OaiResponseFilter {
      * sets the type to {@link RecordTypeDto#DELIVERABLEUNIT}.
      * @param response      OAI-PMH response containing records.
      */
-    public void addToStorage(OaiResponse response) throws ApiException {
+    public void addToStorage(OaiResponse response) throws ServiceException {
         for (OaiRecord oaiRecord: response.getRecords()) {
             addToStorage(oaiRecord);
             processed++;
@@ -59,7 +60,7 @@ public class OaiResponseFilter {
      * sets the type to {@link RecordTypeDto#DELIVERABLEUNIT}.
      * @param oaiRecord     a record from an OAI-PMH response
      */
-    public void addToStorage(OaiRecord oaiRecord) throws ApiException {
+    public void addToStorage(OaiRecord oaiRecord) throws ServiceException {
         String origin = getOrigin(oaiRecord, datasource);
         String storageId = origin + ":" + oaiRecord.getId();
         if (oaiRecord.isDeleted()) {
@@ -119,7 +120,7 @@ public class OaiResponseFilter {
      * @param origin    the origin for the record.
      */
     private void addOrUpdateRecord(OaiRecord oaiRecord, String storageId, String parentID, String origin)
-            throws ApiException {
+            throws ServiceException {
         DsRecordDto dsRecord = new DsRecordDto();
         dsRecord.setId(storageId);
         dsRecord.setOrigin(origin);

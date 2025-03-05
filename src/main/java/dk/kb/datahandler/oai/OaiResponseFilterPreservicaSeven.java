@@ -1,14 +1,15 @@
 package dk.kb.datahandler.oai;
 
-import dk.kb.storage.invoker.v1.ApiException;
-import dk.kb.storage.model.v1.DsRecordDto;
-import dk.kb.storage.model.v1.RecordTypeDto;
-import dk.kb.storage.util.DsStorageClient;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import dk.kb.storage.model.v1.DsRecordDto;
+import dk.kb.storage.model.v1.RecordTypeDto;
+import dk.kb.storage.util.DsStorageClient;
+import dk.kb.util.webservice.exception.ServiceException;
 
 /**
  * Filtering and delivery of Preservica OAI records from Preservica 7. Generates {@code datasource} prefixed IDs,
@@ -66,7 +67,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      * @param response      OAI-PMH response containing preservica records.
      */
     @Override
-    public void addToStorage(OaiResponse response) throws ApiException {
+    public void addToStorage(OaiResponse response) throws ServiceException {
         for (OaiRecord oaiRecord: response.getRecords()) {
             String xml = oaiRecord.getMetadata();
             String recordId = oaiRecord.getId();
@@ -101,7 +102,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             try {
                 addToStorage(oaiRecord);
                 processed++;
-            } catch (ApiException e){
+            } catch (ServiceException e){
                 log.warn("DsStorage threw an exception when adding OAI record from Preservica 7 to storage.");
                 throw e;
             }
