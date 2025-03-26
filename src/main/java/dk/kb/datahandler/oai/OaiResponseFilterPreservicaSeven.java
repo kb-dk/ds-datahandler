@@ -73,29 +73,16 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             String recordId = oaiRecord.getId();
             // Preservica StructuralObjects are ignored as they are only used as folders in the GUI.
             if (recordId.contains("oai:so")){
-                //log.debug("Skipped Structural object with id: '{}'", recordId);
+                log.debug("Skipped Structural object with id: '{}'", recordId);
                 continue;
             }
+            
             // InformationObjects from preservcia 6/7 need to have the PBCore metadata tag.
-            Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
-            if ((recordId.contains("oai:io")) && !metadataMatcher.find()) {
-                processed++;
-                emptyMetadataRecords ++;
-                log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
-                                "'{}' empty records have been found and '{}' records have been processed in total.",
-                        recordId, emptyMetadataRecords, processed);
+            if (!informationObjectContainsPbcoreBoolean(xml, recordId)){
                 continue;
             }
 
-            Matcher transcodingDoneMatcher = TRANSCODING_PATTERN.matcher(xml);
-            if (!transcodingDoneMatcher.find()) {
-                processed++;
-                transCodingNotDoneRecords++;
-                log.debug("OAI-PMH record '{}' transcoding status not done. Record skipped",recordId);
-                if (transCodingNotDoneRecords % 1000 == 0) {
-                    log.info("'{}' records transcoding status not done filtered away. '{}' records have been processed.",
-                            transCodingNotDoneRecords, processed);
-                }
+            if (!transcodingStatusIsDoneBoolean(xml, recordId)){
                 continue;
             }
 
@@ -107,6 +94,56 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
                 throw e;
             }
         }
+    }
+
+    /**
+     * Checks if the transcoding status is complete for the given XML string.
+     *
+     * <p>This method uses a regex pattern to determine if the transcoding status is marked as done in the XML.
+     * If the status is not found, it increments the counters for processed records and those with
+     * transcoding not done, logs a debug message, and, for every 1000 records filtered, logs an info message.
+     * The method returns false if the transcoding status is not complete; otherwise, it returns true.</p>
+     *
+     * @param xml The XML string containing the transcoding status to be checked.
+     * @param recordId The unique identifier for the record being checked.
+     * @return {@code true} if the transcoding status is complete; {@code false} if the status is not done.
+     */
+    boolean transcodingStatusIsDoneBoolean(String xml, String recordId) {
+        Matcher transcodingDoneMatcher = TRANSCODING_PATTERN.matcher(xml);
+        if (!transcodingDoneMatcher.find()) {
+            processed++;
+            transCodingNotDoneRecords++;
+            log.debug("OAI-PMH record '{}' transcoding status not done. Record skipped", recordId);
+            if (transCodingNotDoneRecords % 1000 == 0) {
+                log.info("'{}' records transcoding status not done filtered away. '{}' records have been processed.",
+                        transCodingNotDoneRecords, processed);
+            }
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * Checks if the given XML string contains PBCore metadata and that the record is an InformationObject.
+     *
+     * @param xml The XML string to be checked for PBCore metadata.
+     * @param recordId The unique identifier for the record, which indicates if the record is an InformationObject.
+     * @return {@code true} if the XML contains PBCore metadata or if the record ID does not indicate
+     *         an OAI-PMH record; {@code false} if the record ID indicates an OAI-PMH record
+     *         and PBCore metadata is not found.
+     */
+    boolean informationObjectContainsPbcoreBoolean(String xml, String recordId) {
+        Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
+        if ((recordId.contains("oai:io")) && !metadataMatcher.find()) {
+            processed++;
+            emptyMetadataRecords ++;
+            log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
+                            "'{}' empty records have been found and '{}' records have been processed in total.",
+                    recordId, emptyMetadataRecords, processed);
+            return false;
+        }
+        return true;
     }
 
     @Override
