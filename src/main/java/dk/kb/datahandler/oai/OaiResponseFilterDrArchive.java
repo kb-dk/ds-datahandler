@@ -1,13 +1,19 @@
 package dk.kb.datahandler.oai;
 
 import dk.kb.datahandler.enrichment.DataEnricher;
+import dk.kb.datahandler.util.OaiRecordHandler;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.ServiceException;
 
 import org.eclipse.jetty.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,7 +48,29 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
      */
     @Override
     public void addToStorage(OaiResponse response) throws ServiceException {
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        SAXParser saxParser = null;
+        try {
+            saxParser = factory.newSAXParser();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        } catch (SAXException e) {
+            throw new RuntimeException(e);
+        }
+
         for (OaiRecord oaiRecord: response.getRecords()) {
+
+            OaiRecordHandler handler = new OaiRecordHandler();
+
+            try {
+                saxParser.parse(oaiRecord.getMetadata(), handler);
+            } catch (SAXException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+
             String xml = oaiRecord.getMetadata();
             String recordId = oaiRecord.getId();
             // Preservica StructuralObjects are ignored as they are only used as folders in the GUI.
