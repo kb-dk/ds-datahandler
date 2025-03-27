@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Refactored OAI Response filters, to remove duplicate code from Preservica and DR filter
 ### Fixed
 
 ## [1.11.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.11.0) - 2025-03-05

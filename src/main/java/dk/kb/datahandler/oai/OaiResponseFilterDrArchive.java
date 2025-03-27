@@ -65,25 +65,11 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
             }
 
             // InformationObjects from preservica 7 need to have the PBCore metadata tag.
-            Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
-            if ((recordId.contains("oai:io")) && !metadataMatcher.find()) {
-                processed++;
-                emptyMetadataRecords ++;
-                log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
-                                "'{}' empty records have been found and '{}' records have been processed in total.",
-                        recordId, emptyMetadataRecords, processed);
+            if (!informationObjectContainsPbcoreBoolean(xml, recordId)){
                 continue;
             }
 
-            Matcher transcodingDoneMatcher = TRANSCODING_PATTERN.matcher(xml);
-            if (!transcodingDoneMatcher.find()) {
-                processed++;
-                transCodingNotDoneRecords++;
-                log.debug("OAI-PMH record '{}' transcoding status not done. Record skipped",recordId);
-                if (transCodingNotDoneRecords % 1000 == 0) {
-                    log.info("'{}' records transcoding status not done filtered away. '{}' records have been processed.",
-                            transCodingNotDoneRecords, processed);
-                }
+            if (!transcodingStatusIsDoneBoolean(xml, recordId)){
                 continue;
             }
 
