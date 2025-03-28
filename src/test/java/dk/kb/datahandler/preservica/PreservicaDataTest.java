@@ -4,6 +4,7 @@ import dk.kb.datahandler.job.JobCache;
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.*;
+import dk.kb.datahandler.util.PreservicaOaiRecordHandler;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.Resolver;
@@ -14,6 +15,8 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -22,27 +25,42 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PreservicaDataTest {
+    static final SAXParserFactory factory = SAXParserFactory.newInstance();
+
 
     @Test
     public void testPvicaOriginRadioDU() throws Exception{
         String xmlFile = "xml/pvica_origin_radio.xml";
         String xml = Resolver.resolveUTF8String(xmlFile);
-
+        InputStream xmlInputStream = Resolver.resolveStream(xmlFile);
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
+
+        SAXParser saxParser = factory.newSAXParser();
+        PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+
+        saxParser.parse(xmlInputStream, handler);
+
         OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaSeven(null, null);
-        String origin = oaiFilter.getOrigin(record, "preservica");
+        String origin = oaiFilter.getOrigin(record, "preservica", handler);
         assertEquals("ds.radio", origin);
     }
     @Test
     public void testPvicaOriginTvDU() throws Exception{
         String xmlFile = "xml/pvica_origin_tv.xml";
         String xml = Resolver.resolveUTF8String(xmlFile);
-
+        InputStream xmlInputStream = Resolver.resolveStream(xmlFile);
         OaiRecord record = new OaiRecord();
         record.setMetadata(xml);
+
+        SAXParser saxParser = factory.newSAXParser();
+        PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+
+        saxParser.parse(xmlInputStream, handler);
+
         OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaSeven(null, null);
-        String origin = oaiFilter.getOrigin(record, "preservica");
+
+        String origin = oaiFilter.getOrigin(record, "preservica", handler);
         assertEquals("ds.tv", origin);
     }
 
