@@ -1,8 +1,9 @@
 package dk.kb.datahandler.oai;
 
 import dk.kb.datahandler.enrichment.DataEnricher;
-import dk.kb.datahandler.util.OaiRecordHandler;
+import dk.kb.datahandler.util.PreservicaOaiRecordHandler;
 import dk.kb.storage.util.DsStorageClient;
+import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.ServiceException;
 
 import org.eclipse.jetty.util.StringUtil;
@@ -10,11 +11,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.regex.Matcher;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven{
@@ -23,8 +24,6 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
 
     private String fragmentServiceUrl = null;
 
-    protected static final Pattern DR_PATTERN = Pattern.compile(
-            ">(?i:dr)[^<]*</(?:\\w+:)?publisher>");
 
     /**
      * @param datasource source for records. Default implementation uses this for {@code origin}.
@@ -48,30 +47,19 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
      */
     @Override
     public void addToStorage(OaiResponse response) throws ServiceException {
-        SAXParserFactory factory = SAXParserFactory.newInstance();
-        SAXParser saxParser = null;
-        try {
-            saxParser = factory.newSAXParser();
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
-        } catch (SAXException e) {
-            throw new RuntimeException(e);
-        }
+        SAXParser saxParser = getSaxParser();
 
         for (OaiRecord oaiRecord: response.getRecords()) {
 
-            OaiRecordHandler handler = new OaiRecordHandler();
+            PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
 
             try {
-                saxParser.parse(oaiRecord.getMetadata(), handler);
-            } catch (SAXException e) {
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                InputStream inputXml = new ByteArrayInputStream(oaiRecord.getMetadata().getBytes(StandardCharsets.UTF_8));
+                saxParser.parse(inputXml, handler);
+            } catch (SAXException | IOException e) {
+                throw new InternalServiceException(e);
             }
 
-
-            String xml = oaiRecord.getMetadata();
             String recordId = oaiRecord.getId();
             // Preservica StructuralObjects are ignored as they are only used as folders in the GUI.
             if (recordId.contains("oai:so")){
@@ -80,8 +68,7 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
             }
 
             // Filter out material that are not send on DR channels
-            Matcher drMatcher = DR_PATTERN.matcher(xml);
-            if (!drMatcher.find()){
+            if (!handler.recordIsDr){
                 processed++;
                 nonDrRecords++;
                 // Periodically logging of how many records have been filtered out.
@@ -93,21 +80,23 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
             }
 
             // InformationObjects from preservica 7 need to have the PBCore metadata tag.
-            if (!informationObjectContainsPbcoreBoolean(xml, recordId)){
+            if (!informationObjectContainsPbcoreBoolean(handler, recordId)){
                 continue;
             }
 
-            if (!transcodingStatusIsDoneBoolean(xml, recordId)){
+            if (!transcodingStatusIsDoneBoolean(handler, recordId)){
                 continue;
             }
+
+            String origin = getOrigin(handler);
 
             // Enrich record
-            if (!StringUtil.isEmpty(fragmentServiceUrl) && "ds.tv".equals(getOrigin(oaiRecord,datasource))) {
-                    DataEnricher.apply(fragmentServiceUrl,oaiRecord);
+            if (!StringUtil.isEmpty(fragmentServiceUrl) && "ds.tv".equals(origin)) {
+                DataEnricher.apply(fragmentServiceUrl,oaiRecord);
             }
 
             try {
-                addToStorage(oaiRecord);
+                addToStorage(oaiRecord, origin);
                 processed++;
             } catch (ServiceException e){
                 log.warn("DsStorage threw an exception when adding OAI record from Preservica 7 to storage.");
