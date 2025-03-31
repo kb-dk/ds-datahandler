@@ -76,7 +76,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
                     continue;
                 }
 
-                String origin = getOrigin(handler);
+                String origin = getOrigin(oaiRecord, datasource, handler);
 
                 addToStorage(oaiRecord, origin);
                 processed++;
@@ -86,24 +86,6 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             } catch (IOException | SAXException e) {
                 throw new InternalServiceException("An error occurred when parsing XML with SAX:", e);
             }
-        }
-    }
-
-    /**
-     * Get DS origin from OaiRecordHandler which have streamed the content from incoming OAI record.
-     * @param oaiRecordHandler containing an ENUM, defining the type of record in hand
-     * @return a ds origin such as 'ds.tv' or 'ds.radio'.
-     */
-    String getOrigin(PreservicaOaiRecordHandler oaiRecordHandler) {
-        switch (oaiRecordHandler.getRecordType()) {
-            case TV:
-                return "ds.tv";
-            case RADIO:
-                return "ds.radio";
-            case UNKNOWN:
-                return "";
-            default:
-                throw new InternalServiceException("Unknown record type: " + oaiRecordHandler.getRecordType());
         }
     }
 
@@ -156,9 +138,11 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
         return true;
     }
 
+    /**
+     * Get DS origin from OaiRecordHandler which have streamed the content from the incoming OAI record.
+     */
     @Override
     public String getOrigin(OaiRecord oaiRecord, String datasource, DefaultHandler recordHandler) {
-
         PreservicaOaiRecordHandler preservicaRecordHandler = (PreservicaOaiRecordHandler) recordHandler;
 
         switch (preservicaRecordHandler.getRecordType()) {

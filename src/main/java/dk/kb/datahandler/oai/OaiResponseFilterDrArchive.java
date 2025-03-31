@@ -88,7 +88,7 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
                 continue;
             }
 
-            String origin = getOrigin(handler);
+            String origin = getOrigin(oaiRecord, datasource, handler);
 
             // Enrich record
             if (!StringUtil.isEmpty(fragmentServiceUrl) && "ds.tv".equals(origin)) {
