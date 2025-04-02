@@ -50,21 +50,19 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
         SAXParser saxParser = getSaxParser();
 
         for (OaiRecord oaiRecord: response.getRecords()) {
-
-            PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
-
-            try {
-                InputStream inputXml = new ByteArrayInputStream(oaiRecord.getMetadata().getBytes(StandardCharsets.UTF_8));
-                saxParser.parse(inputXml, handler);
-            } catch (SAXException | IOException e) {
-                throw new InternalServiceException(e);
-            }
-
             String recordId = oaiRecord.getId();
             // Preservica StructuralObjects are ignored as they are only used as folders in the GUI.
             if (recordId.contains("oai:so")){
                 log.debug("Skipped Structural object with id: '{}'", recordId);
                 continue;
+            }
+
+            PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+            try {
+                InputStream inputXml = new ByteArrayInputStream(oaiRecord.getMetadata().getBytes(StandardCharsets.UTF_8));
+                saxParser.parse(inputXml, handler);
+            } catch (SAXException | IOException e) {
+                throw new InternalServiceException(e);
             }
 
             // Filter out material that are not send on DR channels
