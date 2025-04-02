@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Refactored OAI Response filters, to remove duplicate code from Preservica and DR filter
+- Make OAI Response filters parse XML correctly through the SAX API.
+
 ### Fixed
 
 ## [1.11.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.11.0) - 2025-03-05

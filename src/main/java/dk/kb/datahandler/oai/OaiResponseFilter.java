@@ -21,6 +21,7 @@ import dk.kb.util.webservice.exception.ServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.helpers.DefaultHandler;
 
 
 /**
@@ -61,12 +62,22 @@ public class OaiResponseFilter {
      * @param oaiRecord     a record from an OAI-PMH response
      */
     public void addToStorage(OaiRecord oaiRecord) throws ServiceException {
-        String origin = getOrigin(oaiRecord, datasource);
+        String origin = getOrigin(oaiRecord, datasource, null);
+        addToStorage(oaiRecord, origin);
+    }
+
+    /**
+     * Add record from an OAI-PMH harvest to ds-storage. The public implementation does not resolve parent and
+     * sets the type to {@link RecordTypeDto#DELIVERABLEUNIT}.
+     * @param oaiRecord     a record from an OAI-PMH response
+     * @param origin        the origin, which the record is added to in ds-storage.
+     */
+    public void addToStorage(OaiRecord oaiRecord, String origin) throws ServiceException {
         String storageId = origin + ":" + oaiRecord.getId();
         if (oaiRecord.isDeleted()) {
             storage.markRecordForDelete(storageId);
         } else if (origin.isEmpty()){
-           log.warn("OAI Record with ID: '{}', has empty origin, it is not added to DS-Storage.", oaiRecord.getId());
+            log.warn("OAI Record with ID: '{}', has empty origin, it is not added to DS-Storage.", oaiRecord.getId());
         }
         else {
             String parentID = getParentID(oaiRecord, origin);
@@ -80,9 +91,10 @@ public class OaiResponseFilter {
      * public behaviour is to return the {@code datasource}.
      * @param oaiRecord     a record from an OAI-PMH response
      * @param datasource    where the harvested OAI-PMH record is extracted from.
+     * @param recordHandler used to parse the data from the osiRecord if needed.
      * @return {@code origin} for the given {@code oaiRecord}.
      */
-    public String getOrigin(OaiRecord oaiRecord, String datasource) {
+    public String getOrigin(OaiRecord oaiRecord, String datasource, DefaultHandler recordHandler) {
         return datasource;
     }
 

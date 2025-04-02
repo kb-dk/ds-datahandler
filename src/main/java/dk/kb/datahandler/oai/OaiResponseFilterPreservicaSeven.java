@@ -1,8 +1,14 @@
 package dk.kb.datahandler.oai;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dk.kb.datahandler.util.PreservicaOaiRecordHandler;
+import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +16,12 @@ import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.ServiceException;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 /**
  * Filtering and delivery of Preservica OAI records from Preservica 7. Generates {@code datasource} prefixed IDs,
@@ -17,36 +29,7 @@ import dk.kb.util.webservice.exception.ServiceException;
  */
 public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
     private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterPreservicaSeven.class);
-
-    /**
-     * Pattern for determining if a InformationObject from Preservica 7
-     * contains metadata about a radio resource.
-     * The regex handles the fact that namespace prefixes are arbitrarily defined.
-     */
-    protected static final Pattern RADIO_PATTERN = Pattern.compile(
-            ">Sound</(?:\\w+:)?formatMediaType", Pattern.CASE_INSENSITIVE);
-
-    /**
-     * Pattern for determining if a InformationObject from Preservica 7
-     * contains metadata about a television resource.
-     * The regex handles the fact that namespace prefixes are arbitrarily defined.
-     */
-    protected static final Pattern TV_PATTERN = Pattern.compile(
-            ">Moving\\sImage</(?:\\w+:)?formatMediaType", Pattern.CASE_INSENSITIVE);
-
-    /**
-     * Pattern used to check that records does in fact contain PBCore metadata.
-     */
-    static final Pattern METADATA_PATTERN = Pattern.compile(
-            "<Metadata\\s+schemaUri=\"http://www\\.pbcore\\.org/PBCore/PBCoreNamespace\\.html\">");
-
-    /**
-     * Pattern used for checking the transcoding status of a record. Only records with transcoding status done should be added.
-     */
-
-    static final Pattern TRANSCODING_PATTERN = Pattern.compile(
-            "<radiotvTranscodingStatus:radiotvTranscodingStatus(?s).*<transcodingStatus>done</transcodingStatus>(?s).*</radiotvTranscodingStatus:radiotvTranscodingStatus>"
-    );
+    static final SAXParserFactory factory = SAXParserFactory.newInstance();
 
     protected int emptyMetadataRecords = 0;
 
@@ -68,30 +51,40 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      */
     @Override
     public void addToStorage(OaiResponse response) throws ServiceException {
+        SAXParser saxParser = getSaxParser();
+
         for (OaiRecord oaiRecord: response.getRecords()) {
-            String xml = oaiRecord.getMetadata();
-            String recordId = oaiRecord.getId();
-            // Preservica StructuralObjects are ignored as they are only used as folders in the GUI.
-            if (recordId.contains("oai:so")){
-                log.debug("Skipped Structural object with id: '{}'", recordId);
-                continue;
-            }
-            
-            // InformationObjects from preservcia 6/7 need to have the PBCore metadata tag.
-            if (!informationObjectContainsPbcoreBoolean(xml, recordId)){
-                continue;
-            }
-
-            if (!transcodingStatusIsDoneBoolean(xml, recordId)){
-                continue;
-            }
-
             try {
-                addToStorage(oaiRecord);
+                PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+
+                InputStream inputXml = new ByteArrayInputStream(oaiRecord.getMetadata().getBytes(StandardCharsets.UTF_8));
+                saxParser.parse(inputXml, handler);
+
+                String recordId = oaiRecord.getId();
+                // Preservica StructuralObjects are ignored as they are only used as folders in the GUI.
+                if (recordId.contains("oai:so")){
+                    log.debug("Skipped Structural object with id: '{}'", recordId);
+                    continue;
+                }
+
+                // InformationObjects from preservcia 6/7 need to have the PBCore metadata tag.
+                if (!informationObjectContainsPbcoreBoolean(handler, recordId)){
+                    continue;
+                }
+
+                if (!transcodingStatusIsDoneBoolean(handler, recordId)){
+                    continue;
+                }
+
+                String origin = getOrigin(oaiRecord, datasource, handler);
+
+                addToStorage(oaiRecord, origin);
                 processed++;
             } catch (ServiceException e){
                 log.warn("DsStorage threw an exception when adding OAI record from Preservica 7 to storage.");
                 throw e;
+            } catch (IOException | SAXException e) {
+                throw new InternalServiceException("An error occurred when parsing XML with SAX:", e);
             }
         }
     }
@@ -104,13 +97,12 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      * transcoding not done, logs a debug message, and, for every 1000 records filtered, logs an info message.
      * The method returns false if the transcoding status is not complete; otherwise, it returns true.</p>
      *
-     * @param xml The XML string containing the transcoding status to be checked.
+     * @param recordHandler The XML string containing the transcoding status to be checked.
      * @param recordId The unique identifier for the record being checked.
      * @return {@code true} if the transcoding status is complete; {@code false} if the status is not done.
      */
-    boolean transcodingStatusIsDoneBoolean(String xml, String recordId) {
-        Matcher transcodingDoneMatcher = TRANSCODING_PATTERN.matcher(xml);
-        if (!transcodingDoneMatcher.find()) {
+    boolean transcodingStatusIsDoneBoolean(PreservicaOaiRecordHandler recordHandler, String recordId) {
+        if (!recordHandler.recordIsTranscoded){
             processed++;
             transCodingNotDoneRecords++;
             log.debug("OAI-PMH record '{}' transcoding status not done. Record skipped", recordId);
@@ -120,6 +112,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             }
             return false;
         }
+
         return true;
     }
 
@@ -127,15 +120,14 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
     /**
      * Checks if the given XML string contains PBCore metadata and that the record is an InformationObject.
      *
-     * @param xml The XML string to be checked for PBCore metadata.
+     * @param recordHandler containing a boolean describing if the record in hand contains PBCore metadata.
      * @param recordId The unique identifier for the record, which indicates if the record is an InformationObject.
      * @return {@code true} if the XML contains PBCore metadata or if the record ID does not indicate
      *         an OAI-PMH record; {@code false} if the record ID indicates an OAI-PMH record
      *         and PBCore metadata is not found.
      */
-    boolean informationObjectContainsPbcoreBoolean(String xml, String recordId) {
-        Matcher metadataMatcher = METADATA_PATTERN.matcher(xml);
-        if ((recordId.contains("oai:io")) && !metadataMatcher.find()) {
+    boolean informationObjectContainsPbcoreBoolean(PreservicaOaiRecordHandler recordHandler, String recordId) {
+        if (recordId.contains("oai:io") && !recordHandler.recordHasMetadata){
             processed++;
             emptyMetadataRecords ++;
             log.warn("OAI-PMH record '{}' does not contain PBCore metadata and is therefore not added to storage. " +
@@ -146,22 +138,22 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
         return true;
     }
 
+    /**
+     * Get DS origin from OaiRecordHandler which have streamed the content from the incoming OAI record.
+     */
     @Override
-    public String getOrigin(OaiRecord oaiRecord, String datasource) {
-        String xml = oaiRecord.getMetadata();
+    public String getOrigin(OaiRecord oaiRecord, String datasource, DefaultHandler recordHandler) {
+        PreservicaOaiRecordHandler preservicaRecordHandler = (PreservicaOaiRecordHandler) recordHandler;
 
-        Matcher radioDeliverableunitMatcher = RADIO_PATTERN.matcher(xml);
-        Matcher tvDeliverableUnitMatcher = TV_PATTERN.matcher(xml);
-
-        if (radioDeliverableunitMatcher.find()){
-            return "ds.radio";
-        } else if (tvDeliverableUnitMatcher.find()){
-            return "ds.tv";
-        } else {
-            log.warn("No specific origin has been extracted for preservica record '{}'.",
-                    oaiRecord.getId());
-            // Not quite sure what we should do in the case where nothing gets matched.
-            return "";
+        switch (preservicaRecordHandler.getRecordType()) {
+            case TV:
+                return "ds.tv";
+            case RADIO:
+                return "ds.radio";
+            case UNKNOWN:
+                return "";
+            default:
+                throw new InternalServiceException("Unknown record type: " + preservicaRecordHandler.getRecordType());
         }
     }
 
@@ -180,5 +172,13 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
 
         log.debug("Unable to derive record type for id '{}' from datasource '{}'. Falling back to '{}'", storageId, datasource, RecordTypeDto.DELIVERABLEUNIT);
         return RecordTypeDto.DELIVERABLEUNIT;
+    }
+
+    static SAXParser getSaxParser() {
+        try {
+            return factory.newSAXParser();
+        } catch (ParserConfigurationException | SAXException e) {
+            throw new InternalServiceException("An error occurred when constructing SAXParser: ", e);
+        }
     }
 }
