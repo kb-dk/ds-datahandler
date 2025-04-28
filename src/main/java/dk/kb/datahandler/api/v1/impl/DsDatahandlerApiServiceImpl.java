@@ -124,21 +124,6 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }
     }
 
-    /**
-     * Update manifestations for records in an origin. This endpoint is used with origins originating from Preservica 7.
-     * @param origin to update records in.
-     * @param mTimeFrom time to update records from.
-     * @return the amount of records that have been updated.
-     */
-    @Override
-    public Long updatePreservicaManifestation(String origin, Long mTimeFrom) {
-        try {
-            return DsDatahandlerFacade.updateManifestationForRecords(origin, mTimeFrom);
-        } catch (Exception e) {
-            throw handleException(e);
-        }
-    }
-
     @Override
     public ArrayList<String> importFromZip(String origin, Attachment fileNameDetail) {
         log.debug("importFromZip(origin='{}', ...) called with call details: {}", origin, getCallDetails());
