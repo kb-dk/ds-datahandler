@@ -20,8 +20,10 @@ paths:
     post:
        tags:
         - '${project.name}'
-       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records. Record format METS with mods. Record  ID from the record is <mods:identifier>. Record ID in storage will be origin:uuid-extracted-from<mods:identifier>'
-       
+       summary: 'Import records from ZIP file with records. Each file in the zip-file is a xml-document for single records. Record format METS with mods. Record  ID from the record is <mods:identifier>. Record ID in storage will be origin:uuid-extracted-from<mods:identifier>'      
+       security: 
+        - KBOAuth:
+          - any           
        operationId: importFromZip
        requestBody:
          content:
@@ -66,6 +68,9 @@ paths:
       tags:
         - '${project.name}'
       summary: 'Start full ingest of a OAI target into DS-storage. From time will be 1900-01-01. When called the job will finished if no errors are encountered even if the socket is closed from the client triggering the call. After full ingest ds-storage will be called again and all older recorders from before the ingest fill be deleted.'
+      security: 
+        - KBOAuth:
+          - any    
       operationId: oaiIngestFull
       parameters:
         - name: oaiTarget
@@ -89,6 +94,9 @@ paths:
       tags:
         - '${project.name}'
       summary: 'Start delta import of a OAI-target. From time will be the datestamp of the last record imported for that OAI target. When the import has finished it will update the datestamp. When called the job will finished if no errors are encountered even if the socket is closed from the client triggering the call.'
+      security: 
+        - KBOAuth:
+          - any   
       operationId: oaiIngestDelta
       parameters:
         - name: oaiTarget
@@ -114,6 +122,9 @@ paths:
       tags:
         - '${project.name}'
       summary: 'Will start indexing workflow that will read records from ds-storage, xslt transform them in ds-present and post the documents to solr.'
+      security: 
+        - KBOAuth:
+          - any   
       operationId: indexSolr
       parameters:
         - name: origin
@@ -153,6 +164,9 @@ paths:
       tags:
         - '${project.name}'
       summary: 'Will fetch records from storage without child ID and fetch the ID from preservica.'
+      security: 
+        - KBOAuth:
+          - any   
       operationId: updatePreservicaManifestation
       parameters:
         - name: origin
@@ -184,6 +198,9 @@ paths:
       tags:
         - '${project.name}'
       summary: 'Update the referenceId to KalturaID mapping table in ds-storage. Whem mapping is completed it will apply the mapping to records missing kalturaId'
+      security: 
+        - KBOAuth:
+          - any   
       operationId: updateKalturaIds
       parameters:
         - name: origin

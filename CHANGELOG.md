@@ -7,15 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Refactored OAI Response filters, to remove duplicate code from Preservica and DR filter
+- Make OAI Response filters parse XML correctly through the SAX API.
+
+### Fixed
+
+## [1.11.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.11.0) - 2025-03-05
+
+### Changed
+- removed generation of java-client API since datahandler is not supposed to be called from other modules.
 - make all loggers static
 - Only build suggest index if there was new documents indexed.
 - Bumped SwaggerUI dependency to v5.18.2
 - Bumped multiple OpenAPI dependency versions
+- Bumped kb-util to v1.6.9 for service2service oauth support.
 
 ### Fixed
 - Fixed inclusion of the same dependencies from multiple sources.
 - Fixed /api-docs wrongly showing petstore example API spec
-
 
 ## [1.10.4](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-1.10.4) - 2025-01-07
 ### Changed

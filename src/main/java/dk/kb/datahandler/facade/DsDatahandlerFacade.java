@@ -18,7 +18,6 @@ import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
 import dk.kb.datahandler.util.PreservicaUtils;
-import dk.kb.storage.invoker.v1.ApiException;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.webservice.stream.ContinuationInputStream;
@@ -41,12 +40,12 @@ import dk.kb.datahandler.oai.OaiResponseFilter;
 import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.SolrUtils;
 import dk.kb.kaltura.client.DsKalturaClient;
-import dk.kb.storage.client.v1.DsStorageApi;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.MappingDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
+import dk.kb.util.webservice.exception.ServiceException;
 
 
 public class DsDatahandlerFacade {
@@ -66,7 +65,7 @@ public class DsDatahandlerFacade {
      * @return Number of mappings updated.
      * @throws IOException,APIException 
      */
-    public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws IOException, ApiException {
+    public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws IOException, ServiceException {
         if (mTimeFrom == null) {
             mTimeFrom = 0L;
         }
@@ -165,10 +164,10 @@ public class DsDatahandlerFacade {
      * @param is InputStream. Must be a zip-file containing single files that each is an XML record.
      * @return List of strings containing the records that failed parsing.
      */    
-    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) {
+    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) throws ServiceException{
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
 
-        DsStorageApi dsAPI = getDsStorageApiClient();
+        DsStorageClient dsAPI = getDsStorageApiClient();
         ArrayList<String> errorRecords= new ArrayList<>();
 
         ZipEntry entry;
@@ -199,10 +198,13 @@ public class DsDatahandlerFacade {
             }
         } catch (IOException e) {
             errorRecords.add(fileName);
-            log.error("Error parsing xml record for file: '{}'", fileName, e);
-        } catch (ApiException e){
+            String msg="Error parsing xml record for file:"+ fileName;
+            log.error(msg, e);
+            throw new InvalidArgumentServiceException(msg);
+        } catch (ServiceException e){
             errorRecords.add(fileName);
             log.error("Error posting record with filename: '{}' to DsStorage.", fileName, e);
+            throw e; 
         }
 
         IOUtils.closeQuietly(zis);        
@@ -367,7 +369,7 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
-    private static Integer oaiIngestPerform(  DsDatahandlerJobDto job,OaiTargetDto oaiTargetDto, String from) throws IOException, ApiException {
+    private static Integer oaiIngestPerform(  DsDatahandlerJobDto job,OaiTargetDto oaiTargetDto, String from) throws IOException, ServiceException {
 
         //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format

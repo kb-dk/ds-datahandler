@@ -34,6 +34,8 @@ hs_err_pid*
 
 # Contains username and password for test instance
 oai_harvest.conf
+/src/test/resources/xml/4f706cda-f474-46c8-824b-5a62ed5a8bee.xml
+/src/test/resources/xml/054c55b3-ed3a-442c-99dd-1b80c0218114.xml
 
 # We use pom.xml as the source of truth and don't rely on a specific IDE
 .idea
