@@ -73,7 +73,7 @@ public class KalturaDeltaUploadJob {
         long mTimeFromCurrent = mTimeFrom;
         int numberStreamsUploaded=0;
         String uploadTagForKaltura=getUploadTagForKaltura();  
-
+        long minimumFileSizeInBytes=700; //This value has been defined by Asger+Petur
         String dsStorageUrl = ServiceConfig.getDsStorageUrl();
         DsStorageClient storageClient = new DsStorageClient(dsStorageUrl);
                         
@@ -107,10 +107,10 @@ public class KalturaDeltaUploadJob {
                    MediaType mediaType = KalturaUtil.getMediaType(resourceDescription);
                    int flavourParamId = KalturaUtil.getFlavourParamId(mediaType);
                    String path =KalturaUtil.generateStreamPath(fileId, originatesFrom, resourceDescription);
-                   log.info("starting uploading stream='{}' with title='{}",path,title);
+                   log.info("validating stream='{}' with title='{}'",path,title);
                  
-                   if (!validateFileExists(path)) {
-                       log.warn("File does not exist='{}'. Skipping upload", path);     
+                   if (!validateFileExistsAndMininumSize(path, minimumFileSizeInBytes)) {
+                       log.warn("File does not exist='{}' or size in bytes less than '{}'. Skipping upload", path, minimumFileSizeInBytes);     
                        continue;
                    }
                    
@@ -245,11 +245,26 @@ public class KalturaDeltaUploadJob {
     }
     
     /*
-     * Validate file exists on the file system.
+     * Validate file exists on the file system and also minimum size in bytes
      */
-    private static boolean validateFileExists(String filePath) {
-        Path path = Paths.get(filePath);
-        return Files.exists(path);
+    private static boolean validateFileExistsAndMininumSize(String filePath,long minimumSizeInBytes) {
+      Path path = Paths.get(filePath);         
+       if  (!Files.exists(path)){
+           return false;
+       }
+       long size=0;
+       try {
+           size= Files.size(path);
+         if (size<minimumSizeInBytes) {
+             log.warn("File '{}' exists but below minimum bytesize, size='{}'",filePath,size);
+             return false;                          
+         }
+       }
+         catch(Exception e) {
+           return false;
+        }       
+       log.debug("File '{}' exists and has size='{}'",filePath,size);
+       return true;
     }
 
     private static void initKalturaClient() {
