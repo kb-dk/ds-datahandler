@@ -180,5 +180,15 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }
     }
 
+    @Override
+    public void kalturaDeltaUpload(Long mTimeFrom) {    
+        try {
+           DsDatahandlerFacade.kalturaDeltaUpload(mTimeFrom);
+        }
+        catch(Exception e) {
+            throw handleException(e);
+        }                       
+    }
+
 
 }

@@ -192,6 +192,8 @@ paths:
                 type: integer
                 format: int64
                 
+                
+                               
 
   /enrichment/kalturaIds:
     get:
@@ -225,6 +227,31 @@ paths:
               schema:
                 type: integer
                 format: int64
+
+
+  /kaltura/deltaupload:
+    post:
+      tags:
+        - '${project.name}'
+      summary: 'Start job that uploading streams to kaltura that does not have an kaltura_id already and are not marked with access_malfunction.
+       Will only extract records from solr with access_malfuction:false and production_code_allowed:true
+       Storage records will be updated with the kalturaid.'
+      security: 
+        - KBOAuth:
+          - any   
+      operationId: kalturaDeltaUpload
+      parameters:    
+        - name: mTimeFrom
+          in: query
+          description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: No Content - The job has was finished and the server did not deliver any content.
+                
 
   # The ping service should be in all projects, should not do any advanced processing
   # and should respond quickly with a simple message, e.g. "pong".

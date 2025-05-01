@@ -34,6 +34,7 @@ import dk.kb.datahandler.model.v1.OaiTargetDto;
 
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.job.JobCache;
+import dk.kb.datahandler.kaltura.KalturaDeltaUploadJob;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiResponseFilter;
@@ -246,8 +247,7 @@ public class DsDatahandlerFacade {
      * Then fetch newer records from ds-storage, transform to solr documents in ds-present and index into solr.
      * @param origin to index records from.
      * @throws SolrServerException
-     * @throws IOException 
-     * @throws SolrServerException 
+     * @throws IOException  
      */
     public static String indexSolrDelta(String origin)  throws InternalServiceException, SolrServerException, IOException {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
@@ -264,6 +264,29 @@ public class DsDatahandlerFacade {
         return response;
     }
 
+    /**
+     * <p>
+     * Start job that uploading streams to kaltura that does not have an kaltura_id from the givcen mTimeFrom
+     * Will only extract records from Solr with access_malfuction:false and production_code_allowed:true 
+     * Storage records will be updated with the kalturaid.
+     * </p>
+     * @param mTimeFrom only uploading missing streams for records with mTimeFrom higher than this value. 
+     * @throws IOException 
+     * @throws SolrServerException 
+     */
+    public static void kalturaDeltaUpload(Long mTimeFrom)  throws InternalServiceException, SolrServerException, IOException {
+
+        DsDatahandlerJobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom);
+        try {
+          KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
+        }
+        catch(Exception e){
+            JobCache.finishJob(job, -1,true); //error
+            throw e; 
+        }                
+        JobCache.finishJob(job, -1,false);//No error.          
+    }
+    
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  

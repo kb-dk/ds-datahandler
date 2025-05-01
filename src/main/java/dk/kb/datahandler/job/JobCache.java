@@ -206,6 +206,31 @@ public class JobCache {
         return job;                
     }
     
+    
+    /**
+     * Generates a {@link DsDatahandlerJobDto for KalturaDeltaUpload}.
+     * <p>
+     * The job will have a unique timestamp used as ID.  
+     *   
+     */
+    public static synchronized DsDatahandlerJobDto createKalturaDeltaUploadJob(Long mTime) {                  
+
+       long id=JobCache.getNextId();
+
+        DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
+        job.setId(id);
+        job.setName("KALTURA DELTAUPLOAD FROM:"+mTime); //name is key in job cache. Only one job with this name can be started.
+        job.setType("KALTURA_DELTA_UPLOAD");
+        job.setFrom(parseMTime(mTime));
+        
+        //register job
+        JobCache.addNewJob(job);
+                
+        return job;                
+    }
+    
+    
+    
     private static String parseMTime(Long mTime) {
         return (mTime==null) ? "0":""+mTime;                 
     }
