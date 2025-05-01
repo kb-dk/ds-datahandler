@@ -208,6 +208,12 @@ kaltura:
   userId:  'xxx@kb.dk'
   adminSecret: 'xxxxxxx'
 
+streams:
+  domsRadioTvPath: '/radio-tv/'
+  preservicaTvPath: '/kuana-store/bart-access-copies-tv/'
+  preservicaRadioPath: '/kuana-store/bart-access-copies-radio/'
+
+
 security:
   # The security mode. Valid values are
   # OFFLINE: No validation of security tokens: All requests are accepted.

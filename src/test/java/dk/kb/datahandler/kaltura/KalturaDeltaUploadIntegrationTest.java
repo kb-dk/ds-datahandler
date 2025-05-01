@@ -1,14 +1,13 @@
 package dk.kb.datahandler.kaltura;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
-import java.nio.file.Path;
 
 import org.apache.solr.common.SolrDocumentList;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,22 +16,19 @@ import com.kaltura.client.enums.MediaType;
 
 import dk.kb.datahandler.config.ServiceConfig;
 
-import dk.kb.util.Resolver;
-
+@Tag("integration")
 public class KalturaDeltaUploadIntegrationTest {
 
     
     private static final Logger log = LoggerFactory.getLogger(KalturaDeltaUploadIntegrationTest.class);
-
-    
     
     @BeforeAll
     static void setup() {
         try {
-       ServiceConfig.initialize("ds-datahandler-integration-test.yaml");
+       ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml","ds-datahandler-integration-test.yaml");
         }
         catch(Exception e) {
-            log.error("error loading integration-test yaml");
+            log.error("error loading behaviour+integration test yaml");
         }
     }
     
@@ -57,13 +53,13 @@ public class KalturaDeltaUploadIntegrationTest {
             
        String title="test title audio";
        String referenceId="12345TEGAudio";
-       String description="test description audtion";
+       String description="test description audio";
        String tag="delta-2025-04-25";
        MediaType mediaType=MediaType.AUDIO;
        int flavourParamId= KalturaUtil.getFlavourParamId(mediaType);
        
        //Incomment if you want to run test.
-       String entryId=KalturaDeltaUploadJob.uploadStream(title, referenceId, description, filePath, tag, description, mediaType, flavourParamId);
+       String entryId=KalturaDeltaUploadJob.uploadStream(title, referenceId, description, filePath, tag, mediaType, flavourParamId);
        
        }
         catch(Exception e) {

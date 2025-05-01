@@ -77,7 +77,7 @@ public class DsDatahandlerFacade {
         //This is a good value and can also be used as batchSize against Kaltura.
 
         log.info("Starting resolving of Kaltura entry ID's for origin: '{}'. Resolving in batches of '{}' records.",
-                origin, batchSize);
+                 origin, batchSize);
 
         DsStorageClient dsAPI = getDsStorageApiClient();
         DsKalturaClient kalturaClient = getKalturaClient();
@@ -269,7 +269,9 @@ public class DsDatahandlerFacade {
      * Start job that uploading streams to kaltura that does not have an kaltura_id from the givcen mTimeFrom
      * Will only extract records from Solr with access_malfuction:false and production_code_allowed:true 
      * Storage records will be updated with the kalturaid.
-     * </p>
+     * <p>
+     * A solr delta indexing job will be started if both the job completes succesfully or fails. 
+     * 
      * @param mTimeFrom only uploading missing streams for records with mTimeFrom higher than this value. 
      * @throws IOException 
      * @throws SolrServerException 
@@ -277,14 +279,29 @@ public class DsDatahandlerFacade {
     public static void kalturaDeltaUpload(Long mTimeFrom)  throws InternalServiceException, SolrServerException, IOException {
 
         DsDatahandlerJobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom);
+        log.info("Starting kaltura delta upload from mTimeFrom="+mTimeFrom);
         try {
-          KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
+          
+          //upload strems  
+          int numberStreamsUploaded=KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
+          log.info("Kaltura delta uploaded completed sucessfully. #streams uploaded="+numberStreamsUploaded);
+          
+          //Index the records that has mTime modified due to kalturaId was set on record.
+          if (numberStreamsUploaded >0) {
+             log.info("Starting solr delta index job");
+             indexSolrDelta("ds.tv");          
+             indexSolrDelta("ds.radio");
+          }
+          
         }
         catch(Exception e){
+            log.error("Kaltura delta upload stopped due to error",e);
             JobCache.finishJob(job, -1,true); //error
             throw e; 
         }                
-        JobCache.finishJob(job, -1,false);//No error.          
+        JobCache.finishJob(job, -1,false);//No error.  
+        
+        
     }
     
     /**

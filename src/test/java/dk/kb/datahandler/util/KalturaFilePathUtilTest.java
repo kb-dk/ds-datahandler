@@ -2,13 +2,32 @@ package dk.kb.datahandler.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.kaltura.KalturaUtil;
 
+@Tag("integration")
 public class KalturaFilePathUtilTest {
+    
+    private static final Logger log = LoggerFactory.getLogger(KalturaFilePathUtilTest.class);
+    
+    @BeforeAll
+    static void setup() {
+        try {
+       ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml","ds-datahandler-integration-test.yaml");
+        }
+        catch(Exception e) {
+            log.error("error loading behaviour+integration test yaml");
+        }
+    }
 
-    @Test
+    
+    @Test   
     void streamPathResolvingTest() throws Exception {
         
         //Test all 4 different combinations.        

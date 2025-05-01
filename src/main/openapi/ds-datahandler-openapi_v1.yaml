@@ -248,6 +248,7 @@ paths:
           schema:
             type: integer
             format: int64
+            default: 0
       responses:
         '204':
           description: No Content - The job has was finished and the server did not deliver any content.

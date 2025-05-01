@@ -12,12 +12,21 @@ import dk.kb.datahandler.config.ServiceConfig;
 public class KalturaUtil {
 
 
-    //TODO properties.
-    private final static String DOMS_RADIOTV_PATH="/radio-tv/";     
-    private final static String PRESERVICA_TV_PATH="/kuana-store/bart-access-copies-tv/";
-    private final static String PRESERVICA_RADIO_PATH="/kuana-store/bart-access-copies-radio/";
+    private static String DOMS_RADIOTV_PATH;     
+    private static String PRESERVICA_TV_PATH;
+    private static String PRESERVICA_RADIO_PATH;
+    
+  
+    
+   
     
     private static final Logger log = LoggerFactory.getLogger(KalturaUtil.class);
+  
+     static {        
+        DOMS_RADIOTV_PATH = ServiceConfig.getConfig().getString("streams.domsRadioTvPath");
+        PRESERVICA_TV_PATH=ServiceConfig.getConfig().getString("streams.preservicaTvPath");
+        PRESERVICA_RADIO_PATH=ServiceConfig.getConfig().getString("streams.preservicaRadioPath");        
+    }
     
     
     /**

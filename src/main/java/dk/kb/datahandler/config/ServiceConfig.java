@@ -68,7 +68,6 @@ public class ServiceConfig {
      */
     public static synchronized void initialize(String... configFiles) throws IOException {
         serviceConfig = YAML.resolveLayeredConfigs(configFiles);
-        System.out.println(serviceConfig);
         loadOaiTargets();
         
         oaiTimestampFolder= serviceConfig.getString("timestamps.folder");
