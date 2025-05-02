@@ -387,7 +387,7 @@ public class DsDatahandlerFacade {
                 oaiFilter = new OaiResponseFilter(origin, dsAPI);
                 break;
             case DR:
-                oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI, oaiTargetDto.getFragmentServiceUrl());
+                oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI);
                 break;
             case PRESERVICA:
                 oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);

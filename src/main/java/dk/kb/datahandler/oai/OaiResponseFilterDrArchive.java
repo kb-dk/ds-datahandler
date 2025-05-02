@@ -22,8 +22,6 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
     private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterDrArchive.class);
     public static int nonDrRecords = 0;
 
-    private String fragmentServiceUrl = null;
-
 
     /**
      * @param datasource source for records. Default implementation uses this for {@code origin}.
@@ -31,11 +29,6 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
      */
     public OaiResponseFilterDrArchive(String datasource, DsStorageClient storage) {
         super(datasource, storage);
-    }
-
-    public OaiResponseFilterDrArchive(String datasource, DsStorageClient storage, String fragmentServiceUrl) {
-        super(datasource, storage);
-        this.fragmentServiceUrl = fragmentServiceUrl;
     }
 
     /**
@@ -82,16 +75,11 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
                 continue;
             }
 
-            if (!transcodingStatusIsDoneBoolean(handler, recordId)){
+            /*if (!transcodingStatusIsDoneBoolean(handler, recordId)){
                 continue;
-            }
+            }*/
 
             String origin = getOrigin(oaiRecord, datasource, handler);
-
-            // Enrich record
-            if (!StringUtil.isEmpty(fragmentServiceUrl) && "ds.tv".equals(origin)) {
-                DataEnricher.apply(fragmentServiceUrl,oaiRecord);
-            }
 
             try {
                 addToStorage(oaiRecord, origin);
