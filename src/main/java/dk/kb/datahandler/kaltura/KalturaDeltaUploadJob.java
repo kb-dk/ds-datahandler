@@ -24,7 +24,6 @@ import com.kaltura.client.enums.MediaType;
 
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.kaltura.client.DsKalturaClient;
-import dk.kb.storage.model.v1.MappingDto;
 import dk.kb.storage.model.v1.StreamErrorTypeDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
@@ -59,7 +58,7 @@ public class KalturaDeltaUploadJob {
     * <p>
     *  4.1) Upload the stream to kaltura. (Notice some streams do not have extension, but this seems not to be an issue with kaltura).
     * <p>
-    *  4.2) Update the record mapping the kaltura_id. 
+    *  4.2) Update the record's kalturaid in ds-storage 
     * <p>
     * All records that has been updated with error or kalturaId will have mTime updated to new value.
     * After completion the facade method will start a solr delta-index job. 
@@ -114,7 +113,7 @@ public class KalturaDeltaUploadJob {
                    String fileError= hasStreamFileError(path, minimumFileSizeInBytes);
                    if (fileError != null) {
                        log.warn("File does not exist='{}' or size in bytes less than '{}'. Error='{}'. Id='{}'. Skipping upload", path, minimumFileSizeInBytes,fileError,id);     
-                       setMappingForRecord(storageClient, fileId, fileError);
+                       updateKalturaIdForRecord(storageClient, fileId, fileError);
                        continue;                       
                    }
                    
@@ -122,7 +121,7 @@ public class KalturaDeltaUploadJob {
                    String kalturaInternalId=getInternalIdKaltura(fileId);
                    if (kalturaInternalId != null) {
                        log.warn("Stream allready found in kaltura. FileId='{}'. Setting this kalturaId for record.",kalturaInternalId  );
-                       setMappingForRecord(storageClient, fileId, kalturaInternalId);                       
+                       updateKalturaIdForRecord(storageClient, fileId, kalturaInternalId);                       
                        continue; //Do not upload stream
                    }
                    
@@ -131,13 +130,13 @@ public class KalturaDeltaUploadJob {
                      log.info("Upload stream='{}' and got kalturaId='{}'",path,kalturaId);
                      numberStreamsUploaded++; //Success count
                      //update storage record with kalturaId                     
-                     setMappingForRecord(storageClient, fileId, kalturaId);
+                     updateKalturaIdForRecord(storageClient, fileId, kalturaId);
                      log.info("Updated kaltura mapping in storage for fileId:"+fileId);  
                      continue; //Not required since nothing else happens below. But for consistency.
                    }
                    catch(Exception e) {  //Stop delta job
                        log.error("Failed uploading stream to kaltura with fileId='{}', path='{}', title='{}', error='{}'",fileId,path,title,e.getMessage());
-                       setMappingForRecord(storageClient, fileId, StreamErrorTypeDto.API.getValue()); //Mark as API error
+                       updateKalturaIdForRecord(storageClient, fileId, StreamErrorTypeDto.API.getValue()); //Mark as API error
                        throw new InternalServiceException("Failed uploading stream to kaltura with fileId="+fileId);
                    }                                    
                  }
@@ -162,11 +161,8 @@ public class KalturaDeltaUploadJob {
 
     }
 
-    private static void setMappingForRecord(DsStorageClient storageClient, String fileId, String kalturaInternalId) {
-        MappingDto mapping = new MappingDto();
-           mapping.setReferenceId(fileId);
-           mapping.setKalturaId(kalturaInternalId);
-           storageClient.mappingPost(mapping);
+    private static void updateKalturaIdForRecord(DsStorageClient storageClient, String fileId, String kalturaInternalId) {     
+           storageClient.updateKalturaIdForRecord(fileId, kalturaInternalId);
     }
 
     /**
