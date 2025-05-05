@@ -276,6 +276,8 @@ public class DsDatahandlerFacade {
      * <li>File too short</li>
      * <li>Kaltura API error. Very rare this happens. Have not seen it yet.</li>
      * </ul>
+     * <p>
+     * It is important to mark the records as failed or a new delta upload job will start processing the same streams with errors every time.
      *
      * <p>
      * A solr delta indexing job will be started if both the job completes succesfully or fails. 

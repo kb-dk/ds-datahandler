@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
--  New service method '/kaltura/deltaupload' that will upload new streams to Kaltura. The method will also update storage records witj kaltura entryId after each upload. When all uploads are completed it will start a solr delta-index job.
+-  New service method '/kaltura/deltaupload' that will upload new streams to Kaltura. The method will also update storage records with kaltura entryId after each upload. When all uploads are completed it will start a solr delta-index job. Errors will streams will be marked with StreamErrorTypeDto enum values
 
 ### Changed
 - Refactored OAI Response filters, to remove duplicate code from Preservica and DR filter

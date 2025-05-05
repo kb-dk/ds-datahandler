@@ -75,7 +75,9 @@ public class KalturaDeltaUploadJob {
         long mTimeFromCurrent = mTimeFrom;
         int numberStreamsUploaded=0;
         String uploadTagForKaltura=getUploadTagForKaltura();  
-        long minimumFileSizeInBytes=700; //This value has been defined by Asger+Petur
+        //The minimumFileSizeInBytesvalue has been defined by Asger+Petur. It has been burned into the kaltura bulk upload and must not be changed, unless we start with a new empty kaltura partnerid.
+        //Next time I recommend a much higher value such as 4096 etc, this is a few seconds of audio.
+        long minimumFileSizeInBytes=700; 
         String dsStorageUrl = ServiceConfig.getDsStorageUrl();
         DsStorageClient storageClient = new DsStorageClient(dsStorageUrl);
                         
@@ -178,7 +180,7 @@ public class KalturaDeltaUploadJob {
      */
     public static SolrDocumentList fetchSolrRecords(long mTimeFrom, int batchSize) throws SolrServerException, IOException {
         String solrUrl = "http://ds-devel01.kb.dk:10007/solr/ds";
-        String filterQuery = "access_malfunction:false AND production_code_allowed:true AND NOT kaltura_id:*";
+        String filterQuery = "access_malfunction:false AND production_code_allowed:true AND NOT kaltura_id:*";  // only valid streams that does not have kaltura id already
         SolrClient client = new Http2SolrClient.Builder(solrUrl).withConnectionTimeout(1, TimeUnit.MINUTES).build();
 
         String query = "internal_storage_mTime:[" + mTimeFrom + " TO *]"; // mTimeFrom must start with this value or higher.
