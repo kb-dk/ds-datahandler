@@ -294,7 +294,7 @@ public class DsDatahandlerFacade {
           
           //upload strems  
           int numberStreamsUploaded=KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
-          log.info("Kaltura delta uploaded completed sucessfully. #streams uploaded="+numberStreamsUploaded);
+          log.info("Kaltura delta uploaded completed sucessfully. #streams uploaded={}",numberStreamsUploaded);
           
           //Index the records that has mTime modified due to kalturaId was set on record.
           if (numberStreamsUploaded >0) {
@@ -305,7 +305,7 @@ public class DsDatahandlerFacade {
           
         }
         catch(Exception e){
-            log.error("Kaltura delta upload stopped due to error",e);
+            log.error("Kaltura delta upload/indexing stopped due to error",e);
             JobCache.finishJob(job, -1,true); //error
             throw e; 
         }                

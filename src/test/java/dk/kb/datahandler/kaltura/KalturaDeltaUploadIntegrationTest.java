@@ -46,10 +46,13 @@ public class KalturaDeltaUploadIntegrationTest {
 
     @Test
     void uploadStreamTest() throws Exception {
-        try {
-
-       //It is inteded this is a local file. After upload it must be delete in the KMC            
-       String filePath="/home/teg/Music/Boz_-_BBB_20191202.mp3";            
+       try {
+       /*
+       * WARNING! For this test to success you need to change both filePath to a local file
+       * and referenceId to a new value not in the KMC.
+       * Afterwards you must to delete the file in the KMC which you can find using the referenceId.          
+       */            
+       String filePath="/home/teg/Music/Boz_-_BBB_20191202.mp3";  //Will fail if file does not exist.          
             
        String title="test title audio";
        String referenceId="12345TEGAudio";
@@ -59,7 +62,7 @@ public class KalturaDeltaUploadIntegrationTest {
        int flavourParamId= KalturaUtil.getFlavourParamId(mediaType);
        
        //Incomment if you want to run test.
-       String entryId=KalturaDeltaUploadJob.uploadStream(title, referenceId, description, filePath, tag, mediaType, flavourParamId);
+       //String entryId=KalturaDeltaUploadJob.uploadStream(title, referenceId, description, filePath, tag, mediaType, flavourParamId);
        
        }
         catch(Exception e) {

@@ -219,7 +219,7 @@ public class JobCache {
 
         DsDatahandlerJobDto  job = new DsDatahandlerJobDto();
         job.setId(id);
-        job.setName("KALTURA DELTAUPLOAD FROM:"+mTime); //name is key in job cache. Only one job with this name can be started.
+        job.setName("KALTURA DELTAUPLOAD"); //name is key in job cache. Only one job with this name can be started.
         job.setType("KALTURA_DELTA_UPLOAD");
         job.setFrom(parseMTime(mTime));
         
