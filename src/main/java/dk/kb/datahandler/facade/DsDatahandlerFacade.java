@@ -266,19 +266,27 @@ public class DsDatahandlerFacade {
 
     /**
      * <p>
-     * Start job that uploading streams to kaltura that does not have an kaltura_id from the givcen mTimeFrom
+     * Start job that uploading streams to kaltura that does not have an kaltura_id from the given mTimeFrom
+     * <p>
      * Will only extract records from Solr with access_malfuction:false and production_code_allowed:true 
-     * Storage records will be updated with the kalturaid.
+     * <p>
+     * Storage records will be updated with the kalturaid or error message. Errors are
+     * <ul>
+     * <li>File missing</li>
+     * <li>File too short</li>
+     * <li>Kaltura API error. Very rare this happens. Have not seen it yet.</li>
+     * </ul>
+     *
      * <p>
      * A solr delta indexing job will be started if both the job completes succesfully or fails. 
      * 
-     * @param mTimeFrom only uploading missing streams for records with mTimeFrom higher than this value. 
+     * @param mTimeFrom only uploading missing streams for records with mTimeFrom this value or higher 
      * @throws IOException 
      * @throws SolrServerException 
      */
     public static void kalturaDeltaUpload(Long mTimeFrom)  throws InternalServiceException, SolrServerException, IOException {
 
-        DsDatahandlerJobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom);
+        DsDatahandlerJobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom); //For job cache
         log.info("Starting kaltura delta upload from mTimeFrom="+mTimeFrom);
         try {
           

@@ -235,7 +235,7 @@ paths:
         - '${project.name}'
       summary: 'Start job that uploading streams to kaltura that does not have an kaltura_id already and are not marked with access_malfunction.
        Will only extract records from solr with access_malfuction:false and production_code_allowed:true
-       Storage records will be updated with the kalturaid.'
+       Storage records will be updated with the kalturaid. An solr delta index will be started after the job finishes. Also if it finishes unexpected'
       security: 
         - KBOAuth:
           - any   
@@ -243,7 +243,7 @@ paths:
       parameters:    
         - name: mTimeFrom
           in: query
-          description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
+          description: 'Start from records with this mTimeFrom or later. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
           required: false
           schema:
             type: integer
