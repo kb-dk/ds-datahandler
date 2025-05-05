@@ -56,7 +56,8 @@ public class KalturaDeltaUploadJob {
     * <p>   
     * 4) For each new stream:
     * <p>
-    *  4.1) Upload the stream to kaltura. (Notice some streams do not have extension, but this seems not to be an issue with kaltura).
+    *  4.1) Upload the stream to kaltura. (Notice some streams do not have extension, but this seems not to be an issue with kaltura). The kaltura tag
+    *  for upload is 'delta-2025-05-01' where last part is current day.
     * <p>
     *  4.2) Update the record's kalturaid in ds-storage 
     * <p>
