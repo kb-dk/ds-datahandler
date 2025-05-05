@@ -174,8 +174,8 @@ public class KalturaDeltaUploadJob {
      * @throws SolrServerException
      * @throws IOException
      */
-    public static SolrDocumentList fetchSolrRecords(long mTimeFrom, int batchSize) throws SolrServerException, IOException {
-        String solrUrl = "http://ds-devel01.kb.dk:10007/solr/ds";
+    public static SolrDocumentList fetchSolrRecords(long mTimeFrom, int batchSize) throws SolrServerException, IOException {             
+        String solrUrl = ServiceConfig.getSolrQueryUrl();        
         String filterQuery = "access_malfunction:false AND production_code_allowed:true AND NOT kaltura_id:*";  // only valid streams that does not have kaltura id already
         SolrClient client = new Http2SolrClient.Builder(solrUrl).withConnectionTimeout(1, TimeUnit.MINUTES).build();
 
