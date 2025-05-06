@@ -170,6 +170,12 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
     }
 
     public RecordType getRecordType() {
+
+        if (recordType == null ) {
+            log.warn("Record type was null, setting it to UNKNOWN");
+            return RecordType.UNKNOWN;
+        }
+
         return recordType;
     }
 
