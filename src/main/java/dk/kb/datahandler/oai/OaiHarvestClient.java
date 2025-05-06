@@ -215,23 +215,13 @@ public class OaiHarvestClient {
     }
 
     /**
-     * Call server and get response setting both password callback authenticator and set basic authentication in every single call
-     * Preservica5  used the callback and set a session cookie
-     * Preservica6 wants basic authentication in every single call.
+     * Call server and get response and set basic authentication in every single call.
+     * Preservica 7 wants basic authentication in every single call.
      * <p>
      * The solution is to do both.
      */
     protected static String getHttpResponse(String uri, String user, String password) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder()
-                .authenticator(new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(
-                                user,
-                                password.toCharArray());
-                    }
-
-                }).build();
+        HttpClient client = HttpClient.newBuilder().build();
 
         HttpRequest request = HttpRequest.newBuilder()                          
                 .uri(URI.create(uri))
