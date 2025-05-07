@@ -52,6 +52,19 @@ public class ServiceConfig {
     private static int oaiRetryTimes = 5;
     private static int oaiRetrySeconds = 600;
 
+    private static String kalturaUrl=null;
+    private static Integer kalturaPartnerId =null;
+    private static String kalturaUserId = null;
+    private static String kalturaToken = null;
+    private static String kalturaTokenId = null;
+    private static String kalturaAdminSecret = null;
+    private static int kalturaFlavourParamIdVideo=0;
+    private static int kalturaFlavourParamIdAudio=0;
+    
+    private static String streamPathDomsRadioTv=null;
+    private static String streamPathPreservicaTv=null;
+    private static String streamPathPreservicaRadio=null;
+    
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -86,6 +99,21 @@ public class ServiceConfig {
         preservicaRetryTimes = serviceConfig.getInteger("preservica.retryTimes", 5); // Defaulting to 5 tries.
         preservicaThreads = serviceConfig.getInteger("preservica.threads", 5); // Defaulting to five threads.
 
+
+        kalturaUrl = ServiceConfig.getConfig().getString("kaltura.url");
+        kalturaPartnerId = ServiceConfig.getConfig().getInteger("kaltura.partnerId");
+        kalturaUserId = ServiceConfig.getConfig().getString("kaltura.userId");
+        kalturaToken = ServiceConfig.getConfig().getString("kaltura.token");
+        kalturaTokenId = ServiceConfig.getConfig().getString("kaltura.tokenId");
+        //Do not use kaltura adminsecret, use token and tokenId instead.
+        kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
+        kalturaFlavourParamIdVideo = ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdVideo");
+        kalturaFlavourParamIdAudio = ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdAudio");
+        
+        streamPathDomsRadioTv=ServiceConfig.getConfig().getString("streams.domsRadioTvPath");   
+        streamPathPreservicaTv=ServiceConfig.getConfig().getString("streams.preservicaTvPath");
+        streamPathPreservicaRadio=ServiceConfig.getConfig().getString("streams.preservicaRadioPath");   
+                 
         oaiRetryTimes = serviceConfig.getInteger("oaiConfig.retryTimes", 5); // Defaulting to 5 retries
         oaiRetrySeconds = serviceConfig.getInteger("oaiConfig.retrySeconds", 600); // Defaulting to 10 minuts
 
@@ -213,6 +241,47 @@ public class ServiceConfig {
         return preservicaThreads;
     }
 
+    public static String getKalturaUrl() {
+        return kalturaUrl;
+    }
+
+    public static Integer getKalturaPartnerId() {
+        return kalturaPartnerId;
+    }
+
+    public static String getKalturaUserId() {
+        return kalturaUserId;
+    }
+
+    public static String getKalturaToken() {
+        return kalturaToken;
+    }
+
+    public static String getKalturaTokenId() {
+        return kalturaTokenId;
+    }
+   
+    
+    public static int getKalturaFlavourParamIdVideo() {
+        return kalturaFlavourParamIdVideo;
+    }
+  
+    public static int getKalturaFlavourParamIdAudio() {
+        return kalturaFlavourParamIdAudio;
+    }
+
+    public static YAML getServiceConfig() {
+        return serviceConfig;
+    }
+
+    public static String getKalturaAdminSecret() {
+        return kalturaAdminSecret;
+    }
+
+    
+    
+    
+    
     private static void loadOaiTargets() {
         List<YAML> targets = serviceConfig.getYAMLList("oaiTargets");
         for (YAML target: targets) {
@@ -261,6 +330,18 @@ public class ServiceConfig {
         }
         
         log.info("Number of OAI targets loaded:"+oaiTargets.size());        
+    }
+
+    public static String getStreamPathDomsRadioTv() {
+        return streamPathDomsRadioTv;
+    }
+
+    public static String getStreamPathPreservicaTv() {
+        return streamPathPreservicaTv;
+    }
+
+    public static String getStreamPathPreservicaRadio() {
+        return streamPathPreservicaRadio;
     }
 
     

@@ -14,6 +14,7 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
+import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -100,9 +101,9 @@ public class KalturaDeltaUploadJob {
                    String fileId=(String) doc.getFieldValue("file_id");
                    String id=(String) doc.getFieldValue("id");
                    String originatesFrom= (String) doc.getFieldValue("originates_from");                                       
-                   long mTime= (Long) doc.getFieldValue("internal_storage_mTime");
+                   long recordMtime  = (Long) doc.getFieldValue("internal_storage_mTime");
                    
-                   mTimeFromCurrent=mTime; //update mTime for next call                   
+                   mTimeFromCurrent=recordMtime ; //update mTime for next call                   
                                  
                    try {                                    
                    //upload stream
@@ -120,7 +121,7 @@ public class KalturaDeltaUploadJob {
                    // Check file not already in kaltura. 
                    String kalturaInternalId=getInternalIdKaltura(fileId);
                    if (kalturaInternalId != null) {
-                       log.warn("Stream allready found in kaltura. FileId='{}'. Setting this kalturaId for recordId='{}'",kalturaInternalId,id);
+                       log.warn("Stream allready found in kaltura. FileId='{}' and has kalturaId='{}'. Setting this kalturaId for recordId='{}'", fileId,kalturaInternalId,id);
                        updateKalturaIdForRecord(storageClient, fileId, kalturaInternalId);                       
                        continue; //Do not upload stream
                    }
@@ -177,8 +178,9 @@ public class KalturaDeltaUploadJob {
     public static SolrDocumentList fetchSolrRecords(long mTimeFrom, int batchSize) throws SolrServerException, IOException {             
         String solrUrl = ServiceConfig.getSolrQueryUrl();        
         String filterQuery = "access_malfunction:false AND production_code_allowed:true AND NOT kaltura_id:*";  // only valid streams that does not have kaltura id already
-        SolrClient client = new Http2SolrClient.Builder(solrUrl).withConnectionTimeout(1, TimeUnit.MINUTES).build();
-
+        
+        HttpJdkSolrClient client = new HttpJdkSolrClient.Builder(solrUrl).build();
+                
         String query = "internal_storage_mTime:[" + mTimeFrom + " TO *]"; // mTimeFrom must start with this value or higher.
         String fieldList = "title,description,file_id,id,resource_description,originates_from,internal_storage_mTime"; // only extract fields we need
 
@@ -213,9 +215,9 @@ public class KalturaDeltaUploadJob {
     public static String uploadStream(String title, String referenceId, String description, String filePath, String tag, MediaType mediaType, int flavourParamId) throws IOException {
 
         initKalturaClient();
-        log.info("Starting upload stream. FilePath='{}' with flavorParamId='{}'" + filePath,flavourParamId);
+        log.info("Starting upload stream. FilePath='{}' with flavorParamId='{}'", filePath,flavourParamId);
         String entryId = kalturaClient.uploadMedia(filePath, referenceId, mediaType, title, description, tag, flavourParamId);
-        log.info("Upload completed. FilePath='{}': with filerefence='{}': and got kaltura entryid='{}'" + filePath,referenceId,entryId);
+        log.info("Upload completed. FilePath='{}' with filerefence='{}' and got kaltura entryid='{}'" + filePath,referenceId,entryId);
         return entryId;
 
     }
@@ -257,7 +259,14 @@ public class KalturaDeltaUploadJob {
      * <p>
      * StreamErrorTypeDto.FILE_TOO_SHORT<b>
      * StreamErrorTypeDto.FILE_MISSING
-     * @p
+     * <p>
+     * 
+     * 
+     * @param filePath fill path to stream. 
+     * @param minimum size in bytes allowed
+     * 
+     * @return  StreamErrorTypeDto error or null if file exists has large enough.
+     * 
      */
     private static String hasStreamFileError(String filePath,long minimumSizeInBytes) {
       Path path = Paths.get(filePath);         
@@ -284,14 +293,15 @@ public class KalturaDeltaUploadJob {
             return; // already inititalised
         }
 
-        String kalturaUrl = ServiceConfig.getConfig().getString("kaltura.url");
-        Integer partnerId = ServiceConfig.getConfig().getInteger("kaltura.partnerId");
+        String kalturaUrl = ServiceConfig.getKalturaUrl();
+        Integer partnerId = ServiceConfig.getKalturaPartnerId();
         String adminSecret = null;// We use appTokens instead
-        String userId = ServiceConfig.getConfig().getString("kaltura.userId");
-        String token = ServiceConfig.getConfig().getString("kaltura.token");
-        String tokenId = ServiceConfig.getConfig().getString("kaltura.tokenId");
+        String userId = ServiceConfig.getKalturaUserId();
+        String token = ServiceConfig.getKalturaToken();
+        String tokenId = ServiceConfig.getKalturaTokenId();
+        int dayInSeconds=86400;  //60*60*24
         try {
-            kalturaClient = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, 86400);
+            kalturaClient = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, dayInSeconds);
         } catch (Exception e) {
             log.error("Could not instantiate DsKaltura client.", e);
         }

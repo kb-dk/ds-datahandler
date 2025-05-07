@@ -268,7 +268,7 @@ public class DsDatahandlerFacade {
      * <p>
      * Start job that uploading streams to kaltura that does not have an kaltura_id from the given mTimeFrom
      * <p>
-     * Will only extract records from Solr with access_malfuction:false and production_code_allowed:true 
+     * Will only extract records from Solr with access_malfunction:false and production_code_allowed:true 
      * <p>
      * Storage records will be updated with the kalturaid or error message. Errors are
      * <ul>
@@ -481,16 +481,16 @@ public class DsDatahandlerFacade {
 
 
     private static DsKalturaClient getKalturaClient() throws IOException {
-        String kalturaUrl= ServiceConfig.getConfig().getString("kaltura.url");
-        String adminSecret = ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
-        Integer partnerId = ServiceConfig.getConfig().getInteger("kaltura.partnerId");  
-        String userId = ServiceConfig.getConfig().getString("kaltura.userId");                               
-        String token= ServiceConfig.getConfig().getString("kaltura.token");
-        String tokenId= ServiceConfig.getConfig().getString("kaltura.tokenId");
+        String kalturaUrl= ServiceConfig.getKalturaUrl();
+        String adminSecret = ServiceConfig.getKalturaAdminSecret();
+        Integer partnerId = ServiceConfig.getKalturaPartnerId();  
+        String userId = ServiceConfig.getKalturaUserId();                               
+        String token= ServiceConfig.getKalturaToken();
+        String tokenId= ServiceConfig.getKalturaTokenId();
        
-        long sessionKeepAliveSeconds=3600L; //1 hour
+        long sessionKeepAliveSecondsIn1Hour=3600L; //1 hour
         log.info("creating kaltura client for partnerID:"+partnerId);     
-        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,sessionKeepAliveSeconds);
+        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,sessionKeepAliveSecondsIn1Hour);
         return kalturaClient;
     }
 

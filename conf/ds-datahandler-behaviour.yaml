@@ -202,11 +202,18 @@ present:
     - Simulated-OAuth2-Group: anonymous
 
 
+# Kaltura properties. Use token+tokenId as credentials instead of admin-secret. 
+# The two flavour params depend on the kaltura partnerId. The values 3 and 359 match stage and prod kaltura.
 kaltura:
   url:  'XX'
   partnerId:  xxx
   userId:  'xxx@kb.dk'
   adminSecret: 'xxxxxxx'
+  token: 'XXXX'
+  tokenId: 'XXX'
+  flavourParamIdVideo: 3
+  flavourParamIdAudio: 359
+
 
 streams:
   domsRadioTvPath: '/radio-tv/'

@@ -16,18 +16,19 @@ public class KalturaUtil {
     private static String PRESERVICA_TV_PATH;
     private static String PRESERVICA_RADIO_PATH;
     
-  
-    
-   
-    
-    private static final Logger log = LoggerFactory.getLogger(KalturaUtil.class);
-  
-     static {        
-        DOMS_RADIOTV_PATH = ServiceConfig.getConfig().getString("streams.domsRadioTvPath");
-        PRESERVICA_TV_PATH=ServiceConfig.getConfig().getString("streams.preservicaTvPath");
-        PRESERVICA_RADIO_PATH=ServiceConfig.getConfig().getString("streams.preservicaRadioPath");        
+    //these values are from preservica field and has to be defined here.   
+    enum ORGINATES_FROM {
+        DOMS,
+        Preservica
     }
     
+    private static final Logger log = LoggerFactory.getLogger(KalturaUtil.class);
+
+    static {        
+        DOMS_RADIOTV_PATH = ServiceConfig.getStreamPathDomsRadioTv();
+        PRESERVICA_TV_PATH=ServiceConfig.getStreamPathPreservicaTv();
+        PRESERVICA_RADIO_PATH=ServiceConfig.getStreamPathPreservicaRadio();        
+    }
     
     /**
      * Map resourceDescription to Kaltura MediaType
@@ -48,15 +49,15 @@ public class KalturaUtil {
     /**
      * Map Kaltura MediaType  to correct flavourParamId
      * 
-     * @param resourceDescription VideoObject or AudioObject
+     * @param mediaType VideoObject or AudioObject
      * @return flavourParamId  FlavourId for video or Audio. Depend on the KMC partner ID. Not the same across kaltura environments
      */
     public static int getFlavourParamId(MediaType mediaType) {
         if (MediaType.VIDEO.equals(mediaType)){
-            return ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdVideo");
+            return ServiceConfig.getKalturaFlavourParamIdVideo();
         }
         else {
-            return ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdAudio");
+            return ServiceConfig.getKalturaFlavourParamIdAudio();
         }                         
     }
     
@@ -68,12 +69,11 @@ public class KalturaUtil {
      * @param resourceDescription VideoObject or AudioObjext  
      * @throws IOException If path can not be resolved
      */
-    public static String generateStreamPath(String fileId, String originatesFrom, String resourceDescription) throws IOException {
-        
-        if ("DOMS".equals(originatesFrom)) {            
+    public static String generateStreamPath(String fileId, String originatesFrom, String resourceDescription) throws IOException {        
+        if (ORGINATES_FROM.DOMS.name().equals(originatesFrom)) {            
                 return generateDomsDownloadPath(fileId, resourceDescription);                        
         }
-        else if ("Preservica".equals(originatesFrom)) {        
+        else if (ORGINATES_FROM.Preservica.name().equals(originatesFrom)) {        
             return generatePreservicaRadioTvPath(fileId, resourceDescription);                
         }
        else {

@@ -251,7 +251,7 @@ paths:
             default: 0
       responses:
         '204':
-          description: No Content - The job has was finished and the server did not deliver any content.
+          description: No Content - The job finished and the server did not deliver any content.
                 
 
   # The ping service should be in all projects, should not do any advanced processing
