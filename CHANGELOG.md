@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+-  New service method '/kaltura/deltaupload' that will upload new streams to Kaltura. The method will also update storage records with kaltura entryId after each  upload. When all uploads are completed it will start a solr delta-index job. Errors will streams will be marked with StreamErrorTypeDto enum values. License module must be updated so both missing kalturaId's and id's that start with 'ERROR_' are filtered away.
+
 
 ### Changed
 - Refactored OAI Response filters, to remove duplicate code from Preservica and DR filter
