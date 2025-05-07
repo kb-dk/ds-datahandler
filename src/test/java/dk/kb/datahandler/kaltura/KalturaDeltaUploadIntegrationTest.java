@@ -1,5 +1,6 @@
 package dk.kb.datahandler.kaltura;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -54,11 +55,10 @@ public class KalturaDeltaUploadIntegrationTest {
             String tag = "delta-2025-04-25";
             MediaType mediaType = MediaType.AUDIO;
             int flavourParamId = KalturaUtil.getFlavourParamId(mediaType);
-
-            // Incomment if you want to run test.
-            // String entryId=KalturaDeltaUploadJob.uploadStream(title, referenceId,
-            // description, filePath, tag, mediaType, flavourParamId);
-
+            String kalturaEntryId;
+            // Incomment two lines below if you want to run test.
+            //kalturaEntryId=KalturaDeltaUploadJob.uploadStream(title, referenceId,description, filePath, tag, mediaType, flavourParamId);
+            //assertNotNull(kalturaEntryId);
         } catch (Exception e) {
             e.printStackTrace();
             fail("Upload failed");
