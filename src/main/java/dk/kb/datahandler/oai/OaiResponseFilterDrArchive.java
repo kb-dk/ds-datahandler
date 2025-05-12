@@ -75,9 +75,9 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
                 continue;
             }
 
-            /*if (!transcodingStatusIsDoneBoolean(handler, recordId)){
+            if (!transcodingStatusIsDoneBoolean(handler, recordId)){
                 continue;
-            }*/
+            }
 
             String origin = getOrigin(oaiRecord, datasource, handler);
 
