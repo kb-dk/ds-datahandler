@@ -304,7 +304,7 @@ public class DsDatahandlerFacade {
           }
           
         }
-        catch(Exception e){
+        catch(Throwable e){
             log.error("Kaltura delta upload/indexing stopped due to error",e);
             JobCache.finishJob(job, -1,true); //error
             throw e; 
