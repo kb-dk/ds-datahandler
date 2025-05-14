@@ -75,7 +75,7 @@ public class SolrUtils {
      */
     public static String indexOrigin(String origin, Long sinceTime){
         //DS-present client
-        DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getConfig());
+        DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getDsPresentUrl());
         // Solr update client
         URL solrUpdateUrl;
                 
