@@ -17,22 +17,25 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
     public boolean recordHasMetadata = false;
     public boolean recordIsDr = false;
     public RecordType recordType = null;
+    public String fileReference = null;
 
     public enum RecordType {RADIO, TV, UNKNOWN}
 
     private boolean isPublisher = false;
     private boolean isFormatMediaType = false;
     private boolean isTranscodingStatus = false;
-    private boolean isMetadata = false;
+    private boolean isTranscodingMetadata = false;
+    private boolean isSpecificRadioTvTranscodingStatus = false;
+    private boolean isAccessFilePath = false;
 
     // TODO: Could these be one stringbuilder which gets reset after each iteration
     private StringBuilder publisherContent = new StringBuilder();
     private StringBuilder formatMediaTypeContent = new StringBuilder();
     private StringBuilder transcodingStatusContent = new StringBuilder();
-    private StringBuilder metadataContent = new StringBuilder();
+    private StringBuilder accessFilePathContent = new StringBuilder();
 
     private static final String pbCoreSchemaUri = "http://www.pbcore.org/PBCore/PBCoreNamespace.html";
-
+    private static final String transcodingSchemaUri = "http://id.kb.dk/schemas/radiotv_access/transcoding_status";
 
     /**
      * This method is called when the parser encounters a start element in the XML document.
@@ -72,13 +75,22 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
         }
 
         if (qName.equalsIgnoreCase("Metadata")) {
-            isMetadata = true;
-
             // Check if the schemaUri attribute is present and is pbcore schema
             String schemaUri = attributes.getValue("schemaUri");
             if (schemaUri != null && schemaUri.equals(pbCoreSchemaUri)) {
                 recordHasMetadata = true;
             }
+            if (transcodingSchemaUri.equalsIgnoreCase(schemaUri)) {
+                isTranscodingMetadata = true;
+            }
+        }
+
+        if ("specificRadioTvTranscodingStatus".equalsIgnoreCase(qName)) {
+            isSpecificRadioTvTranscodingStatus = true;
+        }
+
+        if ("accessFilePath".equalsIgnoreCase(qName)) {
+            isAccessFilePath = true;
         }
     }
 
@@ -149,9 +161,33 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
         }
 
         if (qName.equalsIgnoreCase("Metadata")) {
-            isMetadata = false;
+            isTranscodingMetadata= false;
         }
 
+        if ("specificRadioTvTranscodingStatus".equalsIgnoreCase(qName)) {
+            isSpecificRadioTvTranscodingStatus = false;
+        }
+
+        if ("accessFilePath".equalsIgnoreCase(qName)) {
+            if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus) {
+                fileReference = getFileReference(accessFilePathContent);
+            }
+            isAccessFilePath = false;
+        }
+
+    }
+
+    private String getFileReference(StringBuilder accessFilePathContent) {
+        String fileRef = accessFilePathContent.toString();
+        int lastSlashIndex = fileRef.lastIndexOf("/");
+        if (lastSlashIndex != -1) {
+            fileRef = fileRef.substring(lastSlashIndex + 1);
+        }
+        int firstDotIndex = fileRef.indexOf(".");
+        if (firstDotIndex != -1) {
+            fileRef = fileRef.substring(0, firstDotIndex);
+        }
+        return fileRef;
     }
 
     @Override
@@ -166,6 +202,10 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
         if (isTranscodingStatus) {
             transcodingStatusContent.append(ch, start, length); // Collect formatMediaType content
+        }
+
+        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && isAccessFilePath) {
+            accessFilePathContent.append(ch, start, length);
         }
     }
 
@@ -183,5 +223,9 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
     public boolean isRecordTranscoded() {
         return recordIsTranscoded;
+    }
+
+    public String getFileReference() {
+        return fileReference;
     }
 }

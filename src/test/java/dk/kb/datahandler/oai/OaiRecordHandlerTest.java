@@ -58,4 +58,14 @@ public class OaiRecordHandlerTest {
 
         assertTrue(handler.isRecordDr());
     }
+
+    @Test
+    public void testFileReference() throws IOException, SAXException, ParserConfigurationException {
+        SAXParser saxParser = factory.newSAXParser();
+        PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+        saxParser.parse(Resolver.resolveStream("xml/aaa668c2-bf17-4ce7-bf24-d0ff5d29d097.xml"), handler);
+
+        assertEquals("c8d2e73c-0943-4b0d-ab1f-186ef10d8eb4",handler.getFileReference());
+
+    }
 }
