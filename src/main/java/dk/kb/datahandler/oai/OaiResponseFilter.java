@@ -19,6 +19,7 @@ import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.ServiceException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.helpers.DefaultHandler;
@@ -66,14 +67,23 @@ public class OaiResponseFilter {
         addToStorage(oaiRecord, origin);
     }
 
+    public void addToStorage(OaiRecord oaiRecord, String origin) throws ServiceException {
+        addToStorage(oaiRecord, origin, null);
+    }
+
     /**
      * Add record from an OAI-PMH harvest to ds-storage. The public implementation does not resolve parent and
      * sets the type to {@link RecordTypeDto#DELIVERABLEUNIT}.
      * @param oaiRecord     a record from an OAI-PMH response
      * @param origin        the origin, which the record is added to in ds-storage.
+     * @param referenceId   the reference for the record (file ID)
      */
-    public void addToStorage(OaiRecord oaiRecord, String origin) throws ServiceException {
+    public void addToStorage(OaiRecord oaiRecord, String origin, String referenceId) throws ServiceException {
         String storageId = origin + ":" + oaiRecord.getId();
+        log.debug("adding with ref id "+oaiRecord.getId()+" "+referenceId);
+        if (StringUtils.isEmpty(referenceId)) {
+            log.warn("OAI Record with ID: '{}', has empty reference ID, it is not added to DS-Storage.", oaiRecord.getId());
+        }
         if (oaiRecord.isDeleted()) {
             storage.markRecordForDelete(storageId);
         } else if (origin.isEmpty()){
@@ -81,7 +91,7 @@ public class OaiResponseFilter {
         }
         else {
             String parentID = getParentID(oaiRecord, origin);
-            addOrUpdateRecord(oaiRecord, storageId, parentID, origin);
+            addOrUpdateRecord(oaiRecord, storageId, parentID, origin,referenceId);
         }
     }
 
@@ -131,7 +141,7 @@ public class OaiResponseFilter {
      * @param storageId id given to the record in ds-storage.
      * @param origin    the origin for the record.
      */
-    private void addOrUpdateRecord(OaiRecord oaiRecord, String storageId, String parentID, String origin)
+    private void addOrUpdateRecord(OaiRecord oaiRecord, String storageId, String parentID, String origin, String referenceID)
             throws ServiceException {
         DsRecordDto dsRecord = new DsRecordDto();
         dsRecord.setId(storageId);
@@ -139,6 +149,7 @@ public class OaiResponseFilter {
         dsRecord.setParentId(parentID); // Does not matter if null is set
         dsRecord.setData(oaiRecord.getMetadata());
         dsRecord.setRecordType(getRecordType(dsRecord, storageId));
+        dsRecord.setReferenceId(referenceID);
         storage.recordPost(dsRecord);
     }
 }

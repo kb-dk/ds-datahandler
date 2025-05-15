@@ -94,7 +94,7 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
             }
 
             try {
-                addToStorage(oaiRecord, origin);
+                addToStorage(oaiRecord, origin,handler.fileReference);
                 processed++;
             } catch (ServiceException e){
                 log.warn("DsStorage threw an exception when adding OAI record from Preservica 7 to storage.");
