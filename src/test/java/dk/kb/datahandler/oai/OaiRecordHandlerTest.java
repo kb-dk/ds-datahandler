@@ -64,8 +64,10 @@ public class OaiRecordHandlerTest {
         SAXParser saxParser = factory.newSAXParser();
         PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
         saxParser.parse(Resolver.resolveStream("xml/aaa668c2-bf17-4ce7-bf24-d0ff5d29d097.xml"), handler);
-
         assertEquals("c8d2e73c-0943-4b0d-ab1f-186ef10d8eb4",handler.getFileReference());
+        handler = new PreservicaOaiRecordHandler();
+        saxParser.parse(Resolver.resolveStream("xml/08909897-cf37-4bd9-a230-1b48c87cea18.xml"), handler);
+        assertEquals("08909897-cf37-4bd9-a230-1b48c87cea18",handler.getFileReference());
 
     }
 }
