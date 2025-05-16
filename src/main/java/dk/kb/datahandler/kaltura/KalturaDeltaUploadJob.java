@@ -237,7 +237,7 @@ public class KalturaDeltaUploadJob {
 
         String kalturaInternalId = kalturaClient.getKulturaInternalId(file_id);
         if (kalturaInternalId != null) {
-            log.warn("Kaltura fileId='{}' is already in kaltura with entry_id='{}'",file_id,kalturaInternalId);
+            log.debug("Kaltura fileId='{}' is already in kaltura with entry_id='{}'",file_id,kalturaInternalId);
         }
         return kalturaInternalId;
     }
