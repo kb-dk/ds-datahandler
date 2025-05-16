@@ -128,7 +128,7 @@ public class KalturaDeltaUploadJob {
                    
                    try {
                      String kalturaId=uploadStream(title, fileId, description, path, uploadTagForKaltura,mediaType,flavourParamId);
-                     log.info("Upload stream='{}' and got kalturaId='{}'",path,kalturaId);
+                     log.info("Uploaded stream='{}' and got kalturaId='{}'",path,kalturaId);
                      numberStreamsUploaded++; //Success count
                      //update storage record with kalturaId                     
                      updateKalturaIdForRecord(storageClient, fileId, kalturaId);
@@ -148,8 +148,7 @@ public class KalturaDeltaUploadJob {
                    //Do not mark record with error. We need to know why this happens.
                    throw new InternalServiceException("Error kaltura lookup for fileId:"+fileId);                         
                  }                                      
-                }
-                // Check file not already in kaltura
+                }            
 
             } catch (SolrServerException | IOException e) {
                 // Can not fetch more records. Stop delta upload
@@ -162,6 +161,8 @@ public class KalturaDeltaUploadJob {
 
     }
 
+   
+    
     private static void updateKalturaIdForRecord(DsStorageClient storageClient, String fileId, String kalturaInternalId) {     
            storageClient.updateKalturaIdForRecord(fileId, kalturaInternalId);
     }
@@ -205,11 +206,13 @@ public class KalturaDeltaUploadJob {
     /**
      * 
      * 
-     * @param title  Title field for kaltura
+     * @param title Title field for kaltura
+     * @param referenceId The file_id from preservica that is part of the file stream name
      * @param description Description field for kaltura
-     * @param fileId  This value will be used to calculate path of stream depending on originatesFrom
-     * @param originatesFrom      DOMS or Preservica
-     * @param resourceDescription VideoObject or AudioObjext
+     * @param filePath full file path to the stream file.
+     * @param tag Kaltura field where we keep track up upload dates.
+     * @param mediaType Kaltura MediaType (Video or Audio)   
+     * @param flavourParamId Kaltura internal id used to define transcoding. This value depend on kaltura partnerId.    
      * @return The Kaltura entry id if upload is successful
      * @throws IOException If upload fails
      */
