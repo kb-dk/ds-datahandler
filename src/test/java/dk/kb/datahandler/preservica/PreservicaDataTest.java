@@ -45,6 +45,25 @@ public class PreservicaDataTest {
         String origin = oaiFilter.getOrigin(record, "preservica", handler);
         assertEquals("ds.radio", origin);
     }
+
+    @Test
+    public void testRecordForExtraNamespaceInFormatMediaType() throws Exception{
+        String xml = Resolver.resolveUTF8String("xml/ebcbe76b-f130-4093-baa6-127fc7558fc5.xml");
+        InputStream xmlInputStream = Resolver.resolveStream("xml/ebcbe76b-f130-4093-baa6-127fc7558fc5.xml");
+        OaiRecord record = new OaiRecord();
+        record.setMetadata(xml);
+
+        SAXParser saxParser = factory.newSAXParser();
+        PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+
+        saxParser.parse(xmlInputStream, handler);
+
+        OaiResponseFilter oaiFilter = new OaiResponseFilterPreservicaSeven(null, null);
+
+        String origin = oaiFilter.getOrigin(record, "preservica", handler);
+        assertEquals("ds.radio", origin);
+    }
+
     @Test
     public void testPvicaOriginTvDU() throws Exception{
         String xmlFile = "xml/pvica_origin_tv.xml";

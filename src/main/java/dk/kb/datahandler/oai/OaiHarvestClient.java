@@ -216,7 +216,7 @@ public class OaiHarvestClient {
 
     /**
      * Call server and get response and set basic authentication in every single call.
-     * Preservica6 wants basic authentication in every single call.
+     * Preservica 7 wants basic authentication in every single call.
      */
     protected static String getHttpResponse(String uri, String user, String password) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder().build();

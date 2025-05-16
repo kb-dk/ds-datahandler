@@ -55,23 +55,24 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
      */
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) {
+        String cleanQName = cleanQName(qName);
         // TODO: Move logic for DR record to a new extending DrArchiveRecordHandler
-        if (qName.equalsIgnoreCase("publisher")) {
+        if (cleanQName.equalsIgnoreCase("publisher")) {
             isPublisher = true;
             publisherContent.setLength(0); // Reset content
         }
 
-        if (qName.equalsIgnoreCase("formatMediaType")) {
+        if (cleanQName.equalsIgnoreCase("formatMediaType")) {
             isFormatMediaType = true;
             formatMediaTypeContent.setLength(0); // Reset content
         }
 
-        if (qName.equalsIgnoreCase("transcodingStatus")) {
+        if (cleanQName.equalsIgnoreCase("transcodingStatus")) {
             isTranscodingStatus = true;
             transcodingStatusContent.setLength(0); // reset content
         }
 
-        if (qName.equalsIgnoreCase("Metadata")) {
+        if (cleanQName.equalsIgnoreCase("Metadata")) {
             isMetadata = true;
 
             // Check if the schemaUri attribute is present and is pbcore schema
@@ -114,7 +115,8 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
      */
     @Override
     public void endElement(String uri, String localName, String qName) {
-        if (qName.equalsIgnoreCase("publisher")) {
+        String cleanQName = cleanQName(qName);
+        if (cleanQName.equalsIgnoreCase("publisher")) {
             // Check if the publisher content matches "dr" case-insensitively
             if (publisherContent.toString().toLowerCase(Locale.ROOT).startsWith("dr")) {
                 recordIsDr = true;
@@ -122,7 +124,7 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isPublisher = false; // Reset the flag
         }
 
-        if (qName.equalsIgnoreCase("formatMediaType")) {
+        if (cleanQName.equalsIgnoreCase("formatMediaType")) {
             // Check what type of record we have in hand
             switch (formatMediaTypeContent.toString().toLowerCase(Locale.ROOT)){
                 case "moving image":
@@ -139,7 +141,7 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isFormatMediaType = false; // reset flag
         }
 
-        if (qName.equalsIgnoreCase("transcodingStatus")) {
+        if (cleanQName.equalsIgnoreCase("transcodingStatus")) {
             // Check what type of record we have in hand
             if (transcodingStatusContent.toString().equals("done")) {
                 recordIsTranscoded = true;
@@ -148,7 +150,7 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isTranscodingStatus = false; // reset flag
         }
 
-        if (qName.equalsIgnoreCase("Metadata")) {
+        if (cleanQName.equalsIgnoreCase("Metadata")) {
             isMetadata = false;
         }
 
@@ -170,6 +172,12 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
     }
 
     public RecordType getRecordType() {
+
+        if (recordType == null ) {
+            log.warn("Record type was null, setting it to UNKNOWN");
+            return RecordType.UNKNOWN;
+        }
+
         return recordType;
     }
 
@@ -183,5 +191,19 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
     public boolean isRecordTranscoded() {
         return recordIsTranscoded;
+    }
+
+    /**
+     * Preservica can sometimes deliver data, where namespace prefixes have been prefixed as part of the tag names. So that a {@code formatMediaType}-tag is present as a {@code
+     * ns1:formatMediaType}-tag. These values are not equal, when parsed by this RecordHandler, therefore this method strips {@code QNames} if they contain the prefix.
+     *
+     * @return a clean qName
+     */
+    private static String cleanQName(String qName){
+        if (qName.contains(":")){
+            return qName.substring(qName.lastIndexOf(":")+1);
+        }
+
+        return qName;
     }
 }
