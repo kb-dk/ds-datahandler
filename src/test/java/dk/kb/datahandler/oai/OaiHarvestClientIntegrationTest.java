@@ -94,12 +94,12 @@ public class OaiHarvestClientIntegrationTest {
 
         // name: pvica6.devel
         OaiTargetDto oaiTarget = new OaiTargetDto();
-        oaiTarget.setUrl(conf.getString("integration.oaiTargets[1].url")); //Public KB service
-        oaiTarget.setName("Unitest2");
-        oaiTarget.setMetadataprefix(conf.getString("integration.oaiTargets[1].metadataPrefix"));
-        oaiTarget.setUsername(conf.getString("integration.oaiTargets[1].user"));
-        oaiTarget.setPassword(conf.getString("integration.oaiTargets[1].password"));;
-        oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
+        oaiTarget.setUrl("https://kuana-access-stage.kb.dk/OAI-PMH/"); //Public KB service
+        oaiTarget.setName("pvica.stage");
+        oaiTarget.setMetadataprefix("xip");
+        oaiTarget.setUsername("oai-pmh-stage");
+        oaiTarget.setPassword("HaH6uTQnrFDwYKzK");
+        oaiTarget.setDatasource("test");
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
         DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTarget,null);
