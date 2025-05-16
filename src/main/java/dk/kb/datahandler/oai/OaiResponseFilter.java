@@ -82,7 +82,7 @@ public class OaiResponseFilter {
         String storageId = origin + ":" + oaiRecord.getId();
         log.debug("adding with ref id "+oaiRecord.getId()+" "+referenceId);
         if (StringUtils.isEmpty(referenceId)) {
-            log.warn("OAI Record with ID: '{}', has empty reference ID, it is not added to DS-Storage.", oaiRecord.getId());
+            log.warn("OAI Record with ID: '{}', has empty reference ID.", oaiRecord.getId());
         }
         if (oaiRecord.isDeleted()) {
             storage.markRecordForDelete(storageId);

@@ -153,7 +153,7 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
         if (qName.equalsIgnoreCase("transcodingStatus")) {
             // Check what type of record we have in hand
-            if (transcodingStatusContent.toString().equals("done")) {
+            if (transcodingStatusContent.toString().equals("success")) {
                 recordIsTranscoded = true;
             }
 

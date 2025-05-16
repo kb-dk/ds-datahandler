@@ -24,7 +24,7 @@ public class OaiRecordHandlerTest {
         SAXParser saxParser = factory.newSAXParser();
         PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
 
-        saxParser.parse(Resolver.resolveStream("xml/054c55b3-ed3a-442c-99dd-1b80c0218114.xml"), handler);
+        saxParser.parse(Resolver.resolveStream("xml/aaa668c2-bf17-4ce7-bf24-d0ff5d29d097.xml"), handler);
 
         assertTrue(handler.isRecordTranscoded());
     }
