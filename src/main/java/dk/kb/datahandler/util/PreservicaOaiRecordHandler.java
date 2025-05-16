@@ -13,7 +13,6 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
     private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterPreservicaSeven.class);
 
 
-    public boolean recordIsTranscoded = false;
     public boolean recordHasMetadata = false;
     public boolean recordIsDr = false;
     public RecordType recordType = null;
@@ -23,7 +22,6 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
     private boolean isPublisher = false;
     private boolean isFormatMediaType = false;
-    private boolean isTranscodingStatus = false;
     private boolean isTranscodingMetadata = false;
     private boolean isSpecificRadioTvTranscodingStatus = false;
     private boolean isAccessFilePath = false;
@@ -67,11 +65,6 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
         if (qName.equalsIgnoreCase("formatMediaType")) {
             isFormatMediaType = true;
             formatMediaTypeContent.setLength(0); // Reset content
-        }
-
-        if (qName.equalsIgnoreCase("transcodingStatus")) {
-            isTranscodingStatus = true;
-            transcodingStatusContent.setLength(0); // reset content
         }
 
         if (qName.equalsIgnoreCase("Metadata")) {
@@ -151,15 +144,6 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isFormatMediaType = false; // reset flag
         }
 
-        if (isTranscodingMetadata && qName.equalsIgnoreCase("transcodingStatus")) {
-            // Check what type of record we have in hand
-            if (transcodingStatusContent.toString().equals("success")) {
-                recordIsTranscoded = true;
-            }
-
-            isTranscodingStatus = false; // reset flag
-        }
-
         if (qName.equalsIgnoreCase("Metadata")) {
             isTranscodingMetadata= false;
         }
@@ -200,11 +184,7 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             formatMediaTypeContent.append(ch, start, length); // Collect formatMediaType content
         }
 
-        if (isTranscodingStatus) {
-            transcodingStatusContent.append(ch, start, length); // Collect formatMediaType content
-        }
-
-        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && isAccessFilePath) {
+        if (isAccessFilePath) {
             accessFilePathContent.append(ch, start, length);
         }
     }
@@ -219,10 +199,6 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
     public boolean recordContainsMetadata() {
         return recordHasMetadata;
-    }
-
-    public boolean isRecordTranscoded() {
-        return recordIsTranscoded;
     }
 
     public String getFileReference() {

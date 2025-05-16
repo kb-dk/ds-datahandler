@@ -82,16 +82,7 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
                 continue;
             }
 
-            if (!transcodingStatusIsDoneBoolean(handler, recordId)){
-                continue;
-            }
-
             String origin = getOrigin(oaiRecord, datasource, handler);
-
-            // Enrich record
-            if (!StringUtil.isEmpty(fragmentServiceUrl) && "ds.tv".equals(origin)) {
-                DataEnricher.apply(fragmentServiceUrl,oaiRecord);
-            }
 
             try {
                 addToStorage(oaiRecord, origin,handler.fileReference);

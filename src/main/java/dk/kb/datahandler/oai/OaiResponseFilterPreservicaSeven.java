@@ -71,11 +71,6 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
                 if (!informationObjectContainsPbcoreBoolean(handler, recordId)){
                     continue;
                 }
-
-                if (!transcodingStatusIsDoneBoolean(handler, recordId)){
-                    continue;
-                }
-
                 String origin = getOrigin(oaiRecord, datasource, handler);
 
                 addToStorage(oaiRecord, origin, handler.fileReference);
@@ -88,34 +83,6 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             }
         }
     }
-
-    /**
-     * Checks if the transcoding status is complete for the given XML string.
-     *
-     * <p>This method uses a regex pattern to determine if the transcoding status is marked as done in the XML.
-     * If the status is not found, it increments the counters for processed records and those with
-     * transcoding not done, logs a debug message, and, for every 1000 records filtered, logs an info message.
-     * The method returns false if the transcoding status is not complete; otherwise, it returns true.</p>
-     *
-     * @param recordHandler The XML string containing the transcoding status to be checked.
-     * @param recordId The unique identifier for the record being checked.
-     * @return {@code true} if the transcoding status is complete; {@code false} if the status is not done.
-     */
-    boolean transcodingStatusIsDoneBoolean(PreservicaOaiRecordHandler recordHandler, String recordId) {
-        if (!recordHandler.recordIsTranscoded){
-            processed++;
-            transCodingNotDoneRecords++;
-            log.debug("OAI-PMH record '{}' transcoding status not done. Record skipped", recordId);
-            if (transCodingNotDoneRecords % 1000 == 0) {
-                log.info("'{}' records transcoding status not done filtered away. '{}' records have been processed.",
-                        transCodingNotDoneRecords, processed);
-            }
-            return false;
-        }
-
-        return true;
-    }
-
 
     /**
      * Checks if the given XML string contains PBCore metadata and that the record is an InformationObject.

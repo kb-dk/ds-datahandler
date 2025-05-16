@@ -11,23 +11,11 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Tag("integration")
 public class OaiRecordHandlerTest {
     private static final SAXParserFactory factory = SAXParserFactory.newInstance();
-
-
-    @Test
-    public void testTranscodingStatus() throws IOException, SAXException, ParserConfigurationException {
-        SAXParser saxParser = factory.newSAXParser();
-        PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
-
-        saxParser.parse(Resolver.resolveStream("xml/aaa668c2-bf17-4ce7-bf24-d0ff5d29d097.xml"), handler);
-
-        assertTrue(handler.isRecordTranscoded());
-    }
 
     @Test
     public void testFormatEnum() throws IOException, SAXException, ParserConfigurationException {
