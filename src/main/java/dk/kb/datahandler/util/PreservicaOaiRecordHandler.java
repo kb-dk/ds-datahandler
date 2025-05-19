@@ -95,21 +95,21 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             }
         }
 
-        if ("specificRadioTvTranscodingStatus".equalsIgnoreCase(qName)) {
+        if ("specificRadioTvTranscodingStatus".equalsIgnoreCase(cleanQName)) {
             isSpecificRadioTvTranscodingStatus = true;
         }
 
-        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus &&"accessFilePath".equalsIgnoreCase(qName)) {
+        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus &&"accessFilePath".equalsIgnoreCase(cleanQName)) {
             isAccessFilePath = true;
             accessFilePathContent.setLength(0);
         }
 
-        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && "lastTranscoded".equalsIgnoreCase(qName)) {
+        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && "lastTranscoded".equalsIgnoreCase(cleanQName)) {
             isLastTranscoded = true;
             lastTranscodedContent.setLength(0);
         }
 
-        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && "transcodingStatus".equalsIgnoreCase(qName)) {
+        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && "transcodingStatus".equalsIgnoreCase(cleanQName)) {
             isTranscodingStatus = true;
             transcodingStatusContent.setLength(0);
         }
@@ -186,7 +186,7 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isMetadata = false;
         }
 
-        if (isTranscodingMetadata && "specificRadioTvTranscodingStatus".equalsIgnoreCase(qName)) {
+        if (isTranscodingMetadata && "specificRadioTvTranscodingStatus".equalsIgnoreCase(cleanQName)) {
             OffsetDateTime currentOffsetDateTime = null;
             if (!lastTranscodedContent.isEmpty()) {
                 currentOffsetDateTime = OffsetDateTime.parse(lastTranscodedContent);
@@ -205,16 +205,16 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isSpecificRadioTvTranscodingStatus = false;
         }
 
-        if ("accessFilePath".equalsIgnoreCase(qName)) {
+        if ("accessFilePath".equalsIgnoreCase(cleanQName)) {
             isAccessFilePath = false;
         }
 
-        if ("lastTranscoded".equalsIgnoreCase(qName)) {
+        if ("lastTranscoded".equalsIgnoreCase(cleanQName)) {
             isLastTranscoded = false;
             // do update date
         }
 
-        if ("transcodingStatus".equalsIgnoreCase(qName)) {
+        if ("transcodingStatus".equalsIgnoreCase(cleanQName)) {
             isTranscodingStatus = false;
         }
     }
