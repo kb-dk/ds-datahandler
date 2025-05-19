@@ -7,6 +7,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.time.OffsetDateTime;
 import java.util.Locale;
 
 public class PreservicaOaiRecordHandler extends DefaultHandler {
@@ -16,8 +17,9 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
     public boolean recordHasMetadata = false;
     public boolean recordIsDr = false;
     public RecordType recordType = null;
-    public String fileReference = null;
-
+    public TranscodingStatus lastTranscodingStatus = null;
+    public String fileId = null; // ID of the last transcode presentation copy
+    public enum TranscodingStatus {SUCCESS, AWAITING, DISMISS, UNKNOWN}
     public enum RecordType {RADIO, TV, UNKNOWN}
 
     private boolean isPublisher = false;
@@ -25,12 +27,17 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
     private boolean isTranscodingMetadata = false;
     private boolean isSpecificRadioTvTranscodingStatus = false;
     private boolean isAccessFilePath = false;
+    private boolean isLastTranscoded = false;
+    private boolean isTranscodingStatus = false;
+    private OffsetDateTime lastEncodedDate = null;
+
 
     // TODO: Could these be one stringbuilder which gets reset after each iteration
     private StringBuilder publisherContent = new StringBuilder();
     private StringBuilder formatMediaTypeContent = new StringBuilder();
-    private StringBuilder transcodingStatusContent = new StringBuilder();
     private StringBuilder accessFilePathContent = new StringBuilder();
+    private StringBuilder lastTranscodedContent = new StringBuilder();
+    private StringBuilder transcodingStatusContent = new StringBuilder();
 
     private static final String pbCoreSchemaUri = "http://www.pbcore.org/PBCore/PBCoreNamespace.html";
     private static final String transcodingSchemaUri = "http://id.kb.dk/schemas/radiotv_access/transcoding_status";
@@ -82,8 +89,19 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isSpecificRadioTvTranscodingStatus = true;
         }
 
-        if ("accessFilePath".equalsIgnoreCase(qName)) {
+        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus &&"accessFilePath".equalsIgnoreCase(qName)) {
             isAccessFilePath = true;
+            accessFilePathContent.setLength(0);
+        }
+
+        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && "lastTranscoded".equalsIgnoreCase(qName)) {
+            isLastTranscoded = true;
+            lastTranscodedContent.setLength(0);
+        }
+
+        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && "transcodingStatus".equalsIgnoreCase(qName)) {
+            isTranscodingStatus = true;
+            transcodingStatusContent.setLength(0);
         }
     }
 
@@ -129,7 +147,7 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
         if (qName.equalsIgnoreCase("formatMediaType")) {
             // Check what type of record we have in hand
-            switch (formatMediaTypeContent.toString().toLowerCase(Locale.ROOT)){
+            switch (formatMediaTypeContent.toString().toLowerCase(Locale.ROOT)) {
                 case "moving image":
                     recordType = RecordType.TV;
                     break;
@@ -148,30 +166,49 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isTranscodingMetadata= false;
         }
 
-        if ("specificRadioTvTranscodingStatus".equalsIgnoreCase(qName)) {
+        if (isTranscodingMetadata && "specificRadioTvTranscodingStatus".equalsIgnoreCase(qName)) {
+            OffsetDateTime currentOffsetDateTime = null;
+            if (!lastTranscodedContent.isEmpty()) {
+                currentOffsetDateTime = OffsetDateTime.parse(lastTranscodedContent);
+            }
+            if (lastEncodedDate == null || currentOffsetDateTime.isAfter(lastEncodedDate)) {
+                lastEncodedDate = currentOffsetDateTime;
+                fileId = getFileId(accessFilePathContent.toString());
+                try {
+                    lastTranscodingStatus = TranscodingStatus.valueOf(transcodingStatusContent.toString().toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException e) {
+                    lastTranscodingStatus = TranscodingStatus.UNKNOWN;
+                }
+            }
+
+
             isSpecificRadioTvTranscodingStatus = false;
         }
 
         if ("accessFilePath".equalsIgnoreCase(qName)) {
-            if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus) {
-                fileReference = getFileReference(accessFilePathContent);
-            }
             isAccessFilePath = false;
         }
 
+        if ("lastTranscoded".equalsIgnoreCase(qName)) {
+            isLastTranscoded = false;
+            // do update date
+        }
+
+        if ("transcodingStatus".equalsIgnoreCase(qName)) {
+            isTranscodingStatus = false;
+        }
     }
 
-    private String getFileReference(StringBuilder accessFilePathContent) {
-        String fileRef = accessFilePathContent.toString();
-        int lastSlashIndex = fileRef.lastIndexOf("/");
+    private String getFileId(String accessFilePath) {
+        int lastSlashIndex = accessFilePath.lastIndexOf("/");
         if (lastSlashIndex != -1) {
-            fileRef = fileRef.substring(lastSlashIndex + 1);
+            accessFilePath = accessFilePath.substring(lastSlashIndex + 1);
         }
-        int firstDotIndex = fileRef.indexOf(".");
+        int firstDotIndex = accessFilePath.indexOf(".");
         if (firstDotIndex != -1) {
-            fileRef = fileRef.substring(0, firstDotIndex);
+            accessFilePath = accessFilePath.substring(0, firstDotIndex);
         }
-        return fileRef;
+        return accessFilePath;
     }
 
     @Override
@@ -187,6 +224,14 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
         if (isAccessFilePath) {
             accessFilePathContent.append(ch, start, length);
         }
+
+        if (isLastTranscoded) {
+            lastTranscodedContent.append(ch, start, length);
+        }
+
+        if (isTranscodingStatus) {
+            transcodingStatusContent.append(ch, start, length);
+        }
     }
 
     public RecordType getRecordType() {
@@ -199,9 +244,5 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
     public boolean recordContainsMetadata() {
         return recordHasMetadata;
-    }
-
-    public String getFileReference() {
-        return fileReference;
     }
 }
