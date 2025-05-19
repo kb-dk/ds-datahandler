@@ -49,7 +49,7 @@ public class KalturaUtil {
     /**
      * Map Kaltura MediaType  to correct flavourParamId
      * 
-     * @param mediaType VideoObject or AudioObject
+     * @param mediaType Video or Audio
      * @return flavourParamId  FlavourId for video or Audio. Depend on the KMC partner ID. Not the same across kaltura environments
      */
     public static int getFlavourParamId(MediaType mediaType) {

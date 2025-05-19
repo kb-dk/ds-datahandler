@@ -82,7 +82,7 @@ public class KalturaDeltaUploadJob {
             try {
                 SolrDocumentList docs = fetchSolrRecords(mTimeFromCurrent, 500);
                 if (docs.getNumFound() == 0) {
-                    moreSolrRecords = false; // End loop
+                   return numberStreamsUploaded;               
                 }
 
                 for (SolrDocument doc : docs) {
@@ -291,7 +291,7 @@ public class KalturaDeltaUploadJob {
      * 
      * 
      * @param filePath fill path to stream. 
-     * @param minimum size in bytes allowed
+     * @param minimumSizeInBytes minimum size in bytes allowed
      * 
      * @return  StreamErrorTypeDto error or null if file exists has large enough.
      * 
