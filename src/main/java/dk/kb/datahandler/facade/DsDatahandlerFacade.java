@@ -7,20 +7,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
-import dk.kb.datahandler.preservica.PreservicaManifestationExtractor;
-import dk.kb.datahandler.util.PreservicaUtils;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
-import dk.kb.storage.model.v1.RecordTypeDto;
-import dk.kb.util.webservice.stream.ContinuationInputStream;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.slf4j.Logger;
@@ -394,7 +387,7 @@ public class DsDatahandlerFacade {
                 oaiFilter = new OaiResponseFilter(origin, dsAPI);
                 break;
             case DR:
-                oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI, oaiTargetDto.getFragmentServiceUrl());
+                oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI);
                 break;
             case PRESERVICA:
                 oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);
@@ -470,74 +463,5 @@ public class DsDatahandlerFacade {
         return 0L;
     }
   */
-
-    /**
-     * Method to update records in Preservica 7 related origins in backing {@code DsStorage} with children IDs.
-     * The method filters incoming records on IDs representing InformationObjects from Preservica 7, then tries to fetch
-     * a manifestation for the record and updates the storage record with the manifestation as a childrenID.
-     * @param origin to update records in.
-     * @param mTimeFrom to update records from.
-     * @return a count of records that have been updated.
-     */
-    public static long updateManifestationForRecords(String origin, Long mTimeFrom) throws IOException {
-        
-        DsDatahandlerJobDto job= JobCache.createPreservicaManifestationJob(origin, mTimeFrom); //Start job
-        
-        DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
-        PreservicaManifestationExtractor manifestationPlugin = new PreservicaManifestationExtractor();
-
-        long processedRecords= 0L;
-        long startTime = System.currentTimeMillis();
-        long startTimeWithExtraZeros = startTime * 1000;
-        boolean hasMore = true;
-        AtomicInteger counter = new AtomicInteger(0);
-        AtomicLong currentTime = new AtomicLong(System.currentTimeMillis());
-
-        // Create a custom ForkJoinPool with configured amount of threads
-        int numberOfThreads = ServiceConfig.getPreservicaThreads();
-        ForkJoinPool customThreadPool = new ForkJoinPool(numberOfThreads);
-        log.info("Created a custom thread-pool containing '{}' threads. Using this pool of threads to query Preservica for manifestation IDs for records with origin: '{}'",
-                numberOfThreads, origin);
-
-        
-        
-        
-        while (hasMore) {
-            try (ContinuationInputStream<Long> dsDocsStream =
-                    storageClient.getMinimalRecordsModifiedAfterJSON(origin, mTimeFrom, 1000L)){
-                log.info("Enriching {} records from DS-storage origin '{}'. '{}' records have been enriched through this request.",
-                        dsDocsStream.getRecordCount(), origin, counter.get());
-
-                customThreadPool.submit(() ->
-                        dsDocsStream.stream(DsRecordMinimalDto.class)
-                                .takeWhile(record -> record.getmTime() < startTimeWithExtraZeros)
-                                .parallel() // Parallelize stream for performance boost.
-                                .map(record -> PreservicaUtils.fetchManifestation(record, manifestationPlugin, counter, currentTime))
-                                .filter(PreservicaUtils::validateRecord)
-                                .forEach(record -> PreservicaUtils.safeRecordPost(storageClient, record))
-                ).get();
-
-                hasMore = dsDocsStream.hasMore();
-                if (hasMore) {
-                    mTimeFrom = dsDocsStream.getContinuationToken(); //Next batch start from here.
-                }
-            } catch (IOException e) {
-                log.warn("DsStorage threw an exception while streaming records through the DsStorageClient.getRecordsByRecordTypeModifiedAfterLocalTreeJSON() method. " +
-                        "The method was called with the following parameters: origin='{}', recordType='{}', mTime='{}', maxRecords={}.",
-                        origin, RecordTypeDto.DELIVERABLEUNIT, mTimeFrom, "1000");
-                JobCache.finishJob(job, counter.get(), true);
-                throw new InternalServiceException(e);
-            } catch (ExecutionException | InterruptedException e) {
-                log.error("An unexpected error occurred in the streaming process, when enriching records with manifestation IDs.");
-                JobCache.finishJob(job, counter.get(), true);
-                throw new InternalServiceException(e);
-            }
-        }
-
-        log.info("Updated '{}' records in '{}' milliseconds.", counter.get(), System.currentTimeMillis() - startTime);
-        customThreadPool.shutdown(); // Shutting down the thread pool when done.
-        JobCache.finishJob(job, counter.get(), false);
-        return processedRecords;
-    }
 
 }

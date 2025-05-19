@@ -110,7 +110,11 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
      */
     @Override
     public String getOrigin(OaiRecord oaiRecord, String datasource, DefaultHandler recordHandler) {
-        PreservicaOaiRecordHandler preservicaRecordHandler = (PreservicaOaiRecordHandler) recordHandler;
+
+        if (!(recordHandler instanceof PreservicaOaiRecordHandler preservicaRecordHandler)){
+            log.error("recordHandler is not an instance of PreservicaOaiRecordHandler");
+            throw new InternalServiceException("recordHandler is not an instance of PreservicaOaiRecordHandler");
+        }
 
         switch (preservicaRecordHandler.getRecordType()) {
             case TV:
