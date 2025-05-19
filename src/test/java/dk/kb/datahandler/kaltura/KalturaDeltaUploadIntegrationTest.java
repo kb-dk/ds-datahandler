@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.kaltura.client.enums.MediaType;
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.util.Resolver;
 
 @Tag("integration")
 public class KalturaDeltaUploadIntegrationTest {
@@ -42,23 +43,24 @@ public class KalturaDeltaUploadIntegrationTest {
     @Test
     void uploadStreamTest() throws Exception {
         try {
-            /*
-             * WARNING! For this test to success you need to change both filePath to a local
-             * file and referenceId to a new value not in the KMC. Afterwards you must to
-             * delete the file in the KMC which you can find using the referenceId.
-             */
-            String filePath = "/home/teg/Music/Boz_-_BBB_20191202.mp3"; // Will fail if file does not exist.
-
-            String title = "test title audio";
-            String referenceId = "12345TEGAudio";
-            String description = "test description audio";
-            String tag = "delta-2025-04-25";
+            /* This will upload a small mp3 music file(no copyright on the mp3)
+             * The integration test will delete the file in the KMC after upload.
+             * If you want to upload a stream to see it in  the KMC change the file name and out comment the delete line  
+             */            
+            String filePath= Resolver.resolveURL("audio/NoisyPillars.mp3").getFile();
+           //String filePath = "/home/xxx/test.mp3"; // If you want to use your down
+            
+            String title = "Integration unit test";
+            String referenceId = "IntegrationTest";
+            String description = "Small MP3 music file for integration unit test.";
+            String tag = "delta-INTEGRATION-test"; //Do not use date, this way they will be easy to find
             MediaType mediaType = MediaType.AUDIO;
             int flavourParamId = KalturaUtil.getFlavourParamId(mediaType);
             String kalturaEntryId;
-            // Incomment two lines below if you want to run test.
-            //kalturaEntryId=KalturaDeltaUploadJob.uploadStream(title, referenceId,description, filePath, tag, mediaType, flavourParamId);
-            //assertNotNull(kalturaEntryId);
+            kalturaEntryId=KalturaDeltaUploadJob.uploadStream(title, referenceId,description, filePath, tag, mediaType, flavourParamId);
+            assertNotNull(kalturaEntryId); // validate we have a kaltura entryID
+            Thread.sleep(5000L); //sleep 5 seconds before deleting
+            KalturaDeltaUploadJob.deleteStream(kalturaEntryId); //If it fails we can not do anything. Delete it manuel in the KMC.                       
         } catch (Exception e) {
             e.printStackTrace();
             fail("Upload failed");

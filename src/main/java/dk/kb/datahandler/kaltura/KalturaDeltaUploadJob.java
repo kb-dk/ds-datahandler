@@ -231,7 +231,25 @@ public class KalturaDeltaUploadJob {
         return entryId;
 
     }
-
+    
+    
+    /**
+     * This method is not called by the upload flow, but from the integration unittest. 
+     * 
+     * @param  kalturaEntryId  The internal kaltura entryId
+     * @throws IOException If API error
+     */
+    public static void deleteStream(String kalturaEntryId) throws IOException {
+        initKalturaClient();            
+        boolean deleteStreamByEntryId = kalturaClient.deleteStreamByEntryId( kalturaEntryId);
+        if (deleteStreamByEntryId) {
+           log.info("Deleted kaltura entryId='{}'", kalturaEntryId);
+        }
+        else {
+           log.info("Failed deleting kaltura entryId='{}'", kalturaEntryId);
+        }                
+    }
+    
     /**
      * Check if a file_id already does exist in kaltura. Then it is already uploaded.
      * There can be meta-data errors where different records points to same stream.
