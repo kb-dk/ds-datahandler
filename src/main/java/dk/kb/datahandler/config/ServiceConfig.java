@@ -99,7 +99,6 @@ public class ServiceConfig {
         preservicaRetryTimes = serviceConfig.getInteger("preservica.retryTimes", 5); // Defaulting to 5 tries.
         preservicaThreads = serviceConfig.getInteger("preservica.threads", 5); // Defaulting to five threads.
 
-
         kalturaUrl = ServiceConfig.getConfig().getString("kaltura.url");
         kalturaPartnerId = ServiceConfig.getConfig().getInteger("kaltura.partnerId");
         kalturaUserId = ServiceConfig.getConfig().getString("kaltura.userId");
@@ -114,8 +113,8 @@ public class ServiceConfig {
         streamPathPreservicaTv=ServiceConfig.getConfig().getString("streams.preservicaTvPath");
         streamPathPreservicaRadio=ServiceConfig.getConfig().getString("streams.preservicaRadioPath");   
                  
-        oaiRetryTimes = serviceConfig.getInteger("oaiConfig.retryTimes", 5); // Defaulting to 5 retries
-        oaiRetrySeconds = serviceConfig.getInteger("oaiConfig.retrySeconds", 600); // Defaulting to 10 minuts
+        oaiRetryTimes = serviceConfig.getInteger("oaiSettings.retryTimes", 5); // Defaulting to 5 retries
+        oaiRetrySeconds = serviceConfig.getInteger("oaiSettings.retrySeconds", 600); // Defaulting to 10 minuts
 
         log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
                 "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}', oaiRetryTimes: '{}', oaiRetrySeconds: '{}'.",

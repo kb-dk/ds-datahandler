@@ -158,39 +158,6 @@ paths:
                     rf: 1
                     status: 0
                     QTime: 1200
-
-  /enrichment/manifestations:
-    get:
-      tags:
-        - '${project.name}'
-      summary: 'Will fetch records from storage without child ID and fetch the ID from preservica.'
-      security: 
-        - KBOAuth:
-          - any   
-      operationId: updatePreservicaManifestation
-      parameters:
-        - name: origin
-          in: query
-          description: 'Origin to fetch manifestations for'
-          required: true
-          schema:
-            type: string
-            enum: [ "${config:present.origins[*]}" ]
-        - name: mTimeFrom
-          in: query
-          description: 'Start from records modified after mTimeFrom. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
-          required: false
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: OK. Returns total number of records updated
-          content:
-            application/json:
-              schema:
-                type: integer
-                format: int64
                 
                 
                                
@@ -199,7 +166,7 @@ paths:
     get:
       tags:
         - '${project.name}'
-      summary: 'Update the referenceId to KalturaID mapping table in ds-storage. Whem mapping is completed it will apply the mapping to records missing kalturaId'
+      summary: 'Update the referenceId to KalturaID mapping table in ds-storage. When mapping is completed it will apply the mapping to records missing kalturaId'
       security: 
         - KBOAuth:
           - any   
