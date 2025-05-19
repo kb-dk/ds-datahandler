@@ -18,6 +18,18 @@ public class OaiRecordHandlerTest {
     private static final SAXParserFactory factory = SAXParserFactory.newInstance();
 
     @Test
+    public void testTranscodingStatus() throws IOException, SAXException, ParserConfigurationException {
+        SAXParser saxParser = factory.newSAXParser();
+        PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+        saxParser.parse(Resolver.resolveStream("xml/twoprofiles.xml"), handler);
+        assertEquals(PreservicaOaiRecordHandler.TranscodingStatus.SUCCESS,handler.lastTranscodingStatus);
+        handler = new PreservicaOaiRecordHandler();
+        saxParser.parse(Resolver.resolveStream("xml/updatedprofileswithrecord.xml"), handler);
+        assertEquals(PreservicaOaiRecordHandler.TranscodingStatus.SUCCESS,handler.lastTranscodingStatus);
+
+    }
+
+    @Test
     public void testFormatEnum() throws IOException, SAXException, ParserConfigurationException {
         SAXParser saxParser = factory.newSAXParser();
         PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
@@ -52,10 +64,15 @@ public class OaiRecordHandlerTest {
         SAXParser saxParser = factory.newSAXParser();
         PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
         saxParser.parse(Resolver.resolveStream("xml/aaa668c2-bf17-4ce7-bf24-d0ff5d29d097.xml"), handler);
-        assertEquals("c8d2e73c-0943-4b0d-ab1f-186ef10d8eb4",handler.getFileReference());
+        assertEquals("c8d2e73c-0943-4b0d-ab1f-186ef10d8eb4",handler.fileId);
         handler = new PreservicaOaiRecordHandler();
         saxParser.parse(Resolver.resolveStream("xml/08909897-cf37-4bd9-a230-1b48c87cea18.xml"), handler);
-        assertEquals("08909897-cf37-4bd9-a230-1b48c87cea18",handler.getFileReference());
-
+        assertEquals("08909897-cf37-4bd9-a230-1b48c87cea18",handler.fileId);
+        handler = new PreservicaOaiRecordHandler();
+        saxParser.parse(Resolver.resolveStream("xml/twoprofiles.xml"), handler);
+        assertEquals("9ac17530-7a9a-4f43-bf4d-0b22459db1c5",handler.fileId);
+        handler = new PreservicaOaiRecordHandler();
+        saxParser.parse(Resolver.resolveStream("xml/updatedprofileswithrecord.xml"), handler);
+        assertEquals("ed685674-cc4e-44e3-8556-8d83010482aa",handler.fileId);
     }
 }
