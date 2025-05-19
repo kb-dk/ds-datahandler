@@ -63,22 +63,22 @@ public class KalturaUtil {
     
     
     /**
-     * Generate the path of the filesystem to the stream.
+     * Generate the path on the filesystem to the stream.
      * 
-     * @param filePath the filePath from preservica  that now has the parent folders and can have extension.
+     * @param solrFilePath the partial filePath from preservica that now has the parent folders and can have extension. But missing mount.
      * @param originatesFrom DOMS or Preservica
      * @param resourceDescription VideoObject or AudioObjext  
      * @throws IOException If path can not be resolved
      */
-    public static String generateStreamPath(String filePath, String originatesFrom, String resourceDescription) throws IOException {        
+    public static String generateStreamPath(String solrFilePath, String originatesFrom, String resourceDescription) throws IOException {        
         if (ORGINATES_FROM.DOMS.name().equals(originatesFrom)) {            
-                return generateDomsDownloadPath(filePath);                        
+                return generateDomsDownloadPath(solrFilePath);                        
         }
         else if (ORGINATES_FROM.Preservica.name().equals(originatesFrom)) {        
-            return generatePreservicaRadioTvPath(filePath, resourceDescription);                
+            return generatePreservicaRadioTvPath(solrFilePath, resourceDescription);                
         }
        else {
-          log.warn("Unknown  originatesFrom='{}' for filePath= '{}'", originatesFrom, filePath);
+          log.warn("Unknown originatesFrom='{}' for solr filePath= '{}'", originatesFrom, solrFilePath);
           throw new IOException ("UnKnown originates from:"+originatesFrom);
        }        
     }
