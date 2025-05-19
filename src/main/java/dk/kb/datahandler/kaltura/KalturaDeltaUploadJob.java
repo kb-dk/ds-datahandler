@@ -95,13 +95,13 @@ public class KalturaDeltaUploadJob {
                     }                   
                     String description=(String) doc.getFieldValue("description");
                     String fileId=(String) doc.getFieldValue("file_id");
-                    String id=(String) doc.getFieldValue("id");
-                    String originatesFrom= (String) doc.getFieldValue("originates_from");                                       
+                    String filePath=(String) doc.getFieldValue("file_path");                            
+                    String id=(String) doc.getFieldValue("id");                                       
                     long recordMtime  = (Long) doc.getFieldValue("internal_storage_mTime");
 
                     mTimeFromCurrent=recordMtime ; //update mTime for next call                   
 
-                    processUpload(numberStreamsUploaded, uploadTagForKaltura, minimumFileSizeInBytes, storageClient, resourceDescription, title, description, fileId, id, originatesFrom);                                      
+                    processUpload(numberStreamsUploaded, uploadTagForKaltura, minimumFileSizeInBytes, storageClient, resourceDescription, title, description, fileId, id, filePath);                                      
                 }            
 
             } catch (SolrServerException | IOException e) {
@@ -121,12 +121,11 @@ public class KalturaDeltaUploadJob {
      * 
      */
     private static void processUpload(Integer numberStreamsUploaded, String uploadTagForKaltura, long minimumFileSizeInBytes, DsStorageClient storageClient,
-            String resourceDescription, String title, String description, String fileId, String id, String originatesFrom) {
+            String resourceDescription, String title, String description, String fileId, String id, String path) {
         try {                                    
             //upload stream
             MediaType mediaType = KalturaUtil.getMediaType(resourceDescription);
             int flavourParamId = KalturaUtil.getFlavourParamId(mediaType);
-            String path =KalturaUtil.generateStreamPath(fileId, originatesFrom, resourceDescription);
             log.info("validating stream='{}' with title='{}'",path,title);                 
             String fileError= hasStreamFileError(path, minimumFileSizeInBytes);
             if (fileError != null) {
@@ -190,7 +189,7 @@ public class KalturaDeltaUploadJob {
         HttpJdkSolrClient client = new HttpJdkSolrClient.Builder(solrUrl).build();
 
         String query = "internal_storage_mTime:[" + mTimeFrom + " TO *]"; // mTimeFrom must start with this value or higher.
-        String fieldList = "title,description,file_id,id,resource_description,originates_from,internal_storage_mTime"; // only extract fields we need
+        String fieldList = "title,description,file_id,id,resource_description,originates_from,internal_storage_mTime,file_path"; // only extract fields we need
 
         try (client) { // autoclosable
             SolrQuery solrQuery = new SolrQuery();

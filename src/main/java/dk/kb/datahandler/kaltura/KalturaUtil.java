@@ -65,46 +65,39 @@ public class KalturaUtil {
     /**
      * Generate the path of the filesystem to the stream.
      * 
+     * @param filePath the filePath from preservica  that now has the parent folders and can have extension.
      * @param originatesFrom DOMS or Preservica
      * @param resourceDescription VideoObject or AudioObjext  
      * @throws IOException If path can not be resolved
      */
-    public static String generateStreamPath(String fileId, String originatesFrom, String resourceDescription) throws IOException {        
+    public static String generateStreamPath(String filePath, String originatesFrom, String resourceDescription) throws IOException {        
         if (ORGINATES_FROM.DOMS.name().equals(originatesFrom)) {            
-                return generateDomsDownloadPath(fileId, resourceDescription);                        
+                return generateDomsDownloadPath(filePath);                        
         }
         else if (ORGINATES_FROM.Preservica.name().equals(originatesFrom)) {        
-            return generatePreservicaRadioTvPath(fileId, resourceDescription);                
+            return generatePreservicaRadioTvPath(filePath, resourceDescription);                
         }
        else {
-          log.warn("Unknown  originatesFrom='{}' for fileID= '{}'", originatesFrom, fileId);
+          log.warn("Unknown  originatesFrom='{}' for filePath= '{}'", originatesFrom, filePath);
           throw new IOException ("UnKnown originates from:"+originatesFrom);
        }        
     }
     
     // 2 character folders, different folder for tv and radio. No file extension
-    private static String generatePreservicaRadioTvPath(String fileId, String resourceDescription) {           
-        String pathSplit= fileId.substring(0,2)+"/"+fileId.substring(2,4)+"/"+fileId.substring(4,6)+"/"+fileId;       
+    private static String generatePreservicaRadioTvPath(String filePath, String resourceDescription) {           
+           
         if ("VideoObject".equals(resourceDescription)){
-            return  PRESERVICA_TV_PATH+pathSplit;    
+            return  PRESERVICA_TV_PATH+filePath;    
         }
         else {
-            return  PRESERVICA_RADIO_PATH+pathSplit;
+            return  PRESERVICA_RADIO_PATH+filePath;
         }                     
     }
    
 
-    // 1  character folders and same folder for radio and tv. Add extension .mp3 or .mp4.
-    private static String generateDomsDownloadPath(String fileId,String resourceType) {           
-        String pathSplit= fileId.substring(0,1)+"/"+fileId.substring(1,2)+"/"+fileId.substring(2,3)+"/"+fileId.substring(3,4)+"/"+fileId;       
-       
-        String fileWithOutExtension=DOMS_RADIOTV_PATH+pathSplit; //Must add extension .mp3 og .mp4               
-        if ("VideoObject".equals(resourceType)) {
-            return fileWithOutExtension+".mp4";            
-        }
-        else {
-            return fileWithOutExtension+".mp3";
-        }            
+    // 1  character folders and same folder for radio and tv. Extension is path of fullpath, so resourcetype not needed
+    private static String generateDomsDownloadPath(String filePath) {                         
+        return DOMS_RADIOTV_PATH+filePath;               
     }
     
 }
