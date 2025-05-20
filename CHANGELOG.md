@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Refactored OAI Response filters, to remove duplicate code from Preservica and DR filter
 - Make OAI Response filters parse XML correctly through the SAX API.
+- Extract id of presentation copy from XML and use it as referenceID before saving object.
 
 ### Fixed
 
