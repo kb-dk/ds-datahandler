@@ -99,7 +99,7 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
             isSpecificRadioTvTranscodingStatus = true;
         }
 
-        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus &&"accessFilePath".equalsIgnoreCase(cleanQName)) {
+        if (isTranscodingMetadata && isSpecificRadioTvTranscodingStatus && "accessFilePath".equalsIgnoreCase(cleanQName)) {
             isAccessFilePath = true;
             accessFilePathContent.setLength(0);
         }
@@ -211,7 +211,6 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
         if ("lastTranscoded".equalsIgnoreCase(cleanQName)) {
             isLastTranscoded = false;
-            // do update date
         }
 
         if ("transcodingStatus".equalsIgnoreCase(cleanQName)) {
