@@ -64,11 +64,7 @@ public class OaiResponseFilter {
      */
     public void addToStorage(OaiRecord oaiRecord) throws ServiceException {
         String origin = getOrigin(oaiRecord, datasource, null);
-        addToStorage(oaiRecord, origin);
-    }
-
-    public void addToStorage(OaiRecord oaiRecord, String origin) throws ServiceException {
-        addToStorage(oaiRecord, origin, null);
+        addToStorage(oaiRecord, origin,null);
     }
 
     /**
