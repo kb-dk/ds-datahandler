@@ -41,6 +41,7 @@ oai_harvest.conf
 /src/test/resources/xml/08909897-cf37-4bd9-a230-1b48c87cea18.xml
 /src/test/resources/xml/aaa668c2-bf17-4ce7-bf24-d0ff5d29d097.xml
 /src/test/resources/xml/ebcbe76b-f130-4093-baa6-127fc7558fc5.xml
+/src/test/resources/audio/NoisyPillars.mp3
 
 # We use pom.xml as the source of truth and don't rely on a specific IDE
 .idea

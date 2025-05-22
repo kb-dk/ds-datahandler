@@ -27,6 +27,7 @@ import dk.kb.datahandler.model.v1.OaiTargetDto;
 
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.job.JobCache;
+import dk.kb.datahandler.kaltura.KalturaDeltaUploadJob;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
 import dk.kb.datahandler.oai.OaiResponseFilter;
@@ -69,7 +70,7 @@ public class DsDatahandlerFacade {
         //This is a good value and can also be used as batchSize against Kaltura.
 
         log.info("Starting resolving of Kaltura entry ID's for origin: '{}'. Resolving in batches of '{}' records.",
-                origin, batchSize);
+                 origin, batchSize);
 
         DsStorageClient dsAPI = getDsStorageApiClient();
         DsKalturaClient kalturaClient = getKalturaClient();
@@ -239,8 +240,7 @@ public class DsDatahandlerFacade {
      * Then fetch newer records from ds-storage, transform to solr documents in ds-present and index into solr.
      * @param origin to index records from.
      * @throws SolrServerException
-     * @throws IOException 
-     * @throws SolrServerException 
+     * @throws IOException  
      */
     public static String indexSolrDelta(String origin)  throws InternalServiceException, SolrServerException, IOException {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
@@ -257,6 +257,56 @@ public class DsDatahandlerFacade {
         return response;
     }
 
+    /**
+     * <p>
+     * Start job that uploading streams to kaltura that does not have an kaltura_id from the given mTimeFrom
+     * <p>
+     * Will only extract records from Solr with access_malfunction:false and production_code_allowed:true 
+     * <p>
+     * Storage records will be updated with the kalturaid or error message. Errors are
+     * <ul>
+     * <li>File missing</li>
+     * <li>File too short</li>
+     * <li>Kaltura API error. Very rare this happens. Have not seen it yet.</li>
+     * </ul>
+     * <p>
+     * It is important to mark the records as failed or a new delta upload job will start processing the same streams with errors every time.
+     *
+     * <p>
+     * A solr delta indexing job will be started if both the job completes succesfully or fails. 
+     * 
+     * @param mTimeFrom only uploading missing streams for records with mTimeFrom this value or higher 
+     * @throws IOException 
+     * @throws SolrServerException 
+     */
+    public static void kalturaDeltaUpload(Long mTimeFrom)  throws InternalServiceException, SolrServerException, IOException {
+
+        DsDatahandlerJobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom); //For job cache
+        log.info("Starting kaltura delta upload from mTimeFrom="+mTimeFrom);
+        try {
+          
+          //upload strems  
+          int numberStreamsUploaded=KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
+          log.info("Kaltura delta uploaded completed sucessfully. #streams uploaded={}",numberStreamsUploaded);
+          
+          //Index the records that has mTime modified due to kalturaId was set on record.
+          if (numberStreamsUploaded >0) {
+             log.info("Starting solr delta index job");
+             indexSolrDelta("ds.tv");          
+             indexSolrDelta("ds.radio");
+          }
+          
+        }
+        catch(Throwable e){
+            log.error("Kaltura delta upload/indexing stopped due to error",e);
+            JobCache.finishJob(job, -1,true); //error
+            throw e; 
+        }                
+        JobCache.finishJob(job, -1,false);//No error.  
+        
+        
+    }
+    
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
@@ -424,16 +474,16 @@ public class DsDatahandlerFacade {
 
 
     private static DsKalturaClient getKalturaClient() throws IOException {
-        String kalturaUrl= ServiceConfig.getConfig().getString("kaltura.url");
-        String adminSecret = ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
-        Integer partnerId = ServiceConfig.getConfig().getInteger("kaltura.partnerId");  
-        String userId = ServiceConfig.getConfig().getString("kaltura.userId");                               
-        String token= ServiceConfig.getConfig().getString("kaltura.token");
-        String tokenId= ServiceConfig.getConfig().getString("kaltura.tokenId");
+        String kalturaUrl= ServiceConfig.getKalturaUrl();
+        String adminSecret = ServiceConfig.getKalturaAdminSecret();
+        Integer partnerId = ServiceConfig.getKalturaPartnerId();  
+        String userId = ServiceConfig.getKalturaUserId();                               
+        String token= ServiceConfig.getKalturaToken();
+        String tokenId= ServiceConfig.getKalturaTokenId();
        
-        long sessionKeepAliveSeconds=3600L; //1 hour
+        long sessionKeepAliveSecondsIn1Hour=3600L; //1 hour
         log.info("creating kaltura client for partnerID:"+partnerId);     
-        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,sessionKeepAliveSeconds);
+        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,sessionKeepAliveSecondsIn1Hour);
         return kalturaClient;
     }
 

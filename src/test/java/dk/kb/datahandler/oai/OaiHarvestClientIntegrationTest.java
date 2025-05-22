@@ -104,6 +104,7 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
         DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTarget,null);
 
+
         OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,null);
         OaiResponse r1 = client.next();
         assertEquals(200, r1.getRecords().size()); //there is over 200 now. 200 is batch size.
