@@ -83,15 +83,20 @@ public class KalturaUtil {
        }        
     }
     
+    
     // 2 character folders, different folder for tv and radio. No file extension
     private static String generatePreservicaRadioTvPath(String filePath, String resourceDescription) {           
            
         if ("VideoObject".equals(resourceDescription)){
             return  PRESERVICA_TV_PATH+filePath;    
         }
-        else {
+        else if ("AudioObject".equals(resourceDescription)){
             return  PRESERVICA_RADIO_PATH+filePath;
         }                     
+        else { //should not happen here since this is also validated when creating the records.
+            log.warn("Resource description='{}' unknown for filePath='{}'",resourceDescription,filePath); //Default to radio. 
+            return  PRESERVICA_RADIO_PATH+filePath;
+        }       
     }
    
 
