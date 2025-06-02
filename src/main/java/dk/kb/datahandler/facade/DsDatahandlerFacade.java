@@ -115,7 +115,7 @@ public class DsDatahandlerFacade {
                 }
 
                 log.debug("Calling Kaltura to resolve kalturaId for referenceIds. Calling with a batch of '{}' records.", referenceIdsList.size());
-                Map<String, String> kalturaIds = kalturaClient.getKulturaIds(referenceIdsList);
+                Map<String, String> kalturaIds = kalturaClient.getKalturaIds(referenceIdsList);
 
                 if (kalturaIds.size() != referenceIdsList.size()) {
                     log.warn("Not all referenceIds were found at Kaltura"); //Should not happen

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import com.kaltura.client.types.APIException;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
@@ -223,7 +224,7 @@ public class KalturaDeltaUploadJob {
      * @return The Kaltura entry id if upload is successful
      * @throws IOException If upload fails
      */
-    public static String uploadStream(String title, String referenceId, String description, String filePath, String tag, MediaType mediaType, int flavourParamId) throws IOException {
+    public static String uploadStream(String title, String referenceId, String description, String filePath, String tag, MediaType mediaType, int flavourParamId) throws IOException, APIException {
 
         initKalturaClient();
         log.info("Starting upload stream. FilePath='{}' with flavorParamId='{}'", filePath,flavourParamId);
@@ -264,7 +265,7 @@ public class KalturaDeltaUploadJob {
 
         initKalturaClient();
 
-        String kalturaInternalId = kalturaClient.getKulturaInternalId(file_id);
+        String kalturaInternalId = kalturaClient.getKalturaInternalId(file_id);
         if (kalturaInternalId != null) {
             log.debug("Kaltura fileId='{}' is already in kaltura with entry_id='{}'",file_id,kalturaInternalId);
         }
