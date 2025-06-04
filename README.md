@@ -1,9 +1,13 @@
 # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library. 
-   
+
+## ⚠️ Warning: Copyright Notice
+Vær opmærksom på, at det ikke er lovligt at downloade og/eller på anden vis videreanvende indholdet i Det Kgl. Biblioteks DR-arkiv.
     
 ## Notice
 OAI-PMH harvest is just the first implementation feature in ds-datahandler. More features will implemented later.
     
+
+
 ## OAI harvest 
 Ds-datahandler can harvest OAI from different OAI-PMH targets and ingest the metadata for the records into ds-storage. 
 Having the metadata in ds-storage makes access much easier and faster for other applications. The metadata for each
