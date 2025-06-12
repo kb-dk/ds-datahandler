@@ -9,7 +9,7 @@
 
     <groupId>dk.kb.datahandler</groupId>
     <artifactId>ds-datahandler</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <description>
     # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library. 
@@ -63,7 +63,7 @@
         <url>https://github.com/kb-dk/ds-datahandler</url>
         <connection>scm:git:git@github.com:kb-dk/ds-datahandler.git</connection>
         <developerConnection>scm:git:git@github.com:kb-dk/ds-datahandler.git</developerConnection>
-        <tag>ds-datahandler-3.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <licenses>
