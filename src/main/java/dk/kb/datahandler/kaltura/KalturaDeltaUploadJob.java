@@ -102,7 +102,7 @@ public class KalturaDeltaUploadJob {
                     long recordMtime  = (Long) doc.getFieldValue("internal_storage_mTime");
 
                     String filePath=KalturaUtil.generateStreamPath(filePathSolr,  originatesFrom, resourceDescription);
-                    mTimeFromCurrent=recordMtime ; //update mTime for next call                   
+                    mTimeFromCurrent=recordMtime + 1L; //update mTime for next call
 
                     processUpload(numberStreamsUploaded, uploadTagForKaltura, minimumFileSizeInBytes, storageClient, resourceDescription, title, description, fileId, id, filePath);                                      
                 }            
