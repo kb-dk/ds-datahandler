@@ -8,10 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+
 ### Changed
 
 ### Fixed
-
+For Kaltura upload check on storage record if it already has a kaltura id, since there is a delay in kaltura from when records are searchable
 
 ## [3.0.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.0) - 2025-06-12
 ### Added

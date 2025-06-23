@@ -23,6 +23,7 @@ import com.kaltura.client.enums.MediaType;
 
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.kaltura.client.DsKalturaClient;
+import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.StreamErrorTypeDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
@@ -104,6 +105,10 @@ public class KalturaDeltaUploadJob {
                     String filePath=KalturaUtil.generateStreamPath(filePathSolr,  originatesFrom, resourceDescription);
                     mTimeFromCurrent=recordMtime + 1L; //update mTime for next call
 
+                    if (recordAlreadyHasKalturaId(storageClient, id)){ // No need to ask kaltura for kalturaId.
+                      continue;    
+                    }
+                    
                     processUpload(numberStreamsUploaded, uploadTagForKaltura, minimumFileSizeInBytes, storageClient, resourceDescription, title, description, fileId, id, filePath);                                      
                 }            
 
@@ -171,6 +176,19 @@ public class KalturaDeltaUploadJob {
 
 
 
+    /*
+     * Bcause there is a delay in Kaltura when a record is upload and before it is indexed
+     * and searchable, check if record directly on the record. 
+     */
+    private static boolean recordAlreadyHasKalturaId(DsStorageClient storageClient, String recordId) {     
+        DsRecordDto record = storageClient.getRecord(recordId,false);
+        if (record.getKalturaId() != null) {
+            log.info("Record already has kaltura id and no need to search in kaltura. Id='{}'", recordId);
+            return true;
+        }
+        return false;
+    }
+    
     private static void updateKalturaIdForRecord(DsStorageClient storageClient, String fileId, String kalturaInternalId) {     
         storageClient.updateKalturaIdForRecord(fileId, kalturaInternalId);
     }
