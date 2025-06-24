@@ -101,7 +101,7 @@
       <dependency>
         <groupId>dk.kb.storage</groupId>
         <artifactId>ds-storage</artifactId>
-          <version>${project.parent.version}</version>
+          <version>3.0.0</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
@@ -116,7 +116,7 @@
       <dependency>
         <groupId>dk.kb.present</groupId>
         <artifactId>ds-present</artifactId>
-          <version>${project.parent.version}</version>
+          <version>3.0.0</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
@@ -131,7 +131,7 @@
       <dependency>
           <groupId>dk.kb.kaltura</groupId>
           <artifactId>ds-kaltura</artifactId>
-          <version>${project.parent.version}</version>
+          <version>3.0.0</version>
           <type>jar</type>
       </dependency>
         
