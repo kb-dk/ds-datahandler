@@ -279,7 +279,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DsDathandlerJobList'
+                type: array
+                items:
+                  $ref: '#/components/schemas/DsDatahandlerJob'
         '500':
           description: 'Internal Error'
           content:
@@ -441,39 +443,72 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          description: 'System time in millis when job was started'     
-        name:
+          type: string
+          format: uuid
+          description: 'Job ID (uuid)'
+        jobName:
           type: string
           description: 'Name of the job'
-        type:
-          type: string
+        jobType:
+          $ref: '#/components/schemas/JobType'
           description: 'Type of job. Can be OAI or different enrichment jobs'
-        from:
-          type: string          
+        creator:
+          type: string
+          description: 'Who started the job'
+        jobStatus:
+          $ref: '#/components/schemas/JobStatus'
+          description: 'CREATED, STARTED, ENDED, STOPPED or COMPLETED.'
+        errorCorrelationId:
+          type: string
+          format: uuid
+          description: 'Error correlation ID for error tracking'
+        message:
+          type: string
+          description: 'Job stopped messages'
+        mTimeFrom:
+          type: string
           description: 'Some jobs can be started from a given mTime or date.'
-        status:
+        startTime:
           type: string
-          description: 'RUNNING or COMPLETED. Status COMPLETED can have failed and will be marked with error.'              
-        startedTime:
+          format: date-time
+          description: 'Format YYYY-MM-DDTHH:MM:SSZ'
+          example: '2021-01-30T08:30:00Z'
+        endTime:
           type: string
-          description: 'Format YYYY-MM-DD HH:MM:SS'                   
-        completedTime:
-          type: string
-          description: 'Format YYYY-MM-DD HH:MM:SS'
+          format: date-time
+          description: 'Format YYYY-MM-DDTHH:MM:SSZ'
+          example: '2021-01-30T08:30:00Z'
         numberOfRecords:
           type: integer
           format: int32
-          description: 'Number of processed records. This may not be available for all jobs.'
-        error:
-          type: boolean
-          description: 'If true the job did not complete and not all record was harvested'
-                       
-    DsDathandlerJobList:
-      type: array
-      items: 
-        $ref: '#/components/schemas/DsDatahandlerJob'
+          description: 'Number of processed records. (if available).'
+        restartValue:
+          type: string
+          description: timestamp
+
+    JobType:
+      type: string
+      enum:
+        - oai harvest
+        - solr index
+        - kaltura upload
+      x-enum-varnames:
+        - OAI_HARVEST
+        - SOLR_INDEX
+        - KALTURA_UPLOAD
+      x-enum-descriptions:
+        - oai harvest
+        - solr index
+        - kaltura upload
+
+    JobStatus:
+      type: string
+      enum:
+        - CREATED
+        - RUNNING
+        - COMPLETED
+        - STOPPED
+        - FAILED
 
     IndexType:
       type: string
