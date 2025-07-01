@@ -452,7 +452,7 @@ components:
         jobType:
           $ref: '#/components/schemas/JobType'
           description: 'Type of job. Can be OAI or different enrichment jobs'
-        creator:
+        createdBy:
           type: string
           description: 'Who started the job'
         jobStatus:
