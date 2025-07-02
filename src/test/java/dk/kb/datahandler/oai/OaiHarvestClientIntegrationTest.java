@@ -5,14 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.util.yaml.YAML;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.job.JobCache;
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +70,7 @@ public class OaiHarvestClientIntegrationTest {
         String from ="2021-01-01";
          */
 
-        DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTarget,from);        
+        JobDto job = JobCache.createNewOaiJob(oaiTarget,from);
 
         OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,from);
         OaiResponse r1 = client.next();
@@ -102,7 +101,7 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
-        DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTarget,null);
+        JobDto job = JobCache.createNewOaiJob(oaiTarget,null);
 
 
         OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,null);

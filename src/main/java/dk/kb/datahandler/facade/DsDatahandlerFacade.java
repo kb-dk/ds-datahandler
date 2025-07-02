@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
@@ -22,7 +23,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
+import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 
 import dk.kb.datahandler.oai.OaiHarvestClient;
@@ -80,7 +81,7 @@ public class DsDatahandlerFacade {
         long updated = 0;
         long recordsWithoutReferenceId = 0;
         List<DsRecordMinimalDto> records;
-        DsDatahandlerJobDto job = JobCache.createKalturaEnrichmentJob(origin,mTimeFrom);
+        JobDto job = JobCache.createKalturaEnrichmentJob(origin,mTimeFrom);
         try {
             while(true) {
                 if (processed % 500 == 0) {
@@ -217,7 +218,7 @@ public class DsDatahandlerFacade {
      */    
     public static String indexSolrFull(String origin) throws InternalServiceException {
 
-        DsDatahandlerJobDto job = JobCache.createIndexSolrJob(origin,0L);
+        JobDto job = JobCache.createIndexSolrJob(origin,0L);
 
         String response=null;
         try {
@@ -245,7 +246,7 @@ public class DsDatahandlerFacade {
     public static String indexSolrDelta(String origin)  throws InternalServiceException, SolrServerException, IOException {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
         String response=null;
-        DsDatahandlerJobDto job = JobCache.createIndexSolrJob(origin,lastStorageMTime);
+        JobDto job = JobCache.createIndexSolrJob(origin,lastStorageMTime);
         try {
          response= SolrUtils.indexOrigin(origin, lastStorageMTime);
         }
@@ -281,7 +282,7 @@ public class DsDatahandlerFacade {
      */
     public static void kalturaDeltaUpload(Long mTimeFrom)  throws InternalServiceException, SolrServerException, IOException {
 
-        DsDatahandlerJobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom); //For job cache
+        JobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom); //For job cache
         log.info("Starting kaltura delta upload from mTimeFrom="+mTimeFrom);
         try {
           
@@ -353,7 +354,7 @@ public class DsDatahandlerFacade {
      * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform(OaiTargetJob, String, String)}-method}<br>
      *  
      * @param oaiTargetName the name of the configured oai-target
-     * @param fromUntilList List of date intervals. When calling this method the date formats must be in format accepted by the target.
+     * @param from List of date intervals. When calling this method the date formats must be in format accepted by the target.
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *
      */
@@ -368,7 +369,7 @@ public class DsDatahandlerFacade {
                         "'. See the config method for list of configured targets.");
             }
 
-            DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTargetDto,from);        
+            JobDto job = JobCache.createNewOaiJob(oaiTargetDto,from);        
         
             try {                       
                 int number= oaiIngestPerform(job , oaiTargetDto, from);
@@ -390,10 +391,10 @@ public class DsDatahandlerFacade {
      *  
      * @return List of jobs with status
      */    
-    public static List<DsDatahandlerJobDto> getJobs() {
-        List<DsDatahandlerJobDto> running=JobCache.getRunningJobsMostRecentFirst();
-        List<DsDatahandlerJobDto> completed=JobCache.getCompletedJobsMostRecentFirst();
-        List<DsDatahandlerJobDto> result = new ArrayList<>();
+    public static List<JobDto> getJobs() {
+        List<JobDto> running=JobCache.getRunningJobsMostRecentFirst();
+        List<JobDto> completed=JobCache.getCompletedJobsMostRecentFirst();
+        List<JobDto> result = new ArrayList<>();
         result.addAll(running);
         result.addAll(completed);
         return result;
@@ -412,7 +413,7 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
-    private static Integer oaiIngestPerform(  DsDatahandlerJobDto job,OaiTargetDto oaiTargetDto, String from) throws IOException, ServiceException {
+    private static Integer oaiIngestPerform(JobDto job,OaiTargetDto oaiTargetDto, String from) throws IOException, ServiceException {
 
         //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format

@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -20,7 +18,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.job.JobCache;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +27,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
+import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.xml.XMLEscapeSanitiser;
 
@@ -41,13 +38,13 @@ public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
-    private DsDatahandlerJobDto dsDatahandlerJob = null;
+    private JobDto dsDatahandlerJob = null;
     private OaiTargetDto oaiTarget = null;
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
 
-    public OaiHarvestClient(DsDatahandlerJobDto job, OaiTargetDto oaiTarget,String from){
+    public OaiHarvestClient(JobDto job, OaiTargetDto oaiTarget,String from){
         this.dsDatahandlerJob=job;
         this.oaiTarget=oaiTarget;
         this.from=from;
@@ -84,7 +81,7 @@ public class OaiHarvestClient {
         String errorMessage = getErrorMessage(document);
          if (errorMessage != null && errorMessage.trim().length() >1) {                       
             log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
-            dsDatahandlerJob.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));            
+  //          dsDatahandlerJob.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));
             oaiResponse.setError(true);
             return oaiResponse;// will have no records
          }
