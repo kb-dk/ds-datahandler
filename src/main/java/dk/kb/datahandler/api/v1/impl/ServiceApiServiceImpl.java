@@ -3,7 +3,6 @@ package dk.kb.datahandler.api.v1.impl;
 import dk.kb.datahandler.api.v1.ServiceApi;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.JobDto;
-import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.StatusDto;
 import dk.kb.datahandler.model.v1.WhoamiDto;
 import dk.kb.datahandler.model.v1.WhoamiTokenDto;

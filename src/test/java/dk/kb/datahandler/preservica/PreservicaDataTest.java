@@ -94,8 +94,8 @@ public class PreservicaDataTest {
 
         //Empty test OAI Target
         OaiTargetDto oaiDto = new OaiTargetDto();
-        JobDto job = JobCache.createNewOaiJob(oaiDto,null);
-        OaiHarvestClient client = new OaiHarvestClient(job,oaiDto, "test");
+        JobDto jobDto = JobCache.createNewOaiJob(oaiDto, null);
+        OaiHarvestClient client = new OaiHarvestClient(jobDto, oaiDto, "test");
         OaiRecord oaiRecord = client.extractRecordsFromXml(doc).get(0);
         String testStorageId = "ds.test:" + oaiRecord.getId();
 

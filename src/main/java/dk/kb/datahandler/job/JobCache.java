@@ -43,33 +43,33 @@ public class JobCache {
      * Add a new job to running job list. If a job with same name is already running
      * will throw exception.
      * 
-     * @param JobDto job information about the job
+     * @param JobDto jobDto information about the job
      * @throws InvalidArgumentServiceException If a job with same name is already in
      *                                         RUNNING status.
      * 
      */
-    public static synchronized void addNewJob(JobDto job) throws InvalidArgumentServiceException {
-//        validateNotAlreadyRunning(job.getName());
-      //  job.setStatus(STATUS.RUNNING.toString());
-//        job.setStartedTime(formatSystemMillis(System.currentTimeMillis()));
-      //  runningJobsMap.put(job.getId(), job);
+    public static synchronized void addNewJob(JobDto jobDto) throws InvalidArgumentServiceException {
+//        validateNotAlreadyRunning(jobDto.getName());
+      //  jobDto.setStatus(STATUS.RUNNING.toString());
+//        jobDto.setStartedTime(formatSystemMillis(System.currentTimeMillis()));
+      //  runningJobsMap.put(jobDto.getId(), jobDto);
     }
 
     /*
      * Change status and move from running map to completed map
      */
-    public static synchronized void finishJob(JobDto job, int numberOfRecords, boolean error) {
-   //     job.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));
-        runningJobsMap.remove(job.getId());
+    public static synchronized void finishJob(JobDto jobDto, int numberOfRecords, boolean error) {
+   //     jobDto.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));
+        runningJobsMap.remove(jobDto.getId());
         if (error) {
-  //          job.setError(true);
+  //          jobDto.setError(true);
         }
-  //      job.setStatus(STATUS.COMPLETED.toString());
-        job.setNumberOfRecords(numberOfRecords);
-  //      job.setCompletedTime(formatSystemMillis(System.currentTimeMillis()));
-  //      log.info("Setting completed for job:" + job.getName() + " time:" + job.getCompletedTime());
+  //      jobDto.setStatus(STATUS.COMPLETED.toString());
+        jobDto.setNumberOfRecords(numberOfRecords);
+  //      jobDto.setCompletedTime(formatSystemMillis(System.currentTimeMillis()));
+  //      log.info("Setting completed for jobDto:" + jobDto.getName() + " time:" + jobDto.getCompletedTime());
 
-   //     completedJobsMap.put(job.getId(), job);
+   //     completedJobsMap.put(jobDto.getId(), jobDto);
 
     }
 
@@ -91,8 +91,8 @@ public class JobCache {
 
     public static synchronized boolean isJobRunningForTarget(String targetName) {
         Collection<JobDto> running = runningJobsMap.values();
-        for (JobDto job : running) {
-//            if (job.getName().equals(targetName)) {
+        for (JobDto jobDto : running) {
+//            if (jobDto.getName().equals(targetName)) {
 //                return true;
 //            }
         }
@@ -124,15 +124,15 @@ public class JobCache {
 
         long id = JobCache.getNextId();
 
-        JobDto job = new JobDto();
- //       job.setId(id);
- //       job.setName("OAI:" + dto.getName()); // name is key in job cache. Only start one OAI from each target.
- //       job.setType("OAI");
- //       job.setFrom(from);
+        JobDto jobDto = new JobDto();
+ //       jobDto.setId(id);
+ //       jobDto.setName("OAI:" + dto.getName()); // name is key in job cache. Only start one OAI from each target.
+ //       jobDto.setType("OAI");
+ //       jobDto.setFrom(from);
         // register job
-        JobCache.addNewJob(job);
+        JobCache.addNewJob(jobDto);
 
-        return job;
+        return jobDto;
     }
 
     /**
@@ -145,15 +145,15 @@ public class JobCache {
 
         long id = JobCache.getNextId();
 
-        JobDto job = new JobDto();
- //       job.setId(id);
- //       job.setName("SOLR_INDEX:" + origin); // name is key in job cache. Only one job with this name can be started
- //       job.setType("SOLR_INDEX");
- //       job.setFrom(parseMTime(mTime));
+        JobDto jobDto = new JobDto();
+ //       jobDto.setId(id);
+ //       jobDto.setName("SOLR_INDEX:" + origin); // name is key in job cache. Only one job with this name can be started
+ //       jobDto.setType("SOLR_INDEX");
+ //       jobDto.setFrom(parseMTime(mTime));
         // register job
-        JobCache.addNewJob(job);
+        JobCache.addNewJob(jobDto);
 
-        return job;
+        return jobDto;
     }
 
     /**
@@ -166,16 +166,16 @@ public class JobCache {
     public static synchronized JobDto createPreservicaManifestationJob(String origin, Long mTime) {
         long id = JobCache.getNextId();
 
-        JobDto job = new JobDto();
-//        job.setId(id);
- //       job.setName("PRESERVICA_MANIFESTATION:" + origin); // name is key in job cache. Only one job with this name can be started.
-//        job.setType("PRESERVICA_MANIFESTATION");
-//        job.setFrom(parseMTime(mTime));
+        JobDto jobDto = new JobDto();
+//        jobDto.setId(id);
+ //       jobDto.setName("PRESERVICA_MANIFESTATION:" + origin); // name is key in job cache. Only one job with this name can be started.
+//        jobDto.setType("PRESERVICA_MANIFESTATION");
+//        jobDto.setFrom(parseMTime(mTime));
 
         // register job
-        JobCache.addNewJob(job);
+        JobCache.addNewJob(jobDto);
 
-        return job;
+        return jobDto;
     }
 
     /**
@@ -188,16 +188,16 @@ public class JobCache {
 
         long id = JobCache.getNextId();
 
-        JobDto job = new JobDto();
-//        job.setId(id);
-//        job.setName("KALTURA:" + origin); // name is key in job cache. Only one job with this name can be started.
-//        job.setType("KALTURA_ENTRY_ID");
-//        job.setFrom(parseMTime(mTime));
+        JobDto jobDto = new JobDto();
+//        jobDto.setId(id);
+//        jobDto.setName("KALTURA:" + origin); // name is key in job cache. Only one job with this name can be started.
+//        jobDto.setType("KALTURA_ENTRY_ID");
+//        jobDto.setFrom(parseMTime(mTime));
 
         // register job
-        JobCache.addNewJob(job);
+        JobCache.addNewJob(jobDto);
 
-        return job;
+        return jobDto;
     }
 
     /**
@@ -210,16 +210,16 @@ public class JobCache {
 
         long id = JobCache.getNextId();
 
-        JobDto job = new JobDto();
-//        job.setId(id);
-//        job.setName("KALTURA DELTAUPLOAD"); // name is key in job cache. Only one job with this name can be started.
-//        job.setType("KALTURA_DELTA_UPLOAD");
-//        job.setFrom(parseMTime(mTime));
+        JobDto jobDto = new JobDto();
+//        jobDto.setId(id);
+//        jobDto.setName("KALTURA DELTAUPLOAD"); // name is key in job cache. Only one job with this name can be started.
+//        jobDto.setType("KALTURA_DELTA_UPLOAD");
+//        jobDto.setFrom(parseMTime(mTime));
 
         // register job
-        JobCache.addNewJob(job);
+        JobCache.addNewJob(jobDto);
 
-        return job;
+        return jobDto;
     }
 
     private static String parseMTime(Long mTime) {

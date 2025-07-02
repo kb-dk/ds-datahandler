@@ -70,9 +70,9 @@ public class OaiHarvestClientIntegrationTest {
         String from ="2021-01-01";
          */
 
-        JobDto job = JobCache.createNewOaiJob(oaiTarget,from);
+        JobDto jobDto = JobCache.createNewOaiJob(oaiTarget, from);
 
-        OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,from);
+        OaiHarvestClient client = new OaiHarvestClient(jobDto, oaiTarget, from);
         OaiResponse r1 = client.next();
         assertEquals(1000, r1.getRecords().size());
         assertNotNull(r1.getResumptionToken());
@@ -81,7 +81,7 @@ public class OaiHarvestClientIntegrationTest {
         OaiResponse r2= client.next();
         assertEquals(1000, r2.getRecords().size());
     
-        JobCache.finishJob(job, 0, false);
+        JobCache.finishJob(jobDto, 0, false);
     }
 
 
@@ -101,10 +101,10 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
-        JobDto job = JobCache.createNewOaiJob(oaiTarget,null);
+        JobDto jobDto = JobCache.createNewOaiJob(oaiTarget, null);
 
 
-        OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,null);
+        OaiHarvestClient client = new OaiHarvestClient(jobDto,oaiTarget, null);
         OaiResponse r1 = client.next();
         assertEquals(200, r1.getRecords().size()); //there is over 200 now. 200 is batch size.
         assertNotNull(r1.getResumptionToken());
@@ -119,7 +119,7 @@ public class OaiHarvestClientIntegrationTest {
         OaiResponse r3= client.next();
         assertEquals(200, r3.getRecords().size());
         
-        JobCache.finishJob(job, 0, false);
+        JobCache.finishJob(jobDto, 0, false);
     }
 
 }

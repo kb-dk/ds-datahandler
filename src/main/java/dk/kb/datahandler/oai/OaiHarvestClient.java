@@ -38,14 +38,14 @@ public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
-    private JobDto dsDatahandlerJob = null;
+    private JobDto jobDto = null;
     private OaiTargetDto oaiTarget = null;
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
 
-    public OaiHarvestClient(JobDto job, OaiTargetDto oaiTarget,String from){
-        this.dsDatahandlerJob=job;
+    public OaiHarvestClient(JobDto jobDto, OaiTargetDto oaiTarget, String from){
+        this.jobDto =jobDto;
         this.oaiTarget=oaiTarget;
         this.from=from;
     }
@@ -112,7 +112,7 @@ public class OaiHarvestClient {
     /* Will construct the uri for next http request. Resumption token will be set if not null.
      * Also special coding since  Cumulus/Cups API is not OAI-PMH compliant. 
      */
-    private String addQueryParamsToUri(String uri,String set, String resumptionToken, String metadataPrefix, String from) {
+    private String addQueryParamsToUri(String uri, String set, String resumptionToken, String metadataPrefix, String from) {
 
         //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
         if (resumptionToken==null && set != null) { //COPS fails if set is still used with resumptiontoken
@@ -133,7 +133,7 @@ public class OaiHarvestClient {
         return uri;
     }
 
-    public ArrayList<OaiRecord> extractRecordsFromXml( Document document ) {
+    public ArrayList<OaiRecord> extractRecordsFromXml(Document document) {
         NodeList nList = document.getElementsByTagName("record"); 
 
         ArrayList<OaiRecord> records= new ArrayList<OaiRecord>();

@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
@@ -60,7 +59,7 @@ public class DsDatahandlerFacade {
      * @return Number of mappings updated.
      * @throws IOException,APIException 
      */
-    public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws IOException, ServiceException {
+    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long mTimeFrom) throws IOException, ServiceException {
         if (mTimeFrom == null) {
             mTimeFrom = 0L;
         }
@@ -81,7 +80,7 @@ public class DsDatahandlerFacade {
         long updated = 0;
         long recordsWithoutReferenceId = 0;
         List<DsRecordMinimalDto> records;
-        JobDto job = JobCache.createKalturaEnrichmentJob(origin,mTimeFrom);
+        JobDto jobDto = JobCache.createKalturaEnrichmentJob(origin, mTimeFrom);
         try {
             while(true) {
                 if (processed % 500 == 0) {
@@ -90,7 +89,7 @@ public class DsDatahandlerFacade {
                     timer = System.currentTimeMillis();
                 }
 
-                records = dsAPI.getMinimalRecords(origin, batchSize,mTimeFrom);
+                records = dsAPI.getMinimalRecords(origin, batchSize, mTimeFrom);
                 if (records.isEmpty()) { //no more records
                     break;
                 }
@@ -140,11 +139,11 @@ public class DsDatahandlerFacade {
                     "reference ID processed: '{}' The full request lasted '{}' milliseconds.",
                     updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
 
-            JobCache.finishJob(job ,(int) updated, false); //no error
+            JobCache.finishJob(jobDto, (int) updated, false); //no error
             return updated;
         }
         catch (Exception e) {
-            JobCache.finishJob(job ,(int) updated, true);  //error            
+            JobCache.finishJob(jobDto, (int) updated, true);  //error
             throw new InternalServiceException("Error updating kalturaIds",e);         
         }
 
@@ -218,7 +217,7 @@ public class DsDatahandlerFacade {
      */    
     public static String indexSolrFull(String origin) throws InternalServiceException {
 
-        JobDto job = JobCache.createIndexSolrJob(origin,0L);
+        JobDto jobDto = JobCache.createIndexSolrJob(origin, 0L);
 
         String response=null;
         try {
@@ -226,12 +225,12 @@ public class DsDatahandlerFacade {
           
         }
         
-        catch(Exception e){
-            JobCache.finishJob(job, -1,true); //error
+        catch(Exception e) {
+            JobCache.finishJob(jobDto, -1, true); //error
             throw e; 
         }        
         
-        JobCache.finishJob(job, -1,false);//No error. We do not know how many records processed. But can be parsed from response.
+        JobCache.finishJob(jobDto, -1, false);//No error. We do not know how many records processed. But can be parsed from response.
         return response;
     }
 
@@ -246,15 +245,15 @@ public class DsDatahandlerFacade {
     public static String indexSolrDelta(String origin)  throws InternalServiceException, SolrServerException, IOException {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
         String response=null;
-        JobDto job = JobCache.createIndexSolrJob(origin,lastStorageMTime);
+        JobDto jobDto = JobCache.createIndexSolrJob(origin, lastStorageMTime);
         try {
          response= SolrUtils.indexOrigin(origin, lastStorageMTime);
         }
-        catch(Exception e){
-            JobCache.finishJob(job, -1,true); //error
+        catch(Exception e) {
+            JobCache.finishJob(jobDto, -1, true); //error
             throw e; 
         }                
-        JobCache.finishJob(job, -1,false);//No error. We do not know how many records processed. (But can be parsed from response maybe)         
+        JobCache.finishJob(jobDto, -1, false);//No error. We do not know how many records processed. (But can be parsed from response maybe)
         return response;
     }
 
@@ -282,7 +281,7 @@ public class DsDatahandlerFacade {
      */
     public static void kalturaDeltaUpload(Long mTimeFrom)  throws InternalServiceException, SolrServerException, IOException {
 
-        JobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom); //For job cache
+        JobDto jobDto = JobCache.createKalturaDeltaUploadJob(mTimeFrom); //For job cache
         log.info("Starting kaltura delta upload from mTimeFrom="+mTimeFrom);
         try {
           
@@ -298,12 +297,12 @@ public class DsDatahandlerFacade {
           }
           
         }
-        catch(Throwable e){
+        catch(Throwable e) {
             log.error("Kaltura delta upload/indexing stopped due to error",e);
-            JobCache.finishJob(job, -1,true); //error
+            JobCache.finishJob(jobDto, -1,true); //error
             throw e; 
         }                
-        JobCache.finishJob(job, -1,false);//No error.  
+        JobCache.finishJob(jobDto, -1,false);//No error.
         
         
     }

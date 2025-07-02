@@ -28,21 +28,21 @@ public class JobStorage extends BasicStorage {
         super();
     }
 
-    public UUID createJob(JobDto job) throws SQLException{
+    public UUID createJob(JobDto jobDto) throws SQLException{
         UUID id = UUID.randomUUID();
         try(PreparedStatement stmt = connection.prepareStatement(INSERT_JOB_QUERY)) {
             stmt.setObject(1,id);
-            stmt.setString(2,job.getJobName());
-            stmt.setString(3,job.getJobType().name());
-            stmt.setString(4,job.getCreatedBy());
-            stmt.setString(5,job.getJobStatus().name());
-            stmt.setObject(6,job.getErrorCorrelationId());
-            stmt.setString(7,job.getMessage());
-            stmt.setInt(8,job.getmTimeFrom());
-            stmt.setTimestamp(9,new Timestamp(job.getStartTime().getTime()));
-            stmt.setTimestamp(10,new Timestamp(job.getEndTime().getTime()));
-            stmt.setInt(11,job.getNumberOfRecords());
-            stmt.setInt(12,job.getRestartValue());
+            stmt.setString(2,jobDto.getJobName());
+            stmt.setString(3,jobDto.getJobType().name());
+            stmt.setString(4,jobDto.getCreatedBy());
+            stmt.setString(5,jobDto.getJobStatus().name());
+            stmt.setObject(6,jobDto.getErrorCorrelationId());
+            stmt.setString(7,jobDto.getMessage());
+            stmt.setInt(8,jobDto.getmTimeFrom());
+            stmt.setTimestamp(9,new Timestamp(jobDto.getStartTime().getTime()));
+            stmt.setTimestamp(10,new Timestamp(jobDto.getEndTime().getTime()));
+            stmt.setInt(11,jobDto.getNumberOfRecords());
+            stmt.setInt(12,jobDto.getRestartValue());
             stmt.executeUpdate();
             return id;
         }

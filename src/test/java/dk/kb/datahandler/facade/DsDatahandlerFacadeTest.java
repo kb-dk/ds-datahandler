@@ -24,7 +24,7 @@ public class DsDatahandlerFacadeTest {
                 .name("THERE_CAN_ONLY_BE_ONE");
         
         // OK
-        JobDto job = JobCache.createNewOaiJob(oaiTarget,null);
+        JobDto jobDto = JobCache.createNewOaiJob(oaiTarget, null);
 
         // Try add another
         try {
