@@ -281,7 +281,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/DsDatahandlerJob'
+                  $ref: '#/components/schemas/Job'
         '500':
           description: 'Internal Error'
           content:
@@ -439,7 +439,7 @@ components:
           description: BaseURL for the enrichment fragment service
           example: 'http://example.com/'
 
-    DsDatahandlerJob:
+    Job:
       type: object
       properties:
         id:
@@ -466,7 +466,8 @@ components:
           type: string
           description: 'Job stopped messages'
         mTimeFrom:
-          type: string
+          type: integer
+          format: int32
           description: 'Some jobs can be started from a given mTime or date.'
         startTime:
           type: string
@@ -483,7 +484,8 @@ components:
           format: int32
           description: 'Number of processed records. (if available).'
         restartValue:
-          type: string
+          type: integer
+          format: int32
           description: timestamp
 
     JobType:
