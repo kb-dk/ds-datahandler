@@ -13,15 +13,24 @@ import java.util.UUID;
 
 public class JobStorage extends BasicStorage {
     private static final String INSERT_JOB_QUERY = """
-            INSERT INTO jobs ( 
-             id, name, type, createdBy,
-             status, errorCorrelationId, message,
-             mTimeFrom, startTime, endTime, numberOfRecords,
-             restartValue
-            )
-            VALUES
-            (?,?,?,?,?,?,?,?,?,?,?,?)
-            """;
+        INSERT INTO jobs ( 
+            id,
+            name,
+            type,
+            createdBy,
+            status,
+            errorCorrelationId,
+            message,
+            mTimeFrom,
+            startTime,
+            endTime,
+            numberOfRecords,
+            restartValue
+        )
+        VALUES (
+            ?,?,?,?,?,?,?,?,?,?,?,?
+        )
+    """;
     private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?;";
 
     public JobStorage() throws SQLException {
@@ -30,19 +39,19 @@ public class JobStorage extends BasicStorage {
 
     public UUID createJob(JobDto jobDto) throws SQLException{
         UUID id = UUID.randomUUID();
-        try(PreparedStatement stmt = connection.prepareStatement(INSERT_JOB_QUERY)) {
-            stmt.setObject(1,id);
-            stmt.setString(2,jobDto.getJobName());
-            stmt.setString(3,jobDto.getJobType().name());
-            stmt.setString(4,jobDto.getCreatedBy());
-            stmt.setString(5,jobDto.getJobStatus().name());
-            stmt.setObject(6,jobDto.getErrorCorrelationId());
-            stmt.setString(7,jobDto.getMessage());
-            stmt.setInt(8,jobDto.getmTimeFrom());
-            stmt.setTimestamp(9,new Timestamp(jobDto.getStartTime().getTime()));
-            stmt.setTimestamp(10,new Timestamp(jobDto.getEndTime().getTime()));
-            stmt.setInt(11,jobDto.getNumberOfRecords());
-            stmt.setInt(12,jobDto.getRestartValue());
+        try (PreparedStatement stmt = connection.prepareStatement(INSERT_JOB_QUERY)) {
+            stmt.setObject(1, id);
+            stmt.setString(2, jobDto.getJobName());
+            stmt.setString(3, jobDto.getJobType().name());
+            stmt.setString(4, jobDto.getCreatedBy());
+            stmt.setString(5, jobDto.getJobStatus().name());
+            stmt.setObject(6, jobDto.getErrorCorrelationId());
+            stmt.setString(7, jobDto.getMessage());
+            stmt.setInt(8, jobDto.getmTimeFrom());
+            stmt.setTimestamp(9, new Timestamp(jobDto.getStartTime().getTime()));
+            stmt.setTimestamp(10, new Timestamp(jobDto.getEndTime().getTime()));
+            stmt.setInt(11, jobDto.getNumberOfRecords());
+            stmt.setInt(12, jobDto.getRestartValue());
             stmt.executeUpdate();
             return id;
         }
@@ -76,7 +85,7 @@ public class JobStorage extends BasicStorage {
         jobDto.setJobType(JobTypeDto.valueOf(result.getString("type")));
         jobDto.setJobStatus(JobStatusDto.valueOf(result.getString("status")));
         jobDto.setCreatedBy(result.getString("createdBy"));
-        jobDto.setErrorCorrelationId(result.getObject("errorCorrelationId",UUID.class));
+        jobDto.setErrorCorrelationId(result.getObject("errorCorrelationId", UUID.class));
         jobDto.setMessage(result.getString("message"));
         jobDto.setmTimeFrom(result.getInt("mTimeFrom"));
         jobDto.setStartTime(result.getDate("startTime"));
