@@ -11,9 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.sql.SQLException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Date;
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public class JobStorageTest {
@@ -39,15 +38,14 @@ public class JobStorageTest {
         jobDto.setJobStatus(JobStatusDto.CREATED);
         jobDto.setJobType(JobTypeDto.KALTURA_UPLOAD);
         jobDto.setCreatedBy("Unit test");
-        jobDto.setStartTime(Date.from(Instant.now()));
-        jobDto.setEndTime(Date.from(Instant.now().plusSeconds(120)));
+        jobDto.setStartTime(OffsetDateTime.now());
         jobDto.setErrorCorrelationId(UUID.randomUUID());
         jobDto.setMessage("This is a message");
         jobDto.setmTimeFrom(1234567890);
         jobDto.setNumberOfRecords(4200);
         jobDto.setRestartValue(12345);
         UUID jobId = storage.createJob(jobDto);
-        
+
         JobDto jobDtoFromDb = storage.getJob(jobId);
 
         Assertions.assertNotNull(jobDtoFromDb);
@@ -56,14 +54,15 @@ public class JobStorageTest {
         Assertions.assertEquals(jobDto.getJobStatus(), jobDtoFromDb.getJobStatus());
         Assertions.assertEquals(jobDto.getJobType(), jobDtoFromDb.getJobType());
         Assertions.assertEquals(jobDto.getCreatedBy(), jobDtoFromDb.getCreatedBy());
-  //      Assertions.assertEquals(jobDto.getStartTime(), jobDtoFromDb.getStartTime());
-  //      Assertions.assertEquals(jobDto.getEndTime(), jobDtoFromDb.getEndTime());
+        Assertions.assertNotNull(jobDtoFromDb.getStartTime());
+        // Assert that result is 'close enough'
+        Assertions.assertTrue(Duration.between(jobDto.getStartTime(), jobDtoFromDb.getStartTime()).toSeconds() <= 0);
+        Assertions.assertEquals(jobDto.getErrorCorrelationId(), jobDtoFromDb.getErrorCorrelationId());
         Assertions.assertEquals(jobDto.getErrorCorrelationId(), jobDtoFromDb.getErrorCorrelationId());
         Assertions.assertEquals(jobDto.getMessage(), jobDtoFromDb.getMessage());
         Assertions.assertEquals(jobDto.getmTimeFrom(), jobDtoFromDb.getmTimeFrom());
         Assertions.assertEquals(jobDto.getNumberOfRecords(), jobDtoFromDb.getNumberOfRecords());
         Assertions.assertEquals(jobDto.getRestartValue(), jobDtoFromDb.getRestartValue());
-
     }
 
 }

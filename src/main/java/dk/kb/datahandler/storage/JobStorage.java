@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,12 +24,11 @@ public class JobStorage extends BasicStorage {
             message,
             mTimeFrom,
             startTime,
-            endTime,
             numberOfRecords,
             restartValue
         )
         VALUES (
-            ?,?,?,?,?,?,?,?,?,?,?,?
+            ?,?,?,?,?,?,?,?,?,?,?
         )
     """;
     private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?;";
@@ -48,10 +48,9 @@ public class JobStorage extends BasicStorage {
             stmt.setObject(6, jobDto.getErrorCorrelationId());
             stmt.setString(7, jobDto.getMessage());
             stmt.setInt(8, jobDto.getmTimeFrom());
-            stmt.setTimestamp(9, new Timestamp(jobDto.getStartTime().getTime()));
-            stmt.setTimestamp(10, new Timestamp(jobDto.getEndTime().getTime()));
-            stmt.setInt(11, jobDto.getNumberOfRecords());
-            stmt.setInt(12, jobDto.getRestartValue());
+            stmt.setTimestamp(9, Timestamp.from(jobDto.getStartTime().toInstant()));
+            stmt.setInt(10, jobDto.getNumberOfRecords());
+            stmt.setInt(11, jobDto.getRestartValue());
             stmt.executeUpdate();
             return id;
         }
@@ -88,8 +87,8 @@ public class JobStorage extends BasicStorage {
         jobDto.setErrorCorrelationId(result.getObject("errorCorrelationId", UUID.class));
         jobDto.setMessage(result.getString("message"));
         jobDto.setmTimeFrom(result.getInt("mTimeFrom"));
-        jobDto.setStartTime(result.getDate("startTime"));
-        jobDto.setEndTime(result.getDate("endTime"));
+        jobDto.setStartTime((OffsetDateTime) result.getObject("startTime"));
+        jobDto.setEndTime((OffsetDateTime)  result.getObject("endTime"));
         jobDto.setNumberOfRecords(result.getInt("numberOfRecords"));
         jobDto.setRestartValue(result.getInt("restartValue"));
         return jobDto;
