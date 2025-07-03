@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS jobs (
-    id UUID,
+    id UUID PRIMARY KEY,
     name VARCHAR,
     type VARCHAR,
     createdBy VARCHAR,
