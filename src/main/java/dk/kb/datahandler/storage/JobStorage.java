@@ -31,6 +31,13 @@ public class JobStorage extends BasicStorage {
             ?,?,?,?,?,?,?,?,?,?,?
         )
     """;
+
+    private static final String UPDATE_JOB_QUERY = """
+            UPDATE jobs SET
+                name = ?, type =?, createdBy = ?, status = ?, errorCorrelationId = ?, message = ?,
+                mTimeFrom = ?, endTime = ?, numberOfRecords = ?, restartValue = ? WHERE id = ?
+            """;
+
     private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?;";
 
     public JobStorage() throws SQLException {
@@ -56,10 +63,6 @@ public class JobStorage extends BasicStorage {
         }
     };
 
-    public void updateJobStatus(String id, String status) {
-
-    }
-
     public JobDto getJob(UUID id) throws SQLException {
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOB_QUERY)) {
             stmt.setString(1, id.toString());
@@ -77,6 +80,24 @@ public class JobStorage extends BasicStorage {
         return null;
     }
 
+    public int updateJob(JobDto modifiedJobDto) throws SQLException {
+        try(PreparedStatement stmt = connection.prepareStatement(UPDATE_JOB_QUERY)) {
+            stmt.setString(1, modifiedJobDto.getJobName());
+            stmt.setString(2, modifiedJobDto.getJobType().name());
+            stmt.setString(3, modifiedJobDto.getCreatedBy());
+            stmt.setString(4, modifiedJobDto.getJobStatus().name());
+            stmt.setObject(5, modifiedJobDto.getErrorCorrelationId());
+            stmt.setString(6, modifiedJobDto.getMessage());
+            stmt.setInt(7, modifiedJobDto.getmTimeFrom());
+            stmt.setTimestamp(8, Timestamp.from(modifiedJobDto.getEndTime().toInstant()));
+            stmt.setInt(9, modifiedJobDto.getNumberOfRecords());
+            stmt.setInt(10, modifiedJobDto.getRestartValue());
+            stmt.setObject(11, modifiedJobDto.getId());
+            return stmt.executeUpdate();
+        }
+    }
+
+
     private JobDto createJobDtoFromResult(ResultSet result) throws SQLException {
         JobDto jobDto = new JobDto();
         jobDto.setId(result.getObject("id",UUID.class));
@@ -93,6 +114,5 @@ public class JobStorage extends BasicStorage {
         jobDto.setRestartValue(result.getInt("restartValue"));
         return jobDto;
     }
-
 
 }
