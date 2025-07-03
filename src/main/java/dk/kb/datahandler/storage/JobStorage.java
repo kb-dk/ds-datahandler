@@ -33,12 +33,18 @@ public class JobStorage extends BasicStorage {
     """;
 
     private static final String UPDATE_JOB_QUERY = """
-            UPDATE jobs SET
-                name = ?, type =?, createdBy = ?, status = ?, errorCorrelationId = ?, message = ?,
-                mTimeFrom = ?, endTime = ?, numberOfRecords = ?, restartValue = ? WHERE id = ?
-            """;
+        UPDATE jobs SET
+            status = ?,
+            errorCorrelationId = ?,
+            message = ?,
+            endTime = ?,
+            numberOfRecords = ?,
+            restartValue = ? 
+        WHERE 
+            id = ?
+        """;
 
-    private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?;";
+    private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?";
 
     public JobStorage() throws SQLException {
         super();
@@ -56,12 +62,12 @@ public class JobStorage extends BasicStorage {
             stmt.setString(7, jobDto.getMessage());
             stmt.setInt(8, jobDto.getmTimeFrom());
             stmt.setTimestamp(9, Timestamp.from(jobDto.getStartTime().toInstant()));
-            stmt.setInt(10, jobDto.getNumberOfRecords());
-            stmt.setInt(11, jobDto.getRestartValue());
+            stmt.setObject(10, jobDto.getNumberOfRecords());
+            stmt.setObject(11, jobDto.getRestartValue());
             stmt.executeUpdate();
             return id;
         }
-    };
+    }
 
     public JobDto getJob(UUID id) throws SQLException {
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOB_QUERY)) {
@@ -82,25 +88,20 @@ public class JobStorage extends BasicStorage {
 
     public int updateJob(JobDto modifiedJobDto) throws SQLException {
         try(PreparedStatement stmt = connection.prepareStatement(UPDATE_JOB_QUERY)) {
-            stmt.setString(1, modifiedJobDto.getJobName());
-            stmt.setString(2, modifiedJobDto.getJobType().name());
-            stmt.setString(3, modifiedJobDto.getCreatedBy());
-            stmt.setString(4, modifiedJobDto.getJobStatus().name());
-            stmt.setObject(5, modifiedJobDto.getErrorCorrelationId());
-            stmt.setString(6, modifiedJobDto.getMessage());
-            stmt.setInt(7, modifiedJobDto.getmTimeFrom());
-            stmt.setTimestamp(8, Timestamp.from(modifiedJobDto.getEndTime().toInstant()));
-            stmt.setInt(9, modifiedJobDto.getNumberOfRecords());
-            stmt.setInt(10, modifiedJobDto.getRestartValue());
-            stmt.setObject(11, modifiedJobDto.getId());
+            stmt.setString(1, modifiedJobDto.getJobStatus().name());
+            stmt.setObject(2, modifiedJobDto.getErrorCorrelationId());
+            stmt.setString(3, modifiedJobDto.getMessage());
+            stmt.setTimestamp(4, Timestamp.from(modifiedJobDto.getEndTime().toInstant()));
+            stmt.setInt(5, modifiedJobDto.getNumberOfRecords());
+            stmt.setInt(6, modifiedJobDto.getRestartValue());
+            stmt.setObject(7, modifiedJobDto.getId());
             return stmt.executeUpdate();
         }
     }
 
-
     private JobDto createJobDtoFromResult(ResultSet result) throws SQLException {
         JobDto jobDto = new JobDto();
-        jobDto.setId(result.getObject("id",UUID.class));
+        jobDto.setId(result.getObject("id", UUID.class));
         jobDto.setJobName(result.getString("name"));
         jobDto.setJobType(JobTypeDto.valueOf(result.getString("type")));
         jobDto.setJobStatus(JobStatusDto.valueOf(result.getString("status")));
@@ -108,11 +109,10 @@ public class JobStorage extends BasicStorage {
         jobDto.setErrorCorrelationId(result.getObject("errorCorrelationId", UUID.class));
         jobDto.setMessage(result.getString("message"));
         jobDto.setmTimeFrom(result.getInt("mTimeFrom"));
-        jobDto.setStartTime((OffsetDateTime) result.getObject("startTime"));
-        jobDto.setEndTime((OffsetDateTime)  result.getObject("endTime"));
-        jobDto.setNumberOfRecords(result.getInt("numberOfRecords"));
-        jobDto.setRestartValue(result.getInt("restartValue"));
+        jobDto.setStartTime(result.getObject("startTime", OffsetDateTime.class));
+        jobDto.setEndTime(result.getObject("endTime", OffsetDateTime.class));
+        jobDto.setNumberOfRecords(result.getObject("numberOfRecords", Integer.class));
+        jobDto.setRestartValue(result.getObject("restartValue", Integer.class));
         return jobDto;
     }
-
 }

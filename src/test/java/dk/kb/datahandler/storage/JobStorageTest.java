@@ -48,11 +48,13 @@ public class JobStorageTest {
         Assertions.assertNotNull(jobDtoFromDb.getStartTime());
         // Assert that result is 'close enough'
         Assertions.assertTrue(Duration.between(jobDto.getStartTime(), jobDtoFromDb.getStartTime()).toSeconds() <= 0);
-        Assertions.assertEquals(jobDto.getErrorCorrelationId(), jobDtoFromDb.getErrorCorrelationId());
+        Assertions.assertNull(jobDtoFromDb.getEndTime());
         Assertions.assertEquals(jobDto.getErrorCorrelationId(), jobDtoFromDb.getErrorCorrelationId());
         Assertions.assertEquals(jobDto.getMessage(), jobDtoFromDb.getMessage());
         Assertions.assertEquals(jobDto.getmTimeFrom(), jobDtoFromDb.getmTimeFrom());
+        Assertions.assertNull(jobDtoFromDb.getNumberOfRecords());
         Assertions.assertEquals(jobDto.getNumberOfRecords(), jobDtoFromDb.getNumberOfRecords());
+        Assertions.assertNull(jobDtoFromDb.getRestartValue());
         Assertions.assertEquals(jobDto.getRestartValue(), jobDtoFromDb.getRestartValue());
     }
 
@@ -71,6 +73,7 @@ public class JobStorageTest {
 
         int numberOfUpdatedRows = storage.updateJob(jobDtoFromDb);
 
+        Assertions.assertEquals(1, numberOfUpdatedRows);
         JobDto jobDtoFromDb2 = storage.getJob(jobDtoFromDb.getId());
         Assertions.assertNotNull(jobDtoFromDb2);
         Assertions.assertEquals(jobId, jobDtoFromDb2.getId());
@@ -90,14 +93,12 @@ public class JobStorageTest {
         Assertions.assertEquals(jobDtoFromDb.getmTimeFrom(), jobDtoFromDb2.getmTimeFrom());
         Assertions.assertEquals(jobDtoFromDb.getNumberOfRecords(), jobDtoFromDb2.getNumberOfRecords());
         Assertions.assertEquals(jobDtoFromDb.getRestartValue(), jobDtoFromDb2.getRestartValue());
-
-
     }
 
     @NotNull
     private static JobDto genetrateTestJobDto() {
         JobDto jobDto = new JobDto();
-        jobDto.setJobName("jobName");
+        jobDto.setJobName("full " + JobTypeDto.KALTURA_UPLOAD.getValue());
         jobDto.setJobStatus(JobStatusDto.CREATED);
         jobDto.setJobType(JobTypeDto.KALTURA_UPLOAD);
         jobDto.setCreatedBy("Unit test");
@@ -105,9 +106,6 @@ public class JobStorageTest {
         jobDto.setErrorCorrelationId(UUID.randomUUID());
         jobDto.setMessage("This is a message");
         jobDto.setmTimeFrom(1234567890);
-        jobDto.setNumberOfRecords(4200);
-        jobDto.setRestartValue(12345);
         return jobDto;
     }
-
 }
