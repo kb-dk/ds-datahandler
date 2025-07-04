@@ -44,6 +44,10 @@ public class JobStorage extends BasicStorage {
             id = ?
         """;
 
+    private static final String GET_JOBS_BY_TYPE_AND_STATUS = """
+                SELECT * FROM jobs WHERE type=? AND status=?
+            """;
+
     private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?";
 
     public JobStorage() throws SQLException {
@@ -78,6 +82,19 @@ public class JobStorage extends BasicStorage {
                 }
                 JobDto jobDto = createJobDtoFromResult(result);
                 return jobDto;
+            }
+        }
+    }
+
+    public boolean hasRunningJob(JobTypeDto jobType) throws SQLException {
+        try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_TYPE_AND_STATUS)) {
+            stmt.setString(1, jobType.name());
+            stmt.setString(2, JobStatusDto.RUNNING.name());
+            try (ResultSet result = stmt.executeQuery()) {
+                if (!result.next()) {
+                    return false;
+                }
+                return true;
             }
         }
     }

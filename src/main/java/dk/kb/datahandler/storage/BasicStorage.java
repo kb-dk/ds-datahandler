@@ -2,15 +2,19 @@ package dk.kb.datahandler.storage;
 
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.util.webservice.exception.InternalServiceException;
+import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BasicStorage implements AutoCloseable {
+public abstract class BasicStorage implements AutoCloseable {
     private static Logger log = LoggerFactory.getLogger(BasicStorage.class);
 
     protected Connection connection;
@@ -36,6 +40,18 @@ public class BasicStorage implements AutoCloseable {
         connection = dataSource.getConnection();
     }
 
+    public void commit() throws SQLException {
+        connection.commit();
+    }
+
+    public void rollback() {
+        try {
+            connection.rollback();
+        } catch (Exception e) {
+            // nothing to do here
+        }
+    }
+
     @Override
     public void close() {
         // Make sure connection is closed
@@ -43,6 +59,42 @@ public class BasicStorage implements AutoCloseable {
             connection.close();
         } catch (Exception e) {
             //Nothing to do
+        }
+    }
+
+    @FunctionalInterface
+    public interface StorageAction<T, S extends BasicStorage> {
+        T process(S storage) throws Exception;
+    }
+
+    public static <T, S extends BasicStorage> T performStorageAction(
+            String actionID,
+            Callable<S> storageFactory,
+            StorageAction<T, S> action
+    ) {
+        long start = System.currentTimeMillis();
+        try (S storage = storageFactory.call()) {
+            T result;
+            try {
+                result = action.process(storage);
+            } catch (Exception e) {
+                log.warn("Exception performing action '{}'. Initiating rollback", actionID, e);
+                storage.rollback();
+                throw new InternalServiceException(e);
+            }
+
+            try {
+                storage.commit();
+            } catch (SQLException e) {
+                log.error("Exception committing after action '{}'", actionID, e);
+                throw new InternalServiceException(e);
+            }
+
+            log.debug("Storage method '{}' SQL time in millis: {}", actionID, (System.currentTimeMillis() - start));
+            return result;
+        } catch (Exception e) {
+            log.error("Exception performing action '{}'", actionID, e);
+            throw new InternalServiceException(e);
         }
     }
 }

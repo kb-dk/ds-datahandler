@@ -95,6 +95,16 @@ public class JobStorageTest {
         Assertions.assertEquals(jobDtoFromDb.getRestartValue(), jobDtoFromDb2.getRestartValue());
     }
 
+    @Test
+    public void testHasJobRunning() throws SQLException {
+        JobDto jobDto = genetrateTestJobDto();
+        Assertions.assertFalse(storage.hasRunningJob(JobTypeDto.KALTURA_UPLOAD));
+        jobDto.setJobType(JobTypeDto.KALTURA_UPLOAD);
+        jobDto.setJobStatus(JobStatusDto.RUNNING);
+        storage.createJob(jobDto);
+        Assertions.assertTrue(storage.hasRunningJob(JobTypeDto.KALTURA_UPLOAD));
+    }
+
     @NotNull
     private static JobDto genetrateTestJobDto() {
         JobDto jobDto = new JobDto();
