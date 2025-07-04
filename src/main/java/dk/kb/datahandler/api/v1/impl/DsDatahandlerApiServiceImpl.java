@@ -3,14 +3,17 @@ package dk.kb.datahandler.api.v1.impl;
 import dk.kb.datahandler.api.v1.DsDatahandlerApi;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
-import dk.kb.datahandler.model.v1.IndexTypeDto;
+import dk.kb.datahandler.model.v1.TypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.webservice.KBAuthorizationInterceptor;
 import dk.kb.util.webservice.ImplBase;
-import dk.kb.util.webservice.exception.InternalServiceException;
 
 import org.apache.cxf.interceptor.InInterceptors;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.utils.JAXRSUtils;
+import org.apache.cxf.message.Message;
+import org.keycloak.representations.AccessToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +86,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public Integer oaiIngestFull(String oaiTarget){
         log.debug("oaiIngestFull(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);
+            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget, getCurrentUserID());
             return numberIngested;
 
         } catch (Exception e){
@@ -93,10 +96,10 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
     
     @Override
-    public Integer oaiIngestDelta(String oaiTarget){
+    public Integer oaiIngestDelta(String oaiTarget) {
         log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget);
+            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget,getCurrentUserID());
             return numberIngested;
 
         } catch (Exception e){
@@ -136,7 +139,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     @Override
-    public String indexSolr(@NotNull String origin,IndexTypeDto type) {
+    public String indexSolr(@NotNull String origin, TypeDto type) {
         log.debug("indexSolr(origin='{}', ...) called with call details: {}", origin, getCallDetails());
         try {
             switch (type){
@@ -175,5 +178,16 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }                       
     }
 
-
+    /**
+     * Gets the name of the current user from the OAuth token.
+     * @return
+     */
+    private static String getCurrentUserID() {
+        Message message = JAXRSUtils.getCurrentMessage();
+        AccessToken token = (AccessToken) message.get(KBAuthorizationInterceptor.ACCESS_TOKEN);
+        if (token != null) {
+            return token.getName();
+        }
+        return "no user";
+    }
 }

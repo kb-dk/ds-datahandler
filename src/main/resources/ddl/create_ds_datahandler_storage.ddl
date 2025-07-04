@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS jobs (
     id UUID PRIMARY KEY,
-    name VARCHAR,
     type VARCHAR,
+    category VARCHAR,
+    source VARCHAR,
     createdBy VARCHAR,
     status VARCHAR,
     errorCorrelationId UUID,

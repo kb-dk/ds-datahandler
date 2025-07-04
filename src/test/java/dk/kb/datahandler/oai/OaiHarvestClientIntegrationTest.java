@@ -72,7 +72,7 @@ public class OaiHarvestClientIntegrationTest {
 
         JobDto jobDto = JobCache.createNewOaiJob(oaiTarget, from);
 
-        OaiHarvestClient client = new OaiHarvestClient(jobDto, oaiTarget, from);
+        OaiHarvestClient client = new OaiHarvestClient(oaiTarget, from);
         OaiResponse r1 = client.next();
         assertEquals(1000, r1.getRecords().size());
         assertNotNull(r1.getResumptionToken());
@@ -104,7 +104,7 @@ public class OaiHarvestClientIntegrationTest {
         JobDto jobDto = JobCache.createNewOaiJob(oaiTarget, null);
 
 
-        OaiHarvestClient client = new OaiHarvestClient(jobDto,oaiTarget, null);
+        OaiHarvestClient client = new OaiHarvestClient(oaiTarget, null);
         OaiResponse r1 = client.next();
         assertEquals(200, r1.getRecords().size()); //there is over 200 now. 200 is batch size.
         assertNotNull(r1.getResumptionToken());

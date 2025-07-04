@@ -1,9 +1,10 @@
 package dk.kb.datahandler.storage;
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.model.v1.CategoryDto;
 import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.JobStatusDto;
-import dk.kb.datahandler.model.v1.JobTypeDto;
+import dk.kb.datahandler.model.v1.TypeDto;
 import dk.kb.datahandler.util.H2DbUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -34,33 +35,32 @@ public class JobStorageTest {
 
     @Test
     public void testCreateJob() throws SQLException {
-        JobDto jobDto = genetrateTestJobDto();
+        JobDto jobDto = genetrateJobDto();
         UUID jobId = storage.createJob(jobDto);
 
         JobDto jobDtoFromDb = storage.getJob(jobId);
 
         Assertions.assertNotNull(jobDtoFromDb);
         Assertions.assertEquals(jobId, jobDtoFromDb.getId());
-        Assertions.assertEquals(jobDto.getJobName(), jobDtoFromDb.getJobName());
-        Assertions.assertEquals(jobDto.getJobStatus(), jobDtoFromDb.getJobStatus());
-        Assertions.assertEquals(jobDto.getJobType(), jobDtoFromDb.getJobType());
+        Assertions.assertEquals(jobDto.getType(), jobDtoFromDb.getType());
+        Assertions.assertEquals(jobDto.getCategory(), jobDtoFromDb.getCategory());
+        Assertions.assertEquals(jobDto.getSource(), jobDtoFromDb.getSource());
         Assertions.assertEquals(jobDto.getCreatedBy(), jobDtoFromDb.getCreatedBy());
+        Assertions.assertEquals(jobDto.getJobStatus(), jobDtoFromDb.getJobStatus());
+        Assertions.assertNull(jobDtoFromDb.getErrorCorrelationId());
+        Assertions.assertNull(jobDtoFromDb.getMessage());
+        Assertions.assertEquals(jobDto.getmTimeFrom(), jobDtoFromDb.getmTimeFrom());
         Assertions.assertNotNull(jobDtoFromDb.getStartTime());
         // Assert that result is 'close enough'
         Assertions.assertTrue(Duration.between(jobDto.getStartTime(), jobDtoFromDb.getStartTime()).toSeconds() <= 0);
         Assertions.assertNull(jobDtoFromDb.getEndTime());
-        Assertions.assertEquals(jobDto.getErrorCorrelationId(), jobDtoFromDb.getErrorCorrelationId());
-        Assertions.assertEquals(jobDto.getMessage(), jobDtoFromDb.getMessage());
-        Assertions.assertEquals(jobDto.getmTimeFrom(), jobDtoFromDb.getmTimeFrom());
         Assertions.assertNull(jobDtoFromDb.getNumberOfRecords());
-        Assertions.assertEquals(jobDto.getNumberOfRecords(), jobDtoFromDb.getNumberOfRecords());
         Assertions.assertNull(jobDtoFromDb.getRestartValue());
-        Assertions.assertEquals(jobDto.getRestartValue(), jobDtoFromDb.getRestartValue());
     }
 
     @Test
     public void testUpdateJob() throws SQLException {
-        JobDto jobDto = genetrateTestJobDto();
+        JobDto jobDto = genetrateJobDto();
         UUID jobId = storage.createJob(jobDto);
 
         JobDto jobDtoFromDb = storage.getJob(jobId);
@@ -74,47 +74,46 @@ public class JobStorageTest {
         int numberOfUpdatedRows = storage.updateJob(jobDtoFromDb);
 
         Assertions.assertEquals(1, numberOfUpdatedRows);
-        JobDto jobDtoFromDb2 = storage.getJob(jobDtoFromDb.getId());
-        Assertions.assertNotNull(jobDtoFromDb2);
-        Assertions.assertEquals(jobId, jobDtoFromDb2.getId());
-        Assertions.assertEquals(jobDtoFromDb.getJobName(), jobDtoFromDb2.getJobName());
-        Assertions.assertEquals(jobDtoFromDb.getJobStatus(), jobDtoFromDb2.getJobStatus());
-        Assertions.assertEquals(jobDtoFromDb.getJobType(), jobDtoFromDb2.getJobType());
-        Assertions.assertEquals(jobDtoFromDb.getCreatedBy(), jobDtoFromDb2.getCreatedBy());
-        Assertions.assertNotNull(jobDtoFromDb.getStartTime());
+        JobDto updatedJobDtoFromDb = storage.getJob(jobDtoFromDb.getId());
+        Assertions.assertNotNull(updatedJobDtoFromDb);
+        Assertions.assertEquals(jobId, updatedJobDtoFromDb.getId());
+        Assertions.assertEquals(jobDto.getType(), updatedJobDtoFromDb.getType());
+        Assertions.assertEquals(jobDto.getCategory(), updatedJobDtoFromDb.getCategory());
+        Assertions.assertEquals(jobDto.getSource(), updatedJobDtoFromDb.getSource());
+        Assertions.assertEquals(jobDto.getCreatedBy(), updatedJobDtoFromDb.getCreatedBy());
+        Assertions.assertEquals(jobDtoFromDb.getJobStatus(), updatedJobDtoFromDb.getJobStatus());
+        Assertions.assertEquals(jobDto.getErrorCorrelationId(), updatedJobDtoFromDb.getErrorCorrelationId());
+        Assertions.assertEquals(jobDtoFromDb.getMessage(), updatedJobDtoFromDb.getMessage());
+        Assertions.assertEquals(jobDto.getmTimeFrom(), updatedJobDtoFromDb.getmTimeFrom());
+        Assertions.assertNotNull(updatedJobDtoFromDb.getStartTime());
         // Assert that result is 'close enough'
-        Assertions.assertTrue(Duration.between(jobDtoFromDb.getStartTime(), jobDtoFromDb.getStartTime()).toSeconds() <= 0);
-        Assertions.assertNotNull(jobDtoFromDb.getEndTime());
+        Assertions.assertTrue(Duration.between(jobDto.getStartTime(), updatedJobDtoFromDb.getStartTime()).toSeconds() <= 0);
+        Assertions.assertNotNull(updatedJobDtoFromDb.getEndTime());
         // Assert that result is 'close enough'
-        Assertions.assertTrue(Duration.between(jobDtoFromDb.getEndTime(), jobDtoFromDb.getEndTime()).toSeconds() <= 0);
-
-        Assertions.assertEquals(jobDtoFromDb.getErrorCorrelationId(), jobDtoFromDb2.getErrorCorrelationId());
-        Assertions.assertEquals(jobDtoFromDb.getMessage(), jobDtoFromDb2.getMessage());
-        Assertions.assertEquals(jobDtoFromDb.getmTimeFrom(), jobDtoFromDb2.getmTimeFrom());
-        Assertions.assertEquals(jobDtoFromDb.getNumberOfRecords(), jobDtoFromDb2.getNumberOfRecords());
-        Assertions.assertEquals(jobDtoFromDb.getRestartValue(), jobDtoFromDb2.getRestartValue());
+        Assertions.assertTrue(Duration.between(jobDtoFromDb.getEndTime(), updatedJobDtoFromDb.getEndTime()).toSeconds() <= 0);
+        Assertions.assertEquals(jobDtoFromDb.getNumberOfRecords(), updatedJobDtoFromDb.getNumberOfRecords());
+        Assertions.assertEquals(jobDtoFromDb.getRestartValue(), updatedJobDtoFromDb.getRestartValue());
     }
 
     @Test
     public void testHasJobRunning() throws SQLException {
-        JobDto jobDto = genetrateTestJobDto();
-        Assertions.assertFalse(storage.hasRunningJob(JobTypeDto.KALTURA_UPLOAD));
-        jobDto.setJobType(JobTypeDto.KALTURA_UPLOAD);
+        JobDto jobDto = genetrateJobDto();
+        Assertions.assertFalse(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
+        jobDto.setCategory(CategoryDto.OAI_HARVEST);
+        jobDto.setSource("test.source");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
         storage.createJob(jobDto);
-        Assertions.assertTrue(storage.hasRunningJob(JobTypeDto.KALTURA_UPLOAD));
+        Assertions.assertTrue(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
     }
 
     @NotNull
-    private static JobDto genetrateTestJobDto() {
+    private static JobDto genetrateJobDto() {
         JobDto jobDto = new JobDto();
-        jobDto.setJobName("full " + JobTypeDto.KALTURA_UPLOAD.getValue());
-        jobDto.setJobStatus(JobStatusDto.CREATED);
-        jobDto.setJobType(JobTypeDto.KALTURA_UPLOAD);
+        jobDto.setType(TypeDto.DELTA);
+        jobDto.setCategory(CategoryDto.OAI_HARVEST);
         jobDto.setCreatedBy("Unit test");
+        jobDto.setJobStatus(JobStatusDto.RUNNING);
         jobDto.setStartTime(OffsetDateTime.now());
-        jobDto.setErrorCorrelationId(UUID.randomUUID());
-        jobDto.setMessage("This is a message");
         jobDto.setmTimeFrom(1234567890);
         return jobDto;
     }

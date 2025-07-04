@@ -3,13 +3,11 @@ package dk.kb.datahandler.storage;
 
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.util.webservice.exception.InternalServiceException;
-import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

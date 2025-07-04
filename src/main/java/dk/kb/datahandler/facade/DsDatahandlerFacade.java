@@ -4,26 +4,32 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
+import dk.kb.datahandler.storage.BasicStorage;
+import dk.kb.datahandler.storage.JobStorage;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.keycloak.common.util.DelegatingSerializationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.JobDto;
-import dk.kb.datahandler.model.v1.OaiTargetDto;
 
 import dk.kb.datahandler.oai.OaiHarvestClient;
 import dk.kb.datahandler.job.JobCache;
@@ -212,17 +218,15 @@ public class DsDatahandlerFacade {
      *  2) Send the input stream with json documents directly to solr, so it is not kept in memory.
      *  
      * @param origin Origin must be defined on the ds-present server.
-     * @param mTimeFrom Will only index records with a last modification time (mTime) after this value. 
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
     public static String indexSolrFull(String origin) throws InternalServiceException {
 
         JobDto jobDto = JobCache.createIndexSolrJob(origin, 0L);
 
-        String response=null;
+        String response;
         try {
           response= SolrUtils.indexOrigin(origin, 0L);
-          
         }
         
         catch(Exception e) {
@@ -315,12 +319,11 @@ public class DsDatahandlerFacade {
      * @param oaiTargetName the location of the image, relative to the url argument
      * @return Number of harvested records.
      */        
-    public static Integer oaiIngestFull(String oaiTargetName) throws Exception {
+    public static Integer oaiIngestFull(String oaiTargetName, String user) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
 
-
         String from= HarvestTimeUtil.generateFrom(oaiTargetDto, null); // from == null, use default start day for OAI target instead
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName,from);
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, from, user);
         log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;            
     }
@@ -334,13 +337,13 @@ public class DsDatahandlerFacade {
      * @param oaiTargetName The name for the OAI target in the configuration
      * @return Number of harvested records.
      */
-    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {
+    public static Integer oaiIngestDelta(String oaiTargetName, String user) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
         String lastHarvestTime = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
 
         //Will be 1 interval for OAI targets that does not need to split into days
         String from= HarvestTimeUtil.generateFrom(oaiTargetDto, lastHarvestTime);
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, from);
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, from, user);
         log.info("Delta ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;    	    	
     }
@@ -357,31 +360,65 @@ public class DsDatahandlerFacade {
      * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
      *
      */
-    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String from) throws InternalServiceException{
-        int totalNumber=0;
+    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String from, String user) throws InternalServiceException{
 
-        log.info("Starting jobs from: "+ from +" for target:"+oaiTargetName);
+        log.info("Starting jobs from: "+ from +" for target:" + oaiTargetName);
                        
-            OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
-            if (oaiTargetDto== null) {
-                throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
-                        "'. See the config method for list of configured targets.");
-            }
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);
+        if (oaiTargetDto== null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
+                    "'. See the config method for list of configured targets.");
+        }
 
-            JobDto job = JobCache.createNewOaiJob(oaiTargetDto,from);        
-        
-            try {                       
-                int number= oaiIngestPerform(job , oaiTargetDto, from);
-                JobCache.finishJob(job, number,false);//No error
-                totalNumber+=number;
+        JobDto jobDto = createNewJob(CategoryDto.OAI_HARVEST, oaiTargetName, from, user);
+        UUID jobId = BasicStorage.performStorageAction("create new oai job",JobStorage::new,(JobStorage storage) -> {
+            if (storage.hasRunningJob(CategoryDto.OAI_HARVEST, oaiTargetName)) {
+                throw new InvalidArgumentServiceException("There is already an OAI Harvest job running");
             }
-            catch (Exception e) {
-                log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);                
-                JobCache.finishJob(job, totalNumber,true);//Error                        
-                throw new InternalServiceException("Error harvesting oai target:"+oaiTargetName,e);
-            }
-        
-        return totalNumber;
+            return storage.createJob(jobDto);
+        });
+        jobDto.setId(jobId);
+
+
+        try {
+            int numberOfRecords = oaiIngestPerform(oaiTargetDto, from);
+            jobDto.setNumberOfRecords(numberOfRecords);
+            jobDto.setJobStatus(JobStatusDto.COMPLETED);
+            jobDto.setEndTime(OffsetDateTime.now());
+            BasicStorage.performStorageAction("create new oai job",JobStorage::new,(JobStorage storage) -> {
+                storage.updateJob(jobDto);
+                return null;
+            });
+            return numberOfRecords;
+        }
+        catch (Exception e) {
+            log.error("Oai harvest did not complete successfully for target: oaiTarget:'{}' jobId:'{}'", oaiTargetName, jobId);
+            jobDto.setJobStatus(JobStatusDto.FAILED);
+            jobDto.setEndTime(OffsetDateTime.now());
+            BasicStorage.performStorageAction("create new oai job", JobStorage::new,(JobStorage storage) -> {
+                storage.updateJob(jobDto);
+                return null;
+            });
+            throw new InternalServiceException("Error harvesting oai target: oaiTarget:" + oaiTargetName + " jobId:" + jobId, e);
+        }
+    }
+
+    private static JobDto createNewJob(CategoryDto categoryDto, String source, String mTimeFrom, String user) throws InternalServiceException {
+        JobDto jobDto = new JobDto();
+        jobDto.setId(UUID.randomUUID());
+        jobDto.setCategory(categoryDto);
+        jobDto.setSource(source);
+        jobDto.setJobStatus(JobStatusDto.RUNNING);
+        if (StringUtils.isEmpty(mTimeFrom)) {
+            jobDto.setType(TypeDto.FULL);
+        } else {
+            // only delta jobs have mTimeFrom
+            jobDto.setType(TypeDto.DELTA);
+            jobDto.setmTimeFrom(Integer.parseInt(mTimeFrom));
+        }
+        jobDto.setCreatedBy(user);
+        jobDto.setStartTime(OffsetDateTime.now());
+        return jobDto;
     }
 
     /**
@@ -406,13 +443,11 @@ public class DsDatahandlerFacade {
      * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
      * For each successful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
      *      
-     * @param job The configured OAI target
      * @param from Datestamp format that will be accepted for that OAI target
-     * @param until Datestamp format that will be accepted for that OAI target
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      */
-    private static Integer oaiIngestPerform(JobDto job,OaiTargetDto oaiTargetDto, String from) throws IOException, ServiceException {
+    private static Integer oaiIngestPerform(OaiTargetDto oaiTargetDto, String from) throws IOException, ServiceException {
 
         //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format
@@ -425,7 +460,7 @@ public class DsDatahandlerFacade {
         String targetName = oaiTargetDto.getName();
 
         DsStorageClient dsAPI = getDsStorageApiClient();
-        OaiHarvestClient client = new OaiHarvestClient(job,oaiTargetDto,from);
+        OaiHarvestClient client = new OaiHarvestClient(oaiTargetDto,from);
         OaiResponse response = client.next();
 
         OaiResponseFilter oaiFilter;
@@ -487,7 +522,6 @@ public class DsDatahandlerFacade {
         return kalturaClient;
     }
 
-
     private static DsStorageClient getDsStorageApiClient() {
         if (storageClient != null) {
             return storageClient;
@@ -497,21 +531,4 @@ public class DsDatahandlerFacade {
         storageClient = new DsStorageClient(dsStorageUrl);
         return storageClient;
     }
-
-    
-/* Not used anymore it seems
-    private static long getLastModifiedTimeForOrigin(List<OriginCountDto> originStatistics, String origin) {
-        for (OriginCountDto dto :originStatistics) {
-            if (dto.getOrigin() != null && dto.getOrigin().equals(origin)) {
-                return dto.getLatestMTime() == null ? 0L : dto.getLatestMTime();
-            }
-        }
-
-        //Can happen if there is no records in the origin
-        log.warn("Origin name was not found in origin-statistics returned from ds-storage. " +
-                "Using mTime=0 for Origin: '{}'", origin);
-        return 0L;
-    }
-  */
-
 }

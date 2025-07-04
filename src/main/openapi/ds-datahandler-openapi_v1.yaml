@@ -141,7 +141,7 @@ paths:
                         documents and indexed. If value is "DELTA" then only records from ds-storage with an mTime newer
                         than the last date_modified in the solr index will be fetched, transformed and indexed.
           schema:
-            $ref: '#/components/schemas/IndexType'
+            $ref: '#/components/schemas/Type'
 
 
       responses:
@@ -446,12 +446,15 @@ components:
           type: string
           format: uuid
           description: 'Job ID (uuid)'
-        jobName:
-          type: string
-          description: 'Name of the job'
-        jobType:
-          $ref: '#/components/schemas/JobType'
+        type:
+          $ref: '#/components/schemas/Type'
           description: 'Type of job. Can be OAI or different enrichment jobs'
+        category:
+          $ref: '#/components/schemas/Category'
+          description: 'job category (OAI_HARVEST, SOLR_INDEX or KALTURA_UPLOAD)'
+        source:
+          type: string
+          description: 'Dataset to harvest/index/upload'
         createdBy:
           type: string
           description: 'Who started the job'
@@ -488,7 +491,7 @@ components:
           format: int32
           description: timestamp
 
-    JobType:
+    Category:
       type: string
       enum:
         - oai harvest
@@ -506,19 +509,22 @@ components:
     JobStatus:
       type: string
       enum:
-        - CREATED
         - RUNNING
         - COMPLETED
         - STOPPED
         - FAILED
 
-    IndexType:
+    Type:
       type: string
       enum:
+        - full
+        - delta
+      x-enum-varnames:
         - FULL
         - DELTA
-      example: 'FULL'
-      default: 'FULL'
+      x-enum-descriptions:
+        - full
+        - delta
 
     Whoami:
       type: object

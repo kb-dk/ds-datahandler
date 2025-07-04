@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.IndexTypeDto;
+import dk.kb.datahandler.model.v1.TypeDto;
 import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.solr.SolrResponseHeader;
 import dk.kb.present.model.v1.FormatDto;
@@ -166,7 +166,7 @@ public class SolrUtils {
     /**
      * Update the final {@code SolrIndexResponse} with the content from the single {@code individualSolrResponse}.
      * The updated {@code SolrIndexResponse} is used as the response for the endpoint
-     * {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, IndexTypeDto)}. This
+     * {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, TypeDto)}. This
      * updated response contains information on the amount of documents that have been indexed in total and not just
      * during the last batch of the stream.
      * @param individualSolrResponse a string representation of a JSON solr response returned when indexing a batch of

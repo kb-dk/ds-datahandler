@@ -1,8 +1,9 @@
 package dk.kb.datahandler.storage;
 
+import dk.kb.datahandler.model.v1.CategoryDto;
 import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.JobStatusDto;
-import dk.kb.datahandler.model.v1.JobTypeDto;
+import dk.kb.datahandler.model.v1.TypeDto;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,19 +17,16 @@ public class JobStorage extends BasicStorage {
     private static final String INSERT_JOB_QUERY = """
         INSERT INTO jobs ( 
             id,
-            name,
             type,
+            category,
+            source,
             createdBy,
             status,
-            errorCorrelationId,
-            message,
             mTimeFrom,
-            startTime,
-            numberOfRecords,
-            restartValue
+            startTime
         )
         VALUES (
-            ?,?,?,?,?,?,?,?,?,?,?
+            ?,?,?,?,?,?,?,?
         )
     """;
 
@@ -44,8 +42,8 @@ public class JobStorage extends BasicStorage {
             id = ?
         """;
 
-    private static final String GET_JOBS_BY_TYPE_AND_STATUS = """
-                SELECT * FROM jobs WHERE type=? AND status=?
+    private static final String GET_JOBS_BY_CATEGORY_SOURCE_AND_STATUS = """
+                SELECT * FROM jobs WHERE category = ? AND source = ? AND status = ?
             """;
 
     private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?";
@@ -58,16 +56,13 @@ public class JobStorage extends BasicStorage {
         UUID id = UUID.randomUUID();
         try (PreparedStatement stmt = connection.prepareStatement(INSERT_JOB_QUERY)) {
             stmt.setObject(1, id);
-            stmt.setString(2, jobDto.getJobName());
-            stmt.setString(3, jobDto.getJobType().name());
-            stmt.setString(4, jobDto.getCreatedBy());
-            stmt.setString(5, jobDto.getJobStatus().name());
-            stmt.setObject(6, jobDto.getErrorCorrelationId());
-            stmt.setString(7, jobDto.getMessage());
-            stmt.setInt(8, jobDto.getmTimeFrom());
-            stmt.setTimestamp(9, Timestamp.from(jobDto.getStartTime().toInstant()));
-            stmt.setObject(10, jobDto.getNumberOfRecords());
-            stmt.setObject(11, jobDto.getRestartValue());
+            stmt.setString(2, jobDto.getType().name());
+            stmt.setString(3, jobDto.getCategory().name());
+            stmt.setString(4, jobDto.getSource());
+            stmt.setString(5, jobDto.getCreatedBy());
+            stmt.setString(6, jobDto.getJobStatus().name());
+            stmt.setObject(7, jobDto.getmTimeFrom());
+            stmt.setObject(8, jobDto.getStartTime());
             stmt.executeUpdate();
             return id;
         }
@@ -86,10 +81,11 @@ public class JobStorage extends BasicStorage {
         }
     }
 
-    public boolean hasRunningJob(JobTypeDto jobType) throws SQLException {
-        try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_TYPE_AND_STATUS)) {
-            stmt.setString(1, jobType.name());
-            stmt.setString(2, JobStatusDto.RUNNING.name());
+    public boolean hasRunningJob(CategoryDto categoryDto, String source) throws SQLException {
+        try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_CATEGORY_SOURCE_AND_STATUS)) {
+            stmt.setString(1, categoryDto.name());
+            stmt.setString(2, source);
+            stmt.setString(3, JobStatusDto.RUNNING.name());
             try (ResultSet result = stmt.executeQuery()) {
                 if (!result.next()) {
                     return false;
@@ -119,8 +115,9 @@ public class JobStorage extends BasicStorage {
     private JobDto createJobDtoFromResult(ResultSet result) throws SQLException {
         JobDto jobDto = new JobDto();
         jobDto.setId(result.getObject("id", UUID.class));
-        jobDto.setJobName(result.getString("name"));
-        jobDto.setJobType(JobTypeDto.valueOf(result.getString("type")));
+        jobDto.setType(TypeDto.valueOf(result.getString("type")));
+        jobDto.setCategory(CategoryDto.valueOf(result.getString("category")));
+        jobDto.setSource(result.getString("source"));
         jobDto.setJobStatus(JobStatusDto.valueOf(result.getString("status")));
         jobDto.setCreatedBy(result.getString("createdBy"));
         jobDto.setErrorCorrelationId(result.getObject("errorCorrelationId", UUID.class));
