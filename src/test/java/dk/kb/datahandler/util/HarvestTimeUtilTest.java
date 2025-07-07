@@ -1,31 +1,29 @@
 package dk.kb.datahandler.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class HarvestTimeUtilTest {
 
@@ -92,9 +90,28 @@ public class HarvestTimeUtilTest {
         assertFalse(HarvestTimeUtil.validateOaiDateFormat("2021-03-24T19:57:34.00.00Z"));
         assertFalse(HarvestTimeUtil.validateOaiDateFormat("2021-03-24T19:57:34.00.000Z"));         
     }
-    
-   
-    
+
+    @Test
+    void testParseModifiedTimeFromToInstantWithDateTime () {
+        String datetime = "2020-01-01T00:00:00Z";
+
+        assertEquals(Instant.parse(datetime), HarvestTimeUtil.parseModifiedTimeFromToInstant(datetime));
+    }
+
+    @Test
+    void testParseModifiedTimeFromToInstantWithDate () {
+        String datetime = "2020-01-01T00:00:00Z";
+        String date = "2020-01-01";
+
+        assertEquals(Instant.parse(datetime), HarvestTimeUtil.parseModifiedTimeFromToInstant(date));
+    }
+
+    @Test
+    void testParseModifiedTimeFromToInstantWithWrongDatetime () {
+        String datetime = "2020-01-01 00:00:00Z";
+
+        assertThrows(InvalidArgumentServiceException.class, () -> HarvestTimeUtil.parseModifiedTimeFromToInstant(datetime));
+    }
     
     /**
      * 

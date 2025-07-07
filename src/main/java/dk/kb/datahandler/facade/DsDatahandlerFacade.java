@@ -367,7 +367,8 @@ public class DsDatahandlerFacade {
             throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
                     "'. See the config method for list of configured targets.");
         }
-        Instant instantModifiedTimeFrom = Instant.parse(modifiedTimeFrom);
+
+        Instant instantModifiedTimeFrom = HarvestTimeUtil.parseModifiedTimeFromToInstant(modifiedTimeFrom);
 
         JobDto jobDto = createNewJob(CategoryDto.OAI_HARVEST, oaiTargetName, instantModifiedTimeFrom, user);
         UUID jobId = BasicStorage.performStorageAction("create new oai job",JobStorage::new,(JobStorage storage) -> {

@@ -193,7 +193,36 @@ public class HarvestTimeUtil {
         return fromFormatted;
     }
 
+    /**
+     * Parsing modifiedTimeFrom to an Instant so it can be saved in the Job table.
+     * If the parsing fails we try to add `T00:00:00Z` to the date
+     *
+     * @param modifiedTimeFrom
+     * @return modifiedTimeFrom parsed to an Instant
+     */
+    public static Instant parseModifiedTimeFromToInstant(String modifiedTimeFrom) {
+        String modifiedTimeFromWithHours;
+        Instant instantModifiedTimeFrom;
 
-    
+        try {
+            instantModifiedTimeFrom = Instant.parse(modifiedTimeFrom);
+        } catch (DateTimeParseException dateTimeParseException) {
 
+            log.info("DateTimeParseException was cast, modifiedTimeFrom is properly only a date: " + modifiedTimeFrom);
+
+            if(modifiedTimeFrom.length() == 10) {
+
+                log.info("modifiedTimeFrom was a date, so adding hours to a new String modifiedTimeFromWithHours");
+
+                modifiedTimeFromWithHours = modifiedTimeFrom + "T00:00:00Z";// expand if modifiedTimeFrom is only a date
+
+                instantModifiedTimeFrom = Instant.parse(modifiedTimeFromWithHours);
+            } else {
+                log.error("DateTimeParseException was cast: {}", dateTimeParseException.getMessage());
+
+                throw new InvalidArgumentServiceException("Invalid from query parameter: ", dateTimeParseException.getMessage());
+            }
+        }
+        return instantModifiedTimeFrom;
+    }
 }
