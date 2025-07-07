@@ -120,6 +120,13 @@ public class JobStorage extends BasicStorage {
         }
     }
 
+    @Override
+    public void clearTables() throws SQLException {
+        try(PreparedStatement stmt = connection.prepareStatement("DELETE FROM JOBS")) {
+            stmt.executeUpdate();
+        }
+    }
+
     private JobDto createJobDtoFromResult(ResultSet result) throws SQLException {
         JobDto jobDto = new JobDto();
         jobDto.setId(result.getObject("id", UUID.class));

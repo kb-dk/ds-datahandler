@@ -8,6 +8,7 @@ import dk.kb.datahandler.util.H2DbUtil;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -26,6 +27,11 @@ public class DsDatahandlerFacadeTest {
         H2DbUtil.createEmptyH2DBFromDDL(DB_URL, DRIVER, USERNAME, PASSWORD);
         JobStorage.initialize(DRIVER, DB_URL, USERNAME, PASSWORD);
         storage = new JobStorage();
+    }
+
+    @BeforeEach
+    public void beforeEach() throws Exception {
+        storage.clearTables();
     }
 
     @Test
