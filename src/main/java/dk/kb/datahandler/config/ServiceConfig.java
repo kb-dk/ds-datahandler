@@ -110,8 +110,8 @@ public class ServiceConfig {
         kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
       
         
-        kalturaSessionDurationSeconds = ServiceConfig.getConfig().getInteger("sessionDurationSeconds", 86400);
-        kalturaSessionRefreshThreshold = ServiceConfig.getConfig().getInteger("sessionRefreshThreshold", 3600);        
+        kalturaSessionDurationSeconds = ServiceConfig.getConfig().getInteger("kaltura.sessionDurationSeconds", 86400);
+        kalturaSessionRefreshThreshold = ServiceConfig.getConfig().getInteger("kaltura.sessionRefreshThreshold", 3600);        
         kalturaFlavourParamIdVideo = ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdVideo");
         kalturaFlavourParamIdAudio = ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdAudio");
         
