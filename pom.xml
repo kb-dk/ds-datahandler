@@ -131,7 +131,7 @@
       <dependency>
           <groupId>dk.kb.kaltura</groupId>
           <artifactId>ds-kaltura</artifactId>
-          <version>3.0.0</version>
+          <version>3.0.1</version>
           <type>jar</type>
       </dependency>
         

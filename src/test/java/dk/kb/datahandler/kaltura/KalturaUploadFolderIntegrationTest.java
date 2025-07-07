@@ -44,7 +44,7 @@ public class KalturaUploadFolderIntegrationTest {
         String tokenId="0_f2qyxk5i";
         
         try {
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,86400);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,86400,3600);
 
            // String uploadFolder="/home/teg/kaltura_files/video/";
             //KalturaMediaType mediaType = KalturaMediaType.VIDEO;

@@ -347,9 +347,11 @@ public class KalturaDeltaUploadJob {
         String userId = ServiceConfig.getKalturaUserId();
         String token = ServiceConfig.getKalturaToken();
         String tokenId = ServiceConfig.getKalturaTokenId();
-        int dayInSeconds=86400;  //60*60*24
+        int sessionDurationSeconds=ServiceConfig.getKalturaSessionDurationSeconds();
+        int sessionRefreshThreshold=ServiceConfig.getKalturaSessionRefreshThreshold();
+            
         try {
-            kalturaClient = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, dayInSeconds);
+            kalturaClient = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, sessionDurationSeconds, sessionRefreshThreshold);
         } catch (Exception e) {
             log.error("Could not instantiate DsKaltura client.", e);
         }

@@ -61,7 +61,7 @@ public class KalturaManualRejectListe2Job {
             System.out.println("Loaded file with recordIds. Number of entries:" + recordIds.size());
            
             
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token,tokenId,adminSecret, 86400);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token,tokenId,adminSecret, 86400,3600);
             int numberRejectFailed = 0;
             int numberRejectSuccess = 0;
             

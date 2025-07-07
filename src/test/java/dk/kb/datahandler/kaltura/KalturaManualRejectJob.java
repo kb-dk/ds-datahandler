@@ -42,7 +42,7 @@ public class KalturaManualRejectJob {
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token,tokenId,adminSecret, 86400);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token,tokenId,adminSecret, 86400,3600);
             int numberRejectFailed = 0;
             int numberRejectSuccess = 0;
             List<String> entryIds = readAllLines(input_entry_ids);

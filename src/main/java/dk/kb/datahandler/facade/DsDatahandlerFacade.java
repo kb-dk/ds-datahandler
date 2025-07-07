@@ -48,6 +48,8 @@ public class DsDatahandlerFacade {
     private static DsStorageClient storageClient;
 
     /**
+     * Deprecated. The use of the mapping table was a temporary solution for "skygge prod"
+     * 
      * <p>
      * Will load all referenceId defined in storage and call Kaltura to map them to KalturaId.
      * The results will be saved in ds-storage in the mapping table.
@@ -59,6 +61,7 @@ public class DsDatahandlerFacade {
      * @return Number of mappings updated.
      * @throws IOException,APIException 
      */
+    @Deprecated 
     public static long fetchKalturaIdsAndUpdateRecords(String origin,Long mTimeFrom) throws IOException, ServiceException {
         if (mTimeFrom == null) {
             mTimeFrom = 0L;
@@ -479,14 +482,14 @@ public class DsDatahandlerFacade {
         Integer partnerId = ServiceConfig.getKalturaPartnerId();  
         String userId = ServiceConfig.getKalturaUserId();                               
         String token= ServiceConfig.getKalturaToken();
-        String tokenId= ServiceConfig.getKalturaTokenId();
-       
-        long sessionKeepAliveSecondsIn1Hour=3600L; //1 hour
+        String tokenId= ServiceConfig.getKalturaTokenId();               
+        int sessionDurationSeconds=ServiceConfig.getKalturaSessionDurationSeconds();
+        int sessionRefreshThreshold=ServiceConfig.getKalturaSessionRefreshThreshold();
+                
         log.info("creating kaltura client for partnerID:"+partnerId);     
-        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,sessionKeepAliveSecondsIn1Hour);
+        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,sessionDurationSeconds,sessionRefreshThreshold);
         return kalturaClient;
     }
-
 
     private static DsStorageClient getDsStorageApiClient() {
         if (storageClient != null) {

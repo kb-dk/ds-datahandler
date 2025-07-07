@@ -211,6 +211,8 @@ kaltura:
   adminSecret: 'xxxxxxx'
   token: 'XXXX'
   tokenId: 'XXX'
+  sessionDurationSeconds: 86400
+  sessionRefreshThreshold: 3600
   flavourParamIdVideo: 3
   flavourParamIdAudio: 359
 

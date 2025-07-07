@@ -36,7 +36,7 @@ public class UploadPreservicaStreamsFromFileIds {
         String fileWithFileIds="/home/teg/eclipse-workspace/ds-datahandler/preservica_missing_streams_file_id.txt";
         
         try {
-         DsKalturaClient client = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,86400);
+         DsKalturaClient client = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,86400,3600);
             
             List<String> ids = loadLines(fileWithFileIds);
             for (String fileId:ids) {
