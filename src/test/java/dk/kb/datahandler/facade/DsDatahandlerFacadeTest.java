@@ -1,9 +1,5 @@
 package dk.kb.datahandler.facade;
 
-
-
-import static org.junit.jupiter.api.Assertions.fail;
-
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.storage.BasicStorage;
@@ -33,7 +29,7 @@ public class DsDatahandlerFacadeTest {
     }
 
     @Test
-    void testOnly1JobWithSameName() throws Exception {
+    void testOnly1JobWithSameName() {
         
         OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("test.target");
         
@@ -54,5 +50,4 @@ public class DsDatahandlerFacadeTest {
         );
 
     }
-
 }

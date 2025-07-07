@@ -320,7 +320,7 @@ public class DsDatahandlerFacade {
     public static Integer oaiIngestFull(String oaiTargetName, String user) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
 
-        String from= HarvestTimeUtil.generateFrom(oaiTargetDto, null); // from == null, use default start day for OAI target instead
+        String from = HarvestTimeUtil.generateFrom(oaiTargetDto, null); // from == null, use default start day for OAI target instead
         Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, from, user);
         log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
         return totalHarvested;            
