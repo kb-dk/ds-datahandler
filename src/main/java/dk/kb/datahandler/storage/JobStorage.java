@@ -42,8 +42,17 @@ public class JobStorage extends BasicStorage {
             id = ?
         """;
 
-    private static final String GET_JOBS_BY_CATEGORY_SOURCE_AND_STATUS = """
-                SELECT * FROM jobs WHERE category = ? AND source = ? AND status = ?
+    private static final String GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS = """
+                SELECT
+                    id
+                FROM
+                    jobs
+                WHERE
+                    category = ?
+                  AND
+                    source = ?
+                  AND
+                    status = ?
             """;
 
     private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?";
@@ -82,7 +91,7 @@ public class JobStorage extends BasicStorage {
     }
 
     public boolean hasRunningJob(CategoryDto categoryDto, String source) throws SQLException {
-        try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_CATEGORY_SOURCE_AND_STATUS)) {
+        try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS)) {
             stmt.setString(1, categoryDto.name());
             stmt.setString(2, source);
             stmt.setString(3, JobStatusDto.RUNNING.name());
