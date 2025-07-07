@@ -11,8 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
-- Bumped ds-kalturaclient to version 3.0.1. Added new default values for kaltura session refresh/timeout in ds-datahandler-behaviour.yaml
 
+
+## [3.0.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.2) - 2025-07-07
+### Changed
+- Bumped ds-kalturaclient to version 3.0.1. Added new default values for kaltura session refresh/timeout in ds-datahandler-behaviour.yaml
 
 ## [3.0.1](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.1) - 2025-06-24
 ### Fixed
