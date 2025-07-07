@@ -14,12 +14,12 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.sql.SQLException;
 import java.time.Duration;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 public class JobStorageTest {
     protected static final String TEST_CLASSES_PATH = new File(Thread.currentThread().getContextClassLoader().getResource("logback-test.xml").getPath()).getParentFile().getAbsolutePath();
-    protected static final String DB_URL = "jdbc:h2:"+TEST_CLASSES_PATH+"/h2/ds_datahandler;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE";
+    protected static final String DB_URL = "jdbc:h2:./ds-datahandler/target/test-classes/h2/ds_datahandler;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE";
     private static final String DRIVER = "org.h2.Driver";
     private static final String USERNAME = "";
     private static final String PASSWORD = "";
@@ -27,7 +27,7 @@ public class JobStorageTest {
 
     @BeforeAll
     public static void beforeClass() throws Exception {
-        ServiceConfig.initialize("conf/ds-datahandler*.yaml");
+        ServiceConfig.initialize("ds-datahandler-unittest.yaml");
         H2DbUtil.createEmptyH2DBFromDDL(DB_URL, DRIVER, USERNAME, PASSWORD);
         JobStorage.initialize(DRIVER, DB_URL, USERNAME, PASSWORD);
         storage = new JobStorage();
@@ -49,10 +49,15 @@ public class JobStorageTest {
         Assertions.assertEquals(jobDto.getJobStatus(), jobDtoFromDb.getJobStatus());
         Assertions.assertNull(jobDtoFromDb.getErrorCorrelationId());
         Assertions.assertNull(jobDtoFromDb.getMessage());
-        Assertions.assertEquals(jobDto.getmTimeFrom(), jobDtoFromDb.getmTimeFrom());
+
+        Assertions.assertNotNull(jobDtoFromDb.getModifiedTimeFrom());
+        // Assert that result is 'close enough'
+        Assertions.assertTrue(Duration.between(jobDto.getModifiedTimeFrom(), jobDtoFromDb.getModifiedTimeFrom()).toSeconds() <= 0);
+
         Assertions.assertNotNull(jobDtoFromDb.getStartTime());
         // Assert that result is 'close enough'
         Assertions.assertTrue(Duration.between(jobDto.getStartTime(), jobDtoFromDb.getStartTime()).toSeconds() <= 0);
+
         Assertions.assertNull(jobDtoFromDb.getEndTime());
         Assertions.assertNull(jobDtoFromDb.getNumberOfRecords());
         Assertions.assertNull(jobDtoFromDb.getRestartValue());
@@ -66,7 +71,7 @@ public class JobStorageTest {
         JobDto jobDtoFromDb = storage.getJob(jobId);
         Assertions.assertNotNull(jobDtoFromDb);
         jobDtoFromDb.setJobStatus(JobStatusDto.COMPLETED);
-        jobDtoFromDb.setEndTime(OffsetDateTime.now());
+        jobDtoFromDb.setEndTime(Instant.now());
         jobDtoFromDb.setNumberOfRecords(777777);
         jobDtoFromDb.setRestartValue(888888);
         jobDtoFromDb.setMessage("The job has ended");
@@ -84,13 +89,19 @@ public class JobStorageTest {
         Assertions.assertEquals(jobDtoFromDb.getJobStatus(), updatedJobDtoFromDb.getJobStatus());
         Assertions.assertEquals(jobDto.getErrorCorrelationId(), updatedJobDtoFromDb.getErrorCorrelationId());
         Assertions.assertEquals(jobDtoFromDb.getMessage(), updatedJobDtoFromDb.getMessage());
-        Assertions.assertEquals(jobDto.getmTimeFrom(), updatedJobDtoFromDb.getmTimeFrom());
+
+        Assertions.assertNotNull(updatedJobDtoFromDb.getModifiedTimeFrom());
+        // Assert that result is 'close enough'
+        Assertions.assertTrue(Duration.between(jobDto.getModifiedTimeFrom(), updatedJobDtoFromDb.getModifiedTimeFrom()).toSeconds() <= 0);
+
         Assertions.assertNotNull(updatedJobDtoFromDb.getStartTime());
         // Assert that result is 'close enough'
         Assertions.assertTrue(Duration.between(jobDto.getStartTime(), updatedJobDtoFromDb.getStartTime()).toSeconds() <= 0);
+
         Assertions.assertNotNull(updatedJobDtoFromDb.getEndTime());
         // Assert that result is 'close enough'
         Assertions.assertTrue(Duration.between(jobDtoFromDb.getEndTime(), updatedJobDtoFromDb.getEndTime()).toSeconds() <= 0);
+
         Assertions.assertEquals(jobDtoFromDb.getNumberOfRecords(), updatedJobDtoFromDb.getNumberOfRecords());
         Assertions.assertEquals(jobDtoFromDb.getRestartValue(), updatedJobDtoFromDb.getRestartValue());
     }
@@ -113,8 +124,8 @@ public class JobStorageTest {
         jobDto.setCategory(CategoryDto.OAI_HARVEST);
         jobDto.setCreatedBy("Unit test");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
-        jobDto.setStartTime(OffsetDateTime.now());
-        jobDto.setmTimeFrom(1234567890);
+        jobDto.setStartTime(Instant.now());
+        jobDto.setModifiedTimeFrom(Instant.now());
         return jobDto;
     }
 }

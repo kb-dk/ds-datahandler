@@ -468,10 +468,11 @@ components:
         message:
           type: string
           description: 'Job stopped messages'
-        mTimeFrom:
-          type: integer
-          format: int32
-          description: 'Some jobs can be started from a given mTime or date.'
+        modifiedTimeFrom:
+          type: string
+          format: date-time
+          description: 'Some jobs can be started from a given modifiedTimeFrom or date (datetime or unix timestamp).'
+          example: '2021-01-30T08:30:00Z'
         startTime:
           type: string
           format: date-time

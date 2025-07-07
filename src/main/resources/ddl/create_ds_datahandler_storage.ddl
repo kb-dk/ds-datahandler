@@ -3,14 +3,14 @@ CREATE TABLE IF NOT EXISTS jobs (
     type VARCHAR,
     category VARCHAR,
     source VARCHAR,
-    createdBy VARCHAR,
+    created_by VARCHAR,
     status VARCHAR,
-    errorCorrelationId UUID,
+    error_correlation_id UUID,
     message TEXT,
-    mTimeFrom BIGINT,
-    startTime TIMESTAMP WITH TIME ZONE,
-    endTime TIMESTAMP WITH TIME ZONE,
-    numberOfRecords BIGINT,
-    restartValue BIGINT
+    modified_time_from TIMESTAMP WITH TIME ZONE,
+    start_time TIMESTAMP WITH TIME ZONE,
+    end_time TIMESTAMP WITH TIME ZONE,
+    number_of_records BIGINT,
+    restart_value BIGINT
 )
 

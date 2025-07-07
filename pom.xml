@@ -385,6 +385,12 @@
                         <invokerPackage>${project.package}</invokerPackage>
                     </configOptions>
                     <packageName>${project.package}</packageName>
+                    <typeMappings>
+                        <typeMapping>OffsetDateTime=Instant</typeMapping>
+                    </typeMappings>
+                    <importMappings>
+                        <importMapping>java.time.OffsetDateTime=java.time.Instant</importMapping>
+                    </importMappings>
                 </configuration>
 
                 <executions>
