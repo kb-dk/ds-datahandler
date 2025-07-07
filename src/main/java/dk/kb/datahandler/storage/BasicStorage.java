@@ -60,6 +60,8 @@ public abstract class BasicStorage implements AutoCloseable {
         }
     }
 
+    public abstract void clearTables() throws SQLException;
+
     @FunctionalInterface
     public interface StorageAction<T, S extends BasicStorage> {
         T process(S storage) throws Exception;
