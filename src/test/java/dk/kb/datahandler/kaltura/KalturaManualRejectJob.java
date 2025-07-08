@@ -42,36 +42,35 @@ public class KalturaManualRejectJob {
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token,tokenId,adminSecret, 86400,3600);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, 86400, 3600);
             int numberRejectFailed = 0;
             int numberRejectSuccess = 0;
             List<String> entryIds = readAllLines(input_entry_ids);
-            System.out.println("Loaded file with Kaltura entryIds. Number of entries:" + entryIds.size());
+            System.out.println("Loaded file with Kaltura entryIds. Number of entries: " + entryIds.size());
             for (String entryId : entryIds) {
                 try { // We need to continue with the rest if one fails.
                     boolean success = client.blockStreamByEntryId(entryId);
-                    System.out.println("success:" + success  +" rejected entry id:"+entryId);
+                    System.out.println("success: " + success + " rejected entry id: " + entryId);
                     if (success) {
                         numberRejectSuccess++;
                     } else {
                         numberRejectFailed++;
-                        System.out.println("Failed rejecting entryId:" + entryId);
+                        System.out.println("Failed rejecting entryId: " + entryId);
                         addLineToFile(output_entry_ids, entryId);
                     }
 
                 } catch (Throwable e) {
                     e.printStackTrace();
-                    System.out.println("API error for entryId:" + entryId);
+                    System.out.println("API error for entryId: " + entryId);
                     numberRejectFailed++;
                 }
             }
             System.out.println("Rejct job completed, results:");
-            System.out.println("Number reject success=" + numberRejectSuccess);
-            System.out.println("Number reject failed=" + numberRejectFailed);
+            System.out.println("Number reject success: " + numberRejectSuccess);
+            System.out.println("Number reject failed: " + numberRejectFailed);
             if (numberRejectFailed > 0) {
-                System.out.println("See the output file for entries that failed:" + output_entry_ids);
+                System.out.println("See the output file for entries that failed: " + output_entry_ids);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -101,10 +100,9 @@ public class KalturaManualRejectJob {
         File file = new File(fileName);
         if (!file.exists()) {
             file.createNewFile();
-            System.out.println("Created new empty file:" + fileName);
+            System.out.println("Created new empty file: " + fileName);
         } else {
-            System.out.println("File already exists:" + fileName);
+            System.out.println("File already exists: " + fileName);
         }
     }
-
 }
