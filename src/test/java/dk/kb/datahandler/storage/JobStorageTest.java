@@ -23,14 +23,14 @@ public class JobStorageTest {
     private static final String DRIVER = "org.h2.Driver";
     private static final String USERNAME = "";
     private static final String PASSWORD = "";
-    private static JobStorage storage = null;
+    private static JobStorageForUnitTests storage = null;
 
     @BeforeAll
     public static void beforeClass() throws Exception {
         ServiceConfig.initialize("ds-datahandler-unittest.yaml");
         H2DbUtil.createEmptyH2DBFromDDL(DB_URL, DRIVER, USERNAME, PASSWORD);
         JobStorage.initialize(DRIVER, DB_URL, USERNAME, PASSWORD);
-        storage = new JobStorage();
+        storage = new JobStorageForUnitTests();
     }
 
     @Test

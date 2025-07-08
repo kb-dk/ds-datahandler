@@ -122,20 +122,6 @@ public class JobStorage extends BasicStorage {
         }
     }
 
-
-    /**
-     * Clears the jobs table
-     * Should only be used in unit tests.
-     * @throws SQLException
-     */
-    @Override
-    public void clearTables() throws SQLException {
-        try(PreparedStatement stmt = connection.prepareStatement("DELETE FROM JOBS")) {
-            stmt.executeUpdate();
-            commit();
-        }
-    }
-
     private JobDto createJobDtoFromResult(ResultSet result) throws SQLException {
         JobDto jobDto = new JobDto();
         jobDto.setId(result.getObject("id", UUID.class));
