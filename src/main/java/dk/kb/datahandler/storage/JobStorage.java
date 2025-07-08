@@ -90,6 +90,8 @@ public class JobStorage extends BasicStorage {
     }
 
     public boolean hasRunningJob(CategoryDto categoryDto, String source) throws SQLException {
+
+        ResultSet res1 = connection.prepareStatement("SELECT * from jobs").executeQuery();
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS)) {
             stmt.setString(1, categoryDto.name());
             stmt.setString(2, source);
@@ -120,10 +122,17 @@ public class JobStorage extends BasicStorage {
         }
     }
 
+
+    /**
+     * Clears the jobs table
+     * Should only be used in unit tests.
+     * @throws SQLException
+     */
     @Override
     public void clearTables() throws SQLException {
         try(PreparedStatement stmt = connection.prepareStatement("DELETE FROM JOBS")) {
             stmt.executeUpdate();
+            commit();
         }
     }
 
