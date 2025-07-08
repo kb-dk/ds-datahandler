@@ -3,6 +3,7 @@ package dk.kb.datahandler.storage;
 
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.util.webservice.exception.InternalServiceException;
+import dk.kb.util.webservice.exception.ServiceException;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.Connection;
@@ -80,7 +81,7 @@ public abstract class BasicStorage implements AutoCloseable {
             } catch (Exception e) {
                 log.warn("Exception performing action '{}'. Initiating rollback", actionID, e);
                 storage.rollback();
-                throw new InternalServiceException(e);
+                throw e;
             }
 
             try {
@@ -92,6 +93,9 @@ public abstract class BasicStorage implements AutoCloseable {
 
             log.debug("Storage method '{}' SQL time in millis: {}", actionID, (System.currentTimeMillis() - start));
             return result;
+        } catch (ServiceException e) {
+            log.error("Exception performing action '{}'", actionID, e);
+            throw e;
         } catch (Exception e) {
             log.error("Exception performing action '{}'", actionID, e);
             throw new InternalServiceException(e);
