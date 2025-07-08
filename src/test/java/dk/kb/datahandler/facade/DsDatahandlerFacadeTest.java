@@ -43,7 +43,7 @@ public class DsDatahandlerFacadeTest {
         JobDto jobDto = new JobDto();
         jobDto.setType(TypeDto.DELTA);
         jobDto.category(CategoryDto.OAI_HARVEST);
-        jobDto.setSource("THERE_CAN_ONLY_BE_ONE");
+        jobDto.setSource(oaiTarget.getName());
         jobDto.setJobStatus(JobStatusDto.RUNNING);
         BasicStorage.performStorageAction("Create job for OAITest", JobStorage::new, (JobStorage storage) -> {
             storage.createJob(jobDto);
@@ -52,7 +52,7 @@ public class DsDatahandlerFacadeTest {
 
         // Try add another
         Assertions.assertThrows(InvalidArgumentServiceException.class,
-                () -> DsDatahandlerFacade.oaiIngestFull(oaiTarget.getName(),"unit test")
+                () -> DsDatahandlerFacade.oaiIngestFull(oaiTarget.getName(), "unit test")
         );
 
     }
