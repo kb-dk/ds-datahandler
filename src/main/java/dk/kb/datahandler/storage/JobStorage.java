@@ -91,7 +91,6 @@ public class JobStorage extends BasicStorage {
 
     public boolean hasRunningJob(CategoryDto categoryDto, String source) throws SQLException {
 
-        ResultSet res1 = connection.prepareStatement("SELECT * from jobs").executeQuery();
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS)) {
             stmt.setString(1, categoryDto.name());
             stmt.setString(2, source);
