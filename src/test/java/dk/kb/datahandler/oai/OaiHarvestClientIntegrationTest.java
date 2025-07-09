@@ -5,13 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.util.yaml.YAML;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import dk.kb.datahandler.job.JobCache;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

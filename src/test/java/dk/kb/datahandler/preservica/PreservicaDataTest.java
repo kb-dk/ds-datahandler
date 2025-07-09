@@ -1,7 +1,5 @@
 package dk.kb.datahandler.preservica;
 
-import dk.kb.datahandler.job.JobCache;
-import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.*;
 import dk.kb.datahandler.util.PreservicaOaiRecordHandler;
