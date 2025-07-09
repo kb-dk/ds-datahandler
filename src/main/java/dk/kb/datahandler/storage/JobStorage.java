@@ -190,7 +190,7 @@ public class JobStorage extends BasicStorage {
         jobDto.setModifiedTimeFrom(result.getObject("modified_time_from", Instant.class));
         jobDto.setStartTime(result.getObject("start_time", Instant.class));
         jobDto.setEndTime(result.getObject("end_time", Instant.class));
-        jobDto.setNumberOfRecords(result.getObject("number_of_records", Long.class));
+        jobDto.setNumberOfRecords(result.getObject("number_of_records", Integer.class));
         jobDto.setRestartValue(result.getObject("restart_value", Instant.class));
         return jobDto;
     }

@@ -9,7 +9,6 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import dk.kb.datahandler.job.JobCache;
 import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
@@ -146,13 +145,15 @@ public class DsDatahandlerFacade {
                     "reference ID processed: '{}' The full request lasted '{}' milliseconds.",
                     updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
 
-            updateJob(jobDto, JobStatusDto.COMPLETED, null, Instant.now(), updated, null);
+            // TODO: can updated be an Integer instead of a Long?
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, Instant.now(), (int) updated, null);
 
             return updated;
         }
         catch (Exception e) {
 
-            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), Instant.now(), updated, null);
+            // TODO: can updated be an Integer instead of a Long?
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), Instant.now(), (int) updated, null);
 
             throw new InternalServiceException("Error updating kalturaIds",e);
         }
@@ -311,8 +312,7 @@ public class DsDatahandlerFacade {
 
             log.info("Kaltura delta uploaded completed successfully. #streams uploaded={}", numberStreamsUploaded);
 
-            // TODO: can we change uploadStreamsToKaltura to return a Long instead of int?
-            updateJob(jobDto, JobStatusDto.COMPLETED, null,  Instant.now(), (long) numberStreamsUploaded, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null,  Instant.now(), numberStreamsUploaded, null);
 
             //Index the records that has mTime modified due to kalturaId was set on record.
             if (numberStreamsUploaded > 0) {
@@ -398,8 +398,7 @@ public class DsDatahandlerFacade {
         try {
             Integer numberOfRecords = oaiIngestPerform(oaiTargetDto, modifiedTimeFrom);
 
-            // TODO: can we change oaiIngestPerform to return a Long instead of int?
-            updateJob(jobDto, JobStatusDto.COMPLETED, null,  Instant.now(), (long) numberOfRecords, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null,  Instant.now(), numberOfRecords, null);
 
             return numberOfRecords;
 
@@ -556,7 +555,7 @@ public class DsDatahandlerFacade {
      * Updates an existing job
      * @param jobDto
      */
-    private static void updateJob(JobDto jobDto, JobStatusDto jobStatusDto, String message, Instant endTime, Long numberOfRecords, Instant restartValue) {
+    private static void updateJob(JobDto jobDto, JobStatusDto jobStatusDto, String message, Instant endTime, Integer numberOfRecords, Instant restartValue) {
         jobDto.setJobStatus(jobStatusDto);
         jobDto.setMessage(message);
         jobDto.setEndTime(endTime);

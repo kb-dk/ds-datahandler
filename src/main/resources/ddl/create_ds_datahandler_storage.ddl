@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     modified_time_from TIMESTAMP WITH TIME ZONE,
     start_time TIMESTAMP WITH TIME ZONE,
     end_time TIMESTAMP WITH TIME ZONE,
-    number_of_records BIGINT,
+    number_of_records INTEGER,
     restart_value TIMESTAMP WITH TIME ZONE
 )
 

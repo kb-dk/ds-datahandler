@@ -74,7 +74,7 @@ public class JobStorageTest {
 
         jobDtoFromDb.setJobStatus(JobStatusDto.COMPLETED);
         jobDtoFromDb.setEndTime(Instant.now());
-        jobDtoFromDb.setNumberOfRecords(777777L);
+        jobDtoFromDb.setNumberOfRecords(777777);
         jobDtoFromDb.setRestartValue(Instant.now());
         jobDtoFromDb.setMessage("The job has ended");
 
