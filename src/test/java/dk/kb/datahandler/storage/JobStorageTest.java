@@ -74,8 +74,8 @@ public class JobStorageTest {
 
         jobDtoFromDb.setJobStatus(JobStatusDto.COMPLETED);
         jobDtoFromDb.setEndTime(Instant.now());
-        jobDtoFromDb.setNumberOfRecords(777777);
-        jobDtoFromDb.setRestartValue(888888);
+        jobDtoFromDb.setNumberOfRecords(777777L);
+        jobDtoFromDb.setRestartValue(888888L);
         jobDtoFromDb.setMessage("The job has ended");
 
         int numberOfUpdatedRows = storage.updateJob(jobDtoFromDb);
