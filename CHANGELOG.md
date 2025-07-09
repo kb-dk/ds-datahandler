@@ -5,6 +5,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Fixed
+
+### Added
+
+### Changed
+
+
+## [3.0.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.2) - 2025-07-07
+### Changed
+- Bumped ds-kalturaclient to version 3.0.1. Added new default values for kaltura session refresh/timeout in ds-datahandler-behaviour.yaml
+
+## [3.0.1](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.1) - 2025-06-24
+### Fixed
+- For Kaltura upload check on storage record if it already has a kaltura id, since there is a delay in kaltura from when records are searchable
+
+## [3.0.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.0) - 2025-06-12
 ### Added
 -  New service method '/kaltura/deltaupload' that will upload new streams to Kaltura. The method will also update storage records with kaltura entryId after each  upload. When all uploads are completed it will start a solr delta-index job. Errors will streams will be marked with StreamErrorTypeDto enum values. License module must be updated so both missing kalturaId's and id's that start with 'ERROR_' are filtered away.
 

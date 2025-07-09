@@ -60,6 +60,8 @@ public class ServiceConfig {
     private static String kalturaAdminSecret = null;
     private static int kalturaFlavourParamIdVideo=0;
     private static int kalturaFlavourParamIdAudio=0;
+    private static int kalturaSessionDurationSeconds=0;
+    private static int kalturaSessionRefreshThreshold=0;
     
     private static String streamPathDomsRadioTv=null;
     private static String streamPathPreservicaTv=null;
@@ -106,6 +108,10 @@ public class ServiceConfig {
         kalturaTokenId = ServiceConfig.getConfig().getString("kaltura.tokenId");
         //Do not use kaltura adminsecret, use token and tokenId instead.
         kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
+      
+        
+        kalturaSessionDurationSeconds = ServiceConfig.getConfig().getInteger("kaltura.sessionDurationSeconds", 86400);
+        kalturaSessionRefreshThreshold = ServiceConfig.getConfig().getInteger("kaltura.sessionRefreshThreshold", 3600);        
         kalturaFlavourParamIdVideo = ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdVideo");
         kalturaFlavourParamIdAudio = ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdAudio");
         
@@ -259,7 +265,14 @@ public class ServiceConfig {
     public static String getKalturaTokenId() {
         return kalturaTokenId;
     }
-   
+    
+    public static int getKalturaSessionDurationSeconds() {
+        return kalturaSessionDurationSeconds;
+    }
+
+    public static int getKalturaSessionRefreshThreshold() {
+        return kalturaSessionRefreshThreshold;
+    }
     
     public static int getKalturaFlavourParamIdVideo() {
         return kalturaFlavourParamIdVideo;
@@ -276,10 +289,6 @@ public class ServiceConfig {
     public static String getKalturaAdminSecret() {
         return kalturaAdminSecret;
     }
-
-    
-    
-    
     
     private static void loadOaiTargets() {
         List<YAML> targets = serviceConfig.getYAMLList("oaiTargets");

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.job.JobCache;
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
@@ -18,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
 
 /**
  * This is an integration test that will call an external OAI service.
