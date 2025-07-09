@@ -61,9 +61,8 @@ public class DsDatahandlerFacade {
      * @throws IOException
      * @throws ServiceException
      */
-    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long modifiedTimeFrom, String user) throws IOException, ServiceException {
     @Deprecated
-    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long mTimeFrom) throws IOException, ServiceException {
+    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long modifiedTimeFrom, String user) throws IOException, ServiceException {
 
         long start = System.currentTimeMillis();
         long timer = start;
