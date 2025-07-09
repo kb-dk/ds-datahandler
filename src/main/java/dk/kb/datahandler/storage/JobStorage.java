@@ -55,18 +55,26 @@ public class JobStorage extends BasicStorage {
             status = ?
     """;
 
-    private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?";
+    private static final String GET_JOB_QUERY = """
+        SELECT 
+            * 
+        FROM 
+            jobs 
+        WHERE 
+            id = ?
+    """;
 
     private static final String GET_JOBS_QUERY = """
-            SELECT * 
-            FROM 
-                jobs 
-            WHERE 
-                category LIKE ? 
-              AND 
-                status LIKE ? 
-            ORDER BY 
-                startTime
+        SELECT 
+            * 
+        FROM 
+            jobs 
+        WHERE 
+            category LIKE ? 
+          AND 
+            status LIKE ? 
+        ORDER BY 
+            startTime
     """;
 
     public JobStorage() throws SQLException {
