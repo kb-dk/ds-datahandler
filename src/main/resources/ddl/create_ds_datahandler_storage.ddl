@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS jobs (
     start_time TIMESTAMP WITH TIME ZONE,
     end_time TIMESTAMP WITH TIME ZONE,
     number_of_records BIGINT,
-    restart_value BIGINT
+    restart_value TIMESTAMP WITH TIME ZONE
 )
 

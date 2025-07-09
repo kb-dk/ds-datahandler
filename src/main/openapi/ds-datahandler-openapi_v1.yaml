@@ -499,9 +499,10 @@ components:
           format: int64
           description: 'Number of processed records. (if available).'
         restartValue:
-          type: integer
-          format: int64
-          description: timestamp
+          type: string
+          format: date-time
+          description: 'Format YYYY-MM-DDTHH:MM:SSZ'
+          example: '2021-01-30T08:30:00Z'
 
     Category:
       type: string

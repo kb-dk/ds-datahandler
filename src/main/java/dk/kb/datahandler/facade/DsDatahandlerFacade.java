@@ -554,7 +554,7 @@ public class DsDatahandlerFacade {
      * Updates an existing job
      * @param jobDto
      */
-    private static void updateJob(JobDto jobDto, JobStatusDto jobStatusDto, String message, Instant endTime, Long numberOfRecords, Long restartValue) {
+    private static void updateJob(JobDto jobDto, JobStatusDto jobStatusDto, String message, Instant endTime, Long numberOfRecords, Instant restartValue) {
         jobDto.setJobStatus(jobStatusDto);
         jobDto.setMessage(message);
         jobDto.setEndTime(endTime);
