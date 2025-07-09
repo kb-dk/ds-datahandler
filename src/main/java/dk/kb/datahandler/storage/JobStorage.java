@@ -60,6 +60,12 @@ public class JobStorage extends BasicStorage {
         super();
     }
 
+    /**
+     * Creates an entry for a running job
+     * @param jobDto
+     * @return id UUID for inserted row
+     * @throws SQLException
+     */
     public UUID createJob(JobDto jobDto) throws SQLException{
         UUID id = UUID.randomUUID();
         try (PreparedStatement stmt = connection.prepareStatement(INSERT_JOB_QUERY)) {
@@ -76,6 +82,12 @@ public class JobStorage extends BasicStorage {
         }
     }
 
+    /**
+     * Return a job
+     * @param id UUID primary key on job
+     * @return job with matching id
+     * @throws SQLException
+     */
     public JobDto getJob(UUID id) throws SQLException {
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOB_QUERY)) {
             stmt.setString(1, id.toString());
@@ -89,6 +101,13 @@ public class JobStorage extends BasicStorage {
         }
     }
 
+    /**
+     * Check if there is a running job matching category and source
+     * @param categoryDto what category the job is
+     * @param source where is the data harvest/index/upload from
+     * @return boolean if there is a running job matching category and source
+     * @throws SQLException
+     */
     public boolean hasRunningJob(CategoryDto categoryDto, String source) throws SQLException {
 
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS)) {
@@ -108,6 +127,12 @@ public class JobStorage extends BasicStorage {
         return null;
     }
 
+    /**
+     * Update job matching id
+     * @param modifiedJobDto
+     * @return how many rows was affected by the update
+     * @throws SQLException
+     */
     public int updateJob(JobDto modifiedJobDto) throws SQLException {
         try(PreparedStatement stmt = connection.prepareStatement(UPDATE_JOB_QUERY)) {
             stmt.setString(1, modifiedJobDto.getJobStatus().name());
