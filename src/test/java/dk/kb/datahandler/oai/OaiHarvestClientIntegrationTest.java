@@ -69,8 +69,6 @@ public class OaiHarvestClientIntegrationTest {
         String from ="2021-01-01";
          */
 
-        JobDto jobDto = JobCache.createNewOaiJob(oaiTarget, from);
-
         OaiHarvestClient client = new OaiHarvestClient(oaiTarget, from);
         OaiResponse r1 = client.next();
         assertEquals(1000, r1.getRecords().size());
@@ -79,8 +77,6 @@ public class OaiHarvestClientIntegrationTest {
         //Fetch next 1000        
         OaiResponse r2= client.next();
         assertEquals(1000, r2.getRecords().size());
-    
-        JobCache.finishJob(jobDto, 0, false);
     }
 
 
@@ -100,7 +96,6 @@ public class OaiHarvestClientIntegrationTest {
         oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
-        JobDto jobDto = JobCache.createNewOaiJob(oaiTarget, null);
 
 
         OaiHarvestClient client = new OaiHarvestClient(oaiTarget, null);
@@ -118,7 +113,6 @@ public class OaiHarvestClientIntegrationTest {
         OaiResponse r3= client.next();
         assertEquals(200, r3.getRecords().size());
         
-        JobCache.finishJob(jobDto, 0, false);
     }
 
 }
