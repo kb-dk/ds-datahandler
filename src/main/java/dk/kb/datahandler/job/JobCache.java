@@ -26,6 +26,7 @@ import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
  * Access to all methods working with the maps needs to be syncronized to prevent concurrent modification error. 
  * 
  */
+@Deprecated
 public class JobCache {
 
     private static HashMap<Long, JobDto> runningJobsMap = new HashMap<Long, JobDto>();
