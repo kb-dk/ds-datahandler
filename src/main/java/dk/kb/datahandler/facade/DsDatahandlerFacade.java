@@ -538,7 +538,9 @@ public class DsDatahandlerFacade {
         jobDto.setCreatedBy(user);
         jobDto.setStartTime(Instant.now());
 
-        UUID jobId = BasicStorage.performStorageAction("create new oai job", JobStorage::new, (JobStorage storage) -> {
+        String databaseMessage = jobDto.getJobStatus().getValue() + " " + jobDto.getType().getValue() + " " + jobDto.getCategory().getValue();
+
+        UUID jobId = BasicStorage.performStorageAction(databaseMessage, JobStorage::new, (JobStorage storage) -> {
             if (storage.hasRunningJob(categoryDto, source)) {
                 throw new InvalidArgumentServiceException("There is already an OAI Harvest job running");
             }
