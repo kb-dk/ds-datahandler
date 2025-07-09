@@ -38,7 +38,7 @@ public class JobStorage extends BasicStorage {
             end_time = ?,
             number_of_records = ?,
             restart_value = ? 
-        WHERE 
+        WHERE
             id = ?
     """;
 
@@ -74,7 +74,7 @@ public class JobStorage extends BasicStorage {
           AND 
             status LIKE ? 
         ORDER BY 
-            startTime
+            start_time
     """;
 
     public JobStorage() throws SQLException {
