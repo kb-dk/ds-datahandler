@@ -69,7 +69,9 @@ public class JobStorageTest {
         UUID jobId = storage.createJob(jobDto);
 
         JobDto jobDtoFromDb = storage.getJob(jobId);
+
         Assertions.assertNotNull(jobDtoFromDb);
+
         jobDtoFromDb.setJobStatus(JobStatusDto.COMPLETED);
         jobDtoFromDb.setEndTime(Instant.now());
         jobDtoFromDb.setNumberOfRecords(777777);
@@ -77,8 +79,8 @@ public class JobStorageTest {
         jobDtoFromDb.setMessage("The job has ended");
 
         int numberOfUpdatedRows = storage.updateJob(jobDtoFromDb);
-
         Assertions.assertEquals(1, numberOfUpdatedRows);
+
         JobDto updatedJobDtoFromDb = storage.getJob(jobDtoFromDb.getId());
         Assertions.assertNotNull(updatedJobDtoFromDb);
         Assertions.assertEquals(jobId, updatedJobDtoFromDb.getId());
@@ -109,11 +111,16 @@ public class JobStorageTest {
     @Test
     public void testHasJobRunning() throws SQLException {
         JobDto jobDto = genetrateJobDto();
+
+        // No OAI_HARVEST job should be running
         Assertions.assertFalse(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
+
         jobDto.setCategory(CategoryDto.OAI_HARVEST);
         jobDto.setSource("test.source");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
         storage.createJob(jobDto);
+
+        // Now there should be a OIA_HARVEST job running
         Assertions.assertTrue(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
     }
 
