@@ -418,13 +418,10 @@ public class DsDatahandlerFacade {
      *  
      * @return List of jobs with status
      */    
-    public static List<JobDto> getJobs() {
-        List<JobDto> running=JobCache.getRunningJobsMostRecentFirst();
-        List<JobDto> completed=JobCache.getCompletedJobsMostRecentFirst();
-        List<JobDto> result = new ArrayList<>();
-        result.addAll(running);
-        result.addAll(completed);
-        return result;
+    public static List<JobDto> getJobs(CategoryDto categoryDto, JobStatusDto jobStatusDto) {
+        return BasicStorage.performStorageAction("Get all jobs", JobStorage::new, (JobStorage storage) -> {
+            return storage.getJobs(categoryDto, jobStatusDto);
+        });
     }
 
     /**

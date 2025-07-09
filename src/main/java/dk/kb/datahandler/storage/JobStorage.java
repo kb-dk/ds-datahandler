@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -55,6 +56,18 @@ public class JobStorage extends BasicStorage {
     """;
 
     private static final String GET_JOB_QUERY = "SELECT * FROM jobs WHERE id=?";
+
+    private static final String GET_JOBS_QUERY = """
+            SELECT * 
+            FROM 
+                jobs 
+            WHERE 
+                category LIKE ? 
+              AND 
+                status LIKE ? 
+            ORDER BY 
+                startTime
+    """;
 
     public JobStorage() throws SQLException {
         super();
@@ -123,8 +136,18 @@ public class JobStorage extends BasicStorage {
         }
     }
 
-    public List<JobDto> getJobs(String status, String type) {
-        return null;
+    public List<JobDto> getJobs(CategoryDto categoryDto, JobStatusDto jobStatusDto) throws SQLException {
+        List<JobDto> jobs = new ArrayList<>();
+        try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_QUERY)) {
+            stmt.setString(1, categoryDto == null ? "%" : categoryDto.name());
+            stmt.setString(2, jobStatusDto == null ? "%" : jobStatusDto.name());
+            try (ResultSet result = stmt.executeQuery()) {
+                while (result.next()) {
+                    jobs.add(createJobDtoFromResult(result));
+                }
+            }
+        }
+        return jobs;
     }
 
     /**

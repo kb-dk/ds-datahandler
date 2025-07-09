@@ -124,6 +124,30 @@ public class JobStorageTest {
         Assertions.assertTrue(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
     }
 
+    @Test
+    public void testGetJobs() throws SQLException {
+        JobDto jobDto = genetrateJobDto();
+        // OAI JOBS
+        storage.createJob(jobDto);
+        jobDto.setSource("test.source2");
+        storage.createJob(jobDto);
+        jobDto.setJobStatus(JobStatusDto.COMPLETED);
+        storage.createJob(jobDto);
+
+        // SOLR JOBS
+        jobDto.setCategory(CategoryDto.SOLR_INDEX);
+        storage.createJob(jobDto);
+        jobDto.setJobStatus(JobStatusDto.RUNNING);
+        storage.createJob(jobDto);
+
+        Assertions.assertEquals(5, storage.getJobs(null, null).size());
+        Assertions.assertEquals(3, storage.getJobs(CategoryDto.OAI_HARVEST, null).size());
+        Assertions.assertEquals(2, storage.getJobs(CategoryDto.SOLR_INDEX, null).size());
+        Assertions.assertEquals(2, storage.getJobs(null, JobStatusDto.COMPLETED).size());
+        Assertions.assertEquals(1, storage.getJobs(CategoryDto.OAI_HARVEST, JobStatusDto.COMPLETED).size());
+    }
+
+
     @NotNull
     private static JobDto genetrateJobDto() {
         JobDto jobDto = new JobDto();
