@@ -510,10 +510,20 @@ components:
     JobStatus:
       type: string
       enum:
+        - running
+        - completed
+        - stopped
+        - failed
+      x-enum-varnames:
         - RUNNING
         - COMPLETED
         - STOPPED
         - FAILED
+      x-enum-descriptions:
+        - running
+        - completed
+        - stopped
+        - failed
 
     Type:
       type: string
