@@ -273,6 +273,17 @@ paths:
         - Service
       summary: 'List of running and past jobs'
       operationId: jobs
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Category'
+        - name: jobStatus
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/JobStatus'
       responses:
         '200':
           description: 'List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first'

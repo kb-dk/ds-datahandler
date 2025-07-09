@@ -2,10 +2,7 @@ package dk.kb.datahandler.api.v1.impl;
 
 import dk.kb.datahandler.api.v1.ServiceApi;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
-import dk.kb.datahandler.model.v1.JobDto;
-import dk.kb.datahandler.model.v1.StatusDto;
-import dk.kb.datahandler.model.v1.WhoamiDto;
-import dk.kb.datahandler.model.v1.WhoamiTokenDto;
+import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.webservice.KBAuthorizationInterceptor;
 import dk.kb.util.BuildInfoManager;
 import dk.kb.util.webservice.ImplBase;
@@ -86,18 +83,17 @@ public class ServiceApiServiceImpl extends ImplBase implements ServiceApi {
     }
 
     /**
-     * List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first. <br>
-     * 
-     * @return List running and completed OAI jobs. 
-     * @throws ServiceException If jobs could not be loaded. Should not happen.
-     * 
-    */
+     * Return the list of jobs
+     *
+     * @param category filter on job category
+     * @param jobStatus filter on job status
+     * @return
+     */
     @Override
-    public List<JobDto> jobs() throws ServiceException {
-        
-        List<JobDto> jobs = null;
+    public List<JobDto> jobs(CategoryDto category, JobStatusDto jobStatus) {
+        List<JobDto> jobs;
         try {
-            jobs = DsDatahandlerFacade.getJobs();
+            jobs = DsDatahandlerFacade.getJobs(category, jobStatus);
         } catch (Exception e) {
             log.warn("status(): Unable to get jobs", e);
             throw new InternalServiceException("Unable to load jobs",e);
