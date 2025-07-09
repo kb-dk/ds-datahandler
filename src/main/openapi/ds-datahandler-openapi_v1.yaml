@@ -485,11 +485,11 @@ components:
           example: '2021-01-30T08:30:00Z'
         numberOfRecords:
           type: integer
-          format: int32
+          format: int64
           description: 'Number of processed records. (if available).'
         restartValue:
           type: integer
-          format: int32
+          format: int64
           description: timestamp
 
     Category:

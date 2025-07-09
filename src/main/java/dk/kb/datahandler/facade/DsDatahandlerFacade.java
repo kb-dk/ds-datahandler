@@ -146,20 +146,13 @@ public class DsDatahandlerFacade {
                     "reference ID processed: '{}' The full request lasted '{}' milliseconds.",
                     updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
 
-            jobDto.setNumberOfRecords((int) updated);
-            jobDto.setJobStatus(JobStatusDto.COMPLETED);
-            jobDto.setEndTime(Instant.now());
-            updateJob(jobDto);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, Instant.now(), updated, null);
 
             return updated;
         }
         catch (Exception e) {
 
-            jobDto.setNumberOfRecords((int) updated);
-            jobDto.setJobStatus(JobStatusDto.FAILED);
-            jobDto.setEndTime(Instant.now());
-            jobDto.setMessage(e.getMessage());
-            updateJob(jobDto);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), Instant.now(), updated, null);
 
             throw new InternalServiceException("Error updating kalturaIds",e);
         }
@@ -236,22 +229,18 @@ public class DsDatahandlerFacade {
         JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.OAI_HARVEST, origin, null, user);
 
         try {
-          response = SolrUtils.indexOrigin(origin, 0L);
+            response = SolrUtils.indexOrigin(origin, 0L);
+
+            // TODO: How do we get the number of indexed records here, so we can save it in the database?
+            // TODO: the number of records is known in indexOrigin, but it changes the response to json in SolrUtils, maybe we should do that here instead?
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, Instant.now(), null, null);
+
         } catch(Exception e) {
 
-            jobDto.setJobStatus(JobStatusDto.FAILED);
-            jobDto.setEndTime(Instant.now());
-            jobDto.setMessage(e.getMessage());
-            updateJob(jobDto);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), Instant.now(), null, null);
 
             throw e;
         }
-
-        // TODO: How do we get the number of indexed records here, so we can save it in the database?
-        // TODO: the number of records is known in indexOrigin, but it changes the response to json in SolrUtils, maybe we should do that here instead?
-        jobDto.setJobStatus(JobStatusDto.COMPLETED);
-        jobDto.setEndTime(Instant.now());
-        updateJob(jobDto);
 
         return response;
     }
@@ -273,21 +262,17 @@ public class DsDatahandlerFacade {
 
         try {
             response = SolrUtils.indexOrigin(origin, lastStorageMTime);
+
+            // TODO: How do we get the number of indexed records here, so we can save it in the database?
+            // TODO: the number of records is known in indexOrigin, but it changes the response to json in SolrUtils, maybe we should do that here instead?
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, Instant.now(), null, null);
+
         } catch (Exception e) {
 
-            jobDto.setJobStatus(JobStatusDto.FAILED);
-            jobDto.setEndTime(Instant.now());
-            jobDto.setMessage(e.getMessage());
-            updateJob(jobDto);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), Instant.now(), null, null);
 
             throw e;
         }
-
-        // TODO: How do we get the number of indexed records here, so we can save it in the database?
-        // TODO: the number of records is known in indexOrigin, but it changes the response to json in SolrUtils, maybe we should do that here instead?
-        jobDto.setJobStatus(JobStatusDto.COMPLETED);
-        jobDto.setEndTime(Instant.now());
-        updateJob(jobDto);
 
         return response;
     }
@@ -326,10 +311,8 @@ public class DsDatahandlerFacade {
 
             log.info("Kaltura delta uploaded completed successfully. #streams uploaded={}", numberStreamsUploaded);
 
-            jobDto.setNumberOfRecords(numberStreamsUploaded);
-            jobDto.setJobStatus(JobStatusDto.COMPLETED);
-            jobDto.setEndTime(Instant.now());
-            updateJob(jobDto);
+            // TODO: can we change uploadStreamsToKaltura to return a Long instead of int?
+            updateJob(jobDto, JobStatusDto.COMPLETED, null,  Instant.now(), (long) numberStreamsUploaded, null);
 
             //Index the records that has mTime modified due to kalturaId was set on record.
             if (numberStreamsUploaded > 0) {
@@ -341,10 +324,7 @@ public class DsDatahandlerFacade {
         catch (Exception e) {
             log.error("Kaltura delta upload/indexing stopped due to error", e);
 
-            jobDto.setJobStatus(JobStatusDto.FAILED);
-            jobDto.setEndTime(Instant.now());
-            jobDto.setMessage(e.getMessage());
-            updateJob(jobDto);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(),  Instant.now(), null, null);
 
             throw e; 
         }
@@ -418,20 +398,15 @@ public class DsDatahandlerFacade {
         try {
             Integer numberOfRecords = oaiIngestPerform(oaiTargetDto, modifiedTimeFrom);
 
-            jobDto.setNumberOfRecords(numberOfRecords);
-            jobDto.setJobStatus(JobStatusDto.COMPLETED);
-            jobDto.setEndTime(Instant.now());
-            updateJob(jobDto);
+            // TODO: can we change oaiIngestPerform to return a Long instead of int?
+            updateJob(jobDto, JobStatusDto.COMPLETED, null,  Instant.now(), (long) numberOfRecords, null);
 
             return numberOfRecords;
 
         } catch (Exception e) {
             log.error("Oai harvest did not complete successfully for target: oaiTarget:'{}' jobId:'{}'", oaiTargetName, jobDto.getId());
 
-            jobDto.setJobStatus(JobStatusDto.FAILED);
-            jobDto.setEndTime(Instant.now());
-            jobDto.setMessage(e.getMessage());
-            updateJob(jobDto);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(),  Instant.now(), null, null);
 
             throw new InternalServiceException("Error harvesting oai target: oaiTarget: " + oaiTargetName + " jobId: " + jobDto.getId(), e);
         }
@@ -582,7 +557,13 @@ public class DsDatahandlerFacade {
      * Updates an existing job
      * @param jobDto
      */
-    private static void updateJob(JobDto jobDto) {
+    private static void updateJob(JobDto jobDto, JobStatusDto jobStatusDto, String message, Instant endTime, Long numberOfRecords, Long restartValue) {
+        jobDto.setJobStatus(jobStatusDto);
+        jobDto.setMessage(message);
+        jobDto.setEndTime(endTime);
+        jobDto.setNumberOfRecords(numberOfRecords);
+        jobDto.setRestartValue(restartValue);
+
         String databaseMessage = jobDto.getJobStatus().getValue() + " " + jobDto.getType().getValue() + " " + jobDto.getCategory().getValue();
 
         BasicStorage.performStorageAction(databaseMessage, JobStorage::new, (JobStorage storage) -> {

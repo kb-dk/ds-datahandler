@@ -139,8 +139,8 @@ public class JobStorage extends BasicStorage {
             stmt.setObject(2, modifiedJobDto.getErrorCorrelationId());
             stmt.setString(3, modifiedJobDto.getMessage());
             stmt.setObject(4, modifiedJobDto.getEndTime());
-            stmt.setInt(5, modifiedJobDto.getNumberOfRecords());
-            stmt.setInt(6, modifiedJobDto.getRestartValue());
+            stmt.setObject(5, modifiedJobDto.getNumberOfRecords());
+            stmt.setObject(6, modifiedJobDto.getRestartValue());
             stmt.setObject(7, modifiedJobDto.getId());
             return stmt.executeUpdate();
         }
@@ -159,8 +159,8 @@ public class JobStorage extends BasicStorage {
         jobDto.setModifiedTimeFrom(result.getObject("modified_time_from", Instant.class));
         jobDto.setStartTime(result.getObject("start_time", Instant.class));
         jobDto.setEndTime(result.getObject("end_time", Instant.class));
-        jobDto.setNumberOfRecords(result.getObject("number_of_records", Integer.class));
-        jobDto.setRestartValue(result.getObject("restart_value", Integer.class));
+        jobDto.setNumberOfRecords(result.getObject("number_of_records", Long.class));
+        jobDto.setRestartValue(result.getObject("restart_value", Long.class));
         return jobDto;
     }
 }

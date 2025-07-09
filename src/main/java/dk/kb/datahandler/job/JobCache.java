@@ -66,7 +66,7 @@ public class JobCache {
   //          jobDto.setError(true);
         }
   //      jobDto.setStatus(STATUS.COMPLETED.toString());
-        jobDto.setNumberOfRecords(numberOfRecords);
+  //      jobDto.setNumberOfRecords(numberOfRecords);
   //      jobDto.setCompletedTime(formatSystemMillis(System.currentTimeMillis()));
   //      log.info("Setting completed for jobDto:" + jobDto.getName() + " time:" + jobDto.getCompletedTime());
 
