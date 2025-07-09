@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-
 /**
  * This is an integration test that will call an external OAI service.
  * The unittest is marked with the integrationTest tag

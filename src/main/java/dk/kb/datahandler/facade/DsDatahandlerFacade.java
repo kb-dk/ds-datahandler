@@ -41,13 +41,14 @@ import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 import dk.kb.util.webservice.exception.ServiceException;
 
-
 public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
 
     private static DsStorageClient storageClient;
 
     /**
+     * Deprecated. The use of the mapping table was a temporary solution for "skygge prod"
+     *
      * <p>
      * Will load all referenceId defined in storage and call Kaltura to map them to KalturaId.
      * The results will be saved in ds-storage in the mapping table.
@@ -57,9 +58,13 @@ public class DsDatahandlerFacade {
      * @param origin Only update mappings from this origin
      * @param modifiedTimeFrom Only update mappings for records with modifiedTime after modifiedTimeFrom
      * @return Number of mappings updated.
-     * @throws IOException, ServiceException
+     * @throws IOException
+     * @throws ServiceException
      */
     public static long fetchKalturaIdsAndUpdateRecords(String origin, Long modifiedTimeFrom, String user) throws IOException, ServiceException {
+    @Deprecated
+    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long mTimeFrom) throws IOException, ServiceException {
+
         long start = System.currentTimeMillis();
         long timer = start;
         int batchSize = 100; //No need to take this as input parameter and make method more complicated.
@@ -70,7 +75,6 @@ public class DsDatahandlerFacade {
 
         DsStorageClient dsAPI = getDsStorageApiClient();
         DsKalturaClient kalturaClient = getKalturaClient();
-
 
         long processed = 0;
         long updated = 0;
@@ -150,10 +154,7 @@ public class DsDatahandlerFacade {
             JobCache.finishJob(jobDto, (int) updated, true);  //error
             throw new InternalServiceException("Error updating kalturaIds",e);         
         }
-
-        
     }
-
 
     /**
      * Ingest records directly into ds-storage from a zip-file containing multiple files that each is a xml-file with a single record
@@ -161,8 +162,9 @@ public class DsDatahandlerFacade {
      * @param  origin The origin for collection documents. The origin must be defined in ds-storage. 
      * @param is InputStream. Must be a zip-file containing single files that each is an XML record.
      * @return List of strings containing the records that failed parsing.
-     */    
-    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) throws ServiceException{
+     * @throws ServiceException
+     */
+    public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) throws ServiceException {
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
 
         DsStorageClient dsAPI = getDsStorageApiClient();
@@ -196,7 +198,7 @@ public class DsDatahandlerFacade {
             }
         } catch (IOException e) {
             errorRecords.add(fileName);
-            String msg="Error parsing xml record for file:"+ fileName;
+            String msg = "Error parsing xml record for file: " + fileName;
             log.error(msg, e);
             throw new InvalidArgumentServiceException(msg);
         } catch (ServiceException e){
@@ -238,8 +240,9 @@ public class DsDatahandlerFacade {
      * Get latest  ds-storage modification time for records in existing solr index.
      * Then fetch newer records from ds-storage, transform to solr documents in ds-present and index into solr.
      * @param origin to index records from.
+     * @throws InternalServiceException
      * @throws SolrServerException
-     * @throws IOException  
+     * @throws IOException
      */
     public static String indexSolrDelta(String origin, String user) throws InternalServiceException, SolrServerException, IOException {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
@@ -276,14 +279,15 @@ public class DsDatahandlerFacade {
      * A solr delta indexing job will be started if both the job completes succesfully or fails. 
      * 
      * @param mTimeFrom only uploading missing streams for records with mTimeFrom this value or higher 
-     * @throws IOException 
-     * @throws SolrServerException 
+     * @throws InternalServiceException
+     * @throws SolrServerException
+     * @throws IOException
      */
     public static void kalturaDeltaUpload(Long mTimeFrom, String user) throws InternalServiceException, SolrServerException, IOException {
 
         JobDto jobDto = startNewJob(CategoryDto.OAI_HARVEST, "all", Instant.ofEpochSecond(mTimeFrom), user);
 
-        log.info("Starting kaltura delta upload from mTimeFrom=" + mTimeFrom);
+        log.info("Starting kaltura delta upload from mTimeFrom: " + mTimeFrom);
         try {
           //upload streams
           int numberStreamsUploaded = KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
@@ -302,7 +306,7 @@ public class DsDatahandlerFacade {
             log.error("Kaltura delta upload/indexing stopped due to error",e);
             markJobAsFailed(jobDto, e);
             throw e; 
-        }                
+        }
     }
 
     /**
@@ -352,7 +356,7 @@ public class DsDatahandlerFacade {
      * @param oaiTargetName the name of the configured oai-target
      * @param modifiedTimeFrom List of date intervals. When calling this method the date formats must be in format accepted by the target.
      * @return Total number of records harvest modifiedTimeFrom all intervals. Records that are discarded will not be counted.
-     *
+     * @throws InternalServiceException
      */
     protected static Integer oaiIngestJobScheduler(String oaiTargetName, String modifiedTimeFrom, String user) throws InternalServiceException {
 
@@ -421,16 +425,16 @@ public class DsDatahandlerFacade {
         return result;
     }
 
-
     /**
      * This method will be called by the {@link #oaiIngestJobScheduler(String, ArrayList)}-method}<br>
      * The scheduler method will set up the job and responsible for status of the job. <br>
      * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
      * For each successful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
-     *      
+     *
      * @param from Datestamp format that will be accepted for that OAI target
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
+     * @throws ServiceException
      */
     private static Integer oaiIngestPerform(OaiTargetDto oaiTargetDto, String from) throws IOException, ServiceException {
 
@@ -438,14 +442,13 @@ public class DsDatahandlerFacade {
         //But COP only supports the short version. So when this is called use short format
         //Preservica seems to only accept full UTC format
         //Dirty but quick solution fix. Best would be if COP could fix it
-  
 
         // TODO: Change this to datasource in the OpenAPI specification
-        String origin=oaiTargetDto.getDatasource();
+        String origin = oaiTargetDto.getDatasource();
         String targetName = oaiTargetDto.getName();
 
         DsStorageClient dsAPI = getDsStorageApiClient();
-        OaiHarvestClient client = new OaiHarvestClient(oaiTargetDto,from);
+        OaiHarvestClient client = new OaiHarvestClient(oaiTargetDto, from);
         OaiResponse response = client.next();
 
         OaiResponseFilter oaiFilter;
@@ -466,7 +469,7 @@ public class DsDatahandlerFacade {
                     "Unknown filter '" + oaiTargetDto.getFilter() + "' for target '" + targetName + "'");
         }
 
-        while (response.getRecords().size() >0) {
+        while (response.getRecords().size() > 0) {
 
             OaiRecord lastRecord = response.getRecords().get(response.getRecords().size()-1);
 
@@ -482,8 +485,8 @@ public class DsDatahandlerFacade {
         }
 
         if (response.isError()) {
-            throw new InternalServiceException("Error during harvest for target:" + oaiTargetDto.getName() +
-                    " after harvesting " + oaiFilter.getProcessed() + " records");
+            throw new InternalServiceException("Error during harvest for target: " + oaiTargetDto.getName() +
+                    " after harvesting: " + oaiFilter.getProcessed() + " records");
         }
 
         log.info("Completed ingesting origin '{}' successfully with {} records", origin, oaiFilter.getProcessed());
@@ -497,10 +500,11 @@ public class DsDatahandlerFacade {
         String userId = ServiceConfig.getKalturaUserId();                               
         String token= ServiceConfig.getKalturaToken();
         String tokenId= ServiceConfig.getKalturaTokenId();
-       
-        long sessionKeepAliveSecondsIn1Hour=3600L; //1 hour
+        int sessionDurationSeconds=ServiceConfig.getKalturaSessionDurationSeconds();
+        int sessionRefreshThreshold=ServiceConfig.getKalturaSessionRefreshThreshold();
+
         log.info("creating kaltura client for partnerID:"+partnerId);     
-        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl,userId,partnerId,token,tokenId,adminSecret,sessionKeepAliveSecondsIn1Hour);
+        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, sessionDurationSeconds, sessionRefreshThreshold);
         return kalturaClient;
     }
 
@@ -535,5 +539,4 @@ public class DsDatahandlerFacade {
             return null;
         });
     }
-
 }

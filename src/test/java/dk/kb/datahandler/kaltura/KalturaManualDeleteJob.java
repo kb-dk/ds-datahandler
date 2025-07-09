@@ -32,42 +32,42 @@ public class KalturaManualDeleteJob {
         String adminSecret = "";// Use token,tokenId  instead
         Integer partnerId = 397; // 398=stage, 397=prod. 
         String userId = "teg@kb.dk"; //User must exist in kaltura.                 
-        String token="abc"; // <- replace with correct token matching tokenId
-        String tokenId="0_f2qyxk5i";
+        String token = "abc"; // <- replace with correct token matching tokenId
+        String tokenId = "0_f2qyxk5i";
 
         String input_entry_ids = "/home/teg/delete_kaltura/delete_kaltura_entry_id.csv"; // File with entryIds til be delete. One oneeach line
         String output_entry_ids = "/home/teg/delete_kaltura/delete_kaltura_entry_id_failed.csv"; // EntryIds that failed during deletion will be added in this file.
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token,tokenId,adminSecret, 86400);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, 86400, 3600);
             int numberDeleteFailed = 0;
             int numberDeleteSuccess = 0;
             List<String> entryIds = readAllLines(input_entry_ids);
-            System.out.println("Loaded file with Kaltura entryIds. Number of entries:" + entryIds.size());
+            System.out.println("Loaded file with Kaltura entryIds. Number of entries: " + entryIds.size());
             for (String entryId : entryIds) {
                 try { // We need to continue with the rest if one fails.
                     boolean success = client.deleteStreamByEntryId(entryId);
-                    System.out.println("success:" + success +" deleted entry_id:"+entryId);
+                    System.out.println("success: " + success + " deleted entry_id: " + entryId);
                     if (success) {
                         numberDeleteSuccess++;
                     } else {
                         numberDeleteFailed++;
-                        System.out.println("Failed deleting entryId:" + entryId);
+                        System.out.println("Failed deleting entryId: " + entryId);
                         addLineToFile(output_entry_ids, entryId);
                     }
 
                 } catch (Throwable e) {
                     e.printStackTrace();
-                    System.out.println("API error for entryId:" + entryId);
+                    System.out.println("API error for entryId: " + entryId);
                     numberDeleteFailed++;
                 }
             }
             System.out.println("Delete job completed, results:");
-            System.out.println("Number delete success=" + numberDeleteSuccess);
-            System.out.println("Number delete failed=" + numberDeleteFailed);
+            System.out.println("Number delete success: " + numberDeleteSuccess);
+            System.out.println("Number delete failed: " + numberDeleteFailed);
             if (numberDeleteFailed > 0) {
-                System.out.println("See the output file for entries that failed:" + output_entry_ids);
+                System.out.println("See the output file for entries that failed: " + output_entry_ids);
             }
 
         } catch (Exception e) {
@@ -99,10 +99,9 @@ public class KalturaManualDeleteJob {
         File file = new File(fileName);
         if (!file.exists()) {
             file.createNewFile();
-            System.out.println("Created new empty file:" + fileName);
+            System.out.println("Created new empty file: " + fileName);
         } else {
-            System.out.println("File already exists:" + fileName);
+            System.out.println("File already exists: " + fileName);
         }
     }
-
 }

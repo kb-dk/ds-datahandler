@@ -10,7 +10,7 @@
 
     <groupId>dk.kb.datahandler</groupId>
     <artifactId>ds-datahandler</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.3-SNAPSHOT</version>
     <packaging>war</packaging>
     <description>
         # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library.
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>dk.kb.storage</groupId>
             <artifactId>ds-storage</artifactId>
-            <version>${project.parent.version}</version>
+            <version>3.0.0</version>
             <type>jar</type>
             <classifier>classes</classifier>
             <exclusions>
@@ -122,13 +122,27 @@
                 </exclusion>
             </exclusions>
         </dependency>
+     <!-- Client for ds-storage This will also require the org.openapitools dependency-->
+      <dependency>
+        <groupId>dk.kb.present</groupId>
+        <artifactId>ds-present</artifactId>
+          <version>3.0.0</version>
+          <type>jar</type>
+          <classifier>classes</classifier>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+        </exclusions>
+      </dependency>
 
-        <dependency>
-            <groupId>dk.kb.kaltura</groupId>
-            <artifactId>ds-kaltura</artifactId>
-            <version>${project.parent.version}</version>
-            <type>jar</type>
-        </dependency>
+      <dependency>
+          <groupId>dk.kb.kaltura</groupId>
+          <artifactId>ds-kaltura</artifactId>
+          <version>3.0.1</version>
+          <type>jar</type>
+      </dependency>
 
         <dependency>
             <groupId>jakarta.servlet</groupId>
