@@ -144,9 +144,9 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         try {
             switch (typeDto){
                 case FULL:                                      
-                    return DsDatahandlerFacade.indexSolrFull(origin);
+                    return DsDatahandlerFacade.indexSolrFull(origin,getCurrentUserID());
                 case DELTA:
-                    return DsDatahandlerFacade.indexSolrDelta(origin);
+                    return DsDatahandlerFacade.indexSolrDelta(origin,getCurrentUserID());
                 default:
                     log.error("No indexing type has been selected. Indexing cannot continue without knowing which records to index.");
                     return "No indexing type has been selected. Indexing cannot continue without knowing which records to index.";
@@ -169,7 +169,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     @Override
     public void kalturaDeltaUpload(Long mTimeFrom) {    
         try {
-           DsDatahandlerFacade.kalturaDeltaUpload(mTimeFrom);
+           DsDatahandlerFacade.kalturaDeltaUpload(mTimeFrom,getCurrentUserID());
         }
         catch(Exception e) {
             throw handleException(e);

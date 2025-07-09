@@ -218,16 +218,13 @@ public class DsDatahandlerFacade {
      * @param origin Origin must be defined on the ds-present server.
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
-    public static String indexSolrFull(String origin) throws InternalServiceException {
+    public static String indexSolrFull(String origin,String user) throws InternalServiceException {
 
-        JobDto jobDto = JobCache.createIndexSolrJob(origin, 0L);
-
+        JobDto jobDto =  createNewJob(CategoryDto.OAI_HARVEST, origin, null, user);
         String response;
         try {
           response= SolrUtils.indexOrigin(origin, 0L);
-        }
-        
-        catch(Exception e) {
+        } catch(Exception e) {
             JobCache.finishJob(jobDto, -1, true); //error
             throw e; 
         }        
@@ -244,18 +241,19 @@ public class DsDatahandlerFacade {
      * @throws SolrServerException
      * @throws IOException  
      */
-    public static String indexSolrDelta(String origin)  throws InternalServiceException, SolrServerException, IOException {
+    public static String indexSolrDelta(String origin, String user) throws InternalServiceException, SolrServerException, IOException {
         Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
-        String response=null;
-        JobDto jobDto = JobCache.createIndexSolrJob(origin, lastStorageMTime);
+        String response;
+
+        JobDto jobDto = createNewJob(CategoryDto.SOLR_INDEX, origin, Instant.ofEpochSecond(lastStorageMTime), user);
+
         try {
-         response= SolrUtils.indexOrigin(origin, lastStorageMTime);
-        }
-        catch(Exception e) {
-            JobCache.finishJob(jobDto, -1, true); //error
+            response = SolrUtils.indexOrigin(origin, lastStorageMTime);
+        } catch (Exception e) {
+            markJobAsFailed(jobDto, e); //error
             throw e; 
-        }                
-        JobCache.finishJob(jobDto, -1, false);//No error. We do not know how many records processed. (But can be parsed from response maybe)
+        }
+        markJobAsFinished(jobDto, -1);
         return response;
     }
 
@@ -281,34 +279,32 @@ public class DsDatahandlerFacade {
      * @throws IOException 
      * @throws SolrServerException 
      */
-    public static void kalturaDeltaUpload(Long mTimeFrom)  throws InternalServiceException, SolrServerException, IOException {
+    public static void kalturaDeltaUpload(Long mTimeFrom, String user) throws InternalServiceException, SolrServerException, IOException {
 
-        JobDto jobDto = JobCache.createKalturaDeltaUploadJob(mTimeFrom); //For job cache
-        log.info("Starting kaltura delta upload from mTimeFrom="+mTimeFrom);
+        JobDto jobDto = startNewJob(CategoryDto.OAI_HARVEST, "all", Instant.ofEpochSecond(mTimeFrom), user);
+
+        log.info("Starting kaltura delta upload from mTimeFrom=" + mTimeFrom);
         try {
-          
-          //upload strems  
-          int numberStreamsUploaded=KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
-          log.info("Kaltura delta uploaded completed sucessfully. #streams uploaded={}",numberStreamsUploaded);
+          //upload streams
+          int numberStreamsUploaded = KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
+          markJobAsFinished(jobDto, numberStreamsUploaded);
+
+          log.info("Kaltura delta uploaded completed sucessfully. #streams uploaded={}", numberStreamsUploaded);
           
           //Index the records that has mTime modified due to kalturaId was set on record.
-          if (numberStreamsUploaded >0) {
+          if (numberStreamsUploaded > 0) {
              log.info("Starting solr delta index job");
-             indexSolrDelta("ds.tv");          
-             indexSolrDelta("ds.radio");
+             indexSolrDelta("ds.tv", user);
+             indexSolrDelta("ds.radio", user);
           }
-          
         }
-        catch(Throwable e) {
+        catch (Exception e) {
             log.error("Kaltura delta upload/indexing stopped due to error",e);
-            JobCache.finishJob(jobDto, -1,true); //error
+            markJobAsFailed(jobDto, e);
             throw e; 
         }                
-        JobCache.finishJob(jobDto, -1,false);//No error.
-        
-        
     }
-    
+
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
@@ -358,49 +354,38 @@ public class DsDatahandlerFacade {
      * @return Total number of records harvest modifiedTimeFrom all intervals. Records that are discarded will not be counted.
      *
      */
-    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String modifiedTimeFrom, String user) throws InternalServiceException{
+    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String modifiedTimeFrom, String user) throws InternalServiceException {
 
         log.info("Starting jobs modifiedTimeFrom: " + modifiedTimeFrom + " for target: " + oaiTargetName);
                        
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);
-        if (oaiTargetDto== null) {
+        if (oaiTargetDto == null) {
             throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
                     "'. See the config method for list of configured targets.");
         }
 
-        Instant instantModifiedTimeFrom = HarvestTimeUtil.parseModifiedTimeFromToInstant(modifiedTimeFrom);
+        JobDto jobDto = startNewJob(CategoryDto.OAI_HARVEST, oaiTargetName, HarvestTimeUtil.parseModifiedTimeFromToInstant(modifiedTimeFrom), user);
+        try {
+            int numberOfRecords = oaiIngestPerform(oaiTargetDto, modifiedTimeFrom);
+            markJobAsFinished(jobDto, numberOfRecords);
+            return numberOfRecords;
+        } catch (Exception e) {
+            log.error("Oai harvest did not complete successfully for target: oaiTarget:'{}' jobId:'{}'", oaiTargetName, jobDto.getId());
+            markJobAsFailed(jobDto, e);
+            throw new InternalServiceException("Error harvesting oai target: oaiTarget: " + oaiTargetName + " jobId: " + jobDto.getId(), e);
+        }
+    }
 
-        JobDto jobDto = createNewJob(CategoryDto.OAI_HARVEST, oaiTargetName, instantModifiedTimeFrom, user);
-        UUID jobId = BasicStorage.performStorageAction("create new oai job",JobStorage::new,(JobStorage storage) -> {
-            if (storage.hasRunningJob(CategoryDto.OAI_HARVEST, oaiTargetName)) {
+    private static JobDto startNewJob(CategoryDto categoryDto, String source, Instant modifiedTimeFrom, String user) {
+        JobDto jobDto = createNewJob(categoryDto, source, modifiedTimeFrom, user);
+        UUID jobId = BasicStorage.performStorageAction("create new oai job", JobStorage::new, (JobStorage storage) -> {
+            if (storage.hasRunningJob(categoryDto, source)) {
                 throw new InvalidArgumentServiceException("There is already an OAI Harvest job running");
             }
             return storage.createJob(jobDto);
         });
         jobDto.setId(jobId);
-
-
-        try {
-            int numberOfRecords = oaiIngestPerform(oaiTargetDto, modifiedTimeFrom);
-            jobDto.setNumberOfRecords(numberOfRecords);
-            jobDto.setJobStatus(JobStatusDto.COMPLETED);
-            jobDto.setEndTime(Instant.now());
-            BasicStorage.performStorageAction("create new oai job",JobStorage::new,(JobStorage storage) -> {
-                storage.updateJob(jobDto);
-                return null;
-            });
-            return numberOfRecords;
-        }
-        catch (Exception e) {
-            log.error("Oai harvest did not complete successfully for target: oaiTarget:'{}' jobId:'{}'", oaiTargetName, jobId);
-            jobDto.setJobStatus(JobStatusDto.FAILED);
-            jobDto.setEndTime(Instant.now());
-            BasicStorage.performStorageAction("create new oai job", JobStorage::new,(JobStorage storage) -> {
-                storage.updateJob(jobDto);
-                return null;
-            });
-            throw new InternalServiceException("Error harvesting oai target: oaiTarget:" + oaiTargetName + " jobId:" + jobId, e);
-        }
+        return jobDto;
     }
 
     private static JobDto createNewJob(CategoryDto categoryDto, String source, Instant modifiedTimeFrom, String user) throws InternalServiceException {
@@ -505,9 +490,6 @@ public class DsDatahandlerFacade {
         return oaiFilter.getProcessed();
     }
 
-
-
-
     private static DsKalturaClient getKalturaClient() throws IOException {
         String kalturaUrl= ServiceConfig.getKalturaUrl();
         String adminSecret = ServiceConfig.getKalturaAdminSecret();
@@ -531,4 +513,27 @@ public class DsDatahandlerFacade {
         storageClient = new DsStorageClient(dsStorageUrl);
         return storageClient;
     }
+
+
+    private static void markJobAsFinished(JobDto jobDto, int numberOfRecords) {
+        jobDto.setNumberOfRecords(numberOfRecords);
+        jobDto.setJobStatus(JobStatusDto.COMPLETED);
+        jobDto.setEndTime(Instant.now());
+        BasicStorage.performStorageAction("set oai job as completed", JobStorage::new, (JobStorage storage) -> {
+            storage.updateJob(jobDto);
+            return null;
+        });
+    }
+
+
+    private static void markJobAsFailed(JobDto jobDto, Exception e) {
+        jobDto.setJobStatus(JobStatusDto.FAILED);
+        jobDto.setEndTime(Instant.now());
+        jobDto.setMessage(e.getMessage());
+        BasicStorage.performStorageAction("set oai job as failed", JobStorage::new, (JobStorage storage) -> {
+            storage.updateJob(jobDto);
+            return null;
+        });
+    }
+
 }
