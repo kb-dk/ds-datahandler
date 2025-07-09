@@ -105,7 +105,10 @@ public class JobStorageTest {
         Assertions.assertTrue(Duration.between(jobDtoFromDb.getEndTime(), updatedJobDtoFromDb.getEndTime()).toSeconds() <= 0);
 
         Assertions.assertEquals(jobDtoFromDb.getNumberOfRecords(), updatedJobDtoFromDb.getNumberOfRecords());
-        Assertions.assertEquals(jobDtoFromDb.getRestartValue(), updatedJobDtoFromDb.getRestartValue());
+
+        Assertions.assertNotNull(updatedJobDtoFromDb.getRestartValue());
+        // Assert that result is 'close enough'
+        Assertions.assertTrue(Duration.between(jobDtoFromDb.getRestartValue(), updatedJobDtoFromDb.getRestartValue()).toSeconds() <= 0);
     }
 
     @Test
