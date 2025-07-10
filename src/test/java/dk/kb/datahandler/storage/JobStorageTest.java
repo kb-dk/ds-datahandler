@@ -9,6 +9,7 @@ import dk.kb.datahandler.util.H2DbUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -31,6 +32,11 @@ public class JobStorageTest {
         H2DbUtil.createEmptyH2DBFromDDL(DB_URL, DRIVER, USERNAME, PASSWORD);
         JobStorage.initialize(DRIVER, DB_URL, USERNAME, PASSWORD);
         storage = new JobStorageForUnitTests();
+    }
+
+    @BeforeEach
+    public void beforeTest() throws SQLException {
+        storage.clearTables();
     }
 
     @Test
