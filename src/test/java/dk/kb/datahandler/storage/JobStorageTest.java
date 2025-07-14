@@ -20,7 +20,7 @@ import java.util.UUID;
 
 public class JobStorageTest {
     protected static final String TEST_CLASSES_PATH = new File(Thread.currentThread().getContextClassLoader().getResource("logback-test.xml").getPath()).getParentFile().getAbsolutePath();
-    protected static final String DB_URL = "jdbc:h2:./ds-datahandler/target/test-classes/h2/ds_datahandler;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE";
+    protected static final String DB_URL = "jdbc:h2:"+TEST_CLASSES_PATH+"/ds_datahandler;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE";
     private static final String DRIVER = "org.h2.Driver";
     private static final String USERNAME = "";
     private static final String PASSWORD = "";
