@@ -5,10 +5,9 @@ import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.JobStatusDto;
 import dk.kb.datahandler.model.v1.TypeDto;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
