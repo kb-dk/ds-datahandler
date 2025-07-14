@@ -7,10 +7,10 @@ CREATE TABLE IF NOT EXISTS jobs (
     status VARCHAR,
     error_correlation_id UUID,
     message TEXT,
-    modified_time_from TIMESTAMP WITH TIME ZONE,
+    modified_time_from TIMESTAMP WITH TIME ZONE NULL,
     start_time TIMESTAMP WITH TIME ZONE,
     end_time TIMESTAMP WITH TIME ZONE,
     number_of_records INTEGER,
-    restart_value TIMESTAMP WITH TIME ZONE
+    restart_value TIMESTAMP WITH TIME ZONE NULL
 )
 
