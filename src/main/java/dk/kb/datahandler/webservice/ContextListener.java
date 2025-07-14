@@ -7,6 +7,8 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.sql.SQLException;
+import java.time.Instant;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -14,6 +16,12 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.facade.DsDatahandlerFacade;
+import dk.kb.datahandler.model.v1.JobStatusDto;
+import dk.kb.datahandler.storage.BasicStorage;
+import dk.kb.datahandler.storage.JobStorage;
+import dk.kb.storage.storage.DsStorage;
+import dk.kb.storage.util.H2DbUtil;
 import dk.kb.util.BuildInfoManager;
 import dk.kb.util.Files;
 import dk.kb.util.Resolver;
@@ -66,6 +74,7 @@ public class ContextListener implements ServletContextListener {
             String configFile = (String) ctx.lookup("java:/comp/env/application-config");
             //TODO this should not refer to something in template. Should we perhaps use reflection here?
             ServiceConfig.initialize(configFile);
+            initializeStorage();
         } catch (NamingException e) {
             throw new RuntimeException("Failed to lookup settings", e);
         } catch (IOException e) {
@@ -73,6 +82,31 @@ public class ContextListener implements ServletContextListener {
         log.info("Service initialized.");
     }
 
+    public void initializeStorage() {
+        log.info("Initializing storage");
+
+        String driver = ServiceConfig.getDBDriver();
+        String url = ServiceConfig.getDBUrl();
+        String user = ServiceConfig.getDBUserName();
+        String password = ServiceConfig.getDBPassword();
+
+        //If running jetty for development
+        if ("org.h2.Driver".equals(driver)) { //Would be slightly better if we can detect it is jetty in local environment
+            createLocalH2ForJettyEnvironment(driver, url, user, password);
+        }
+
+        JobStorage.initialize(driver,url,user,password);
+    }
+
+    private void createLocalH2ForJettyEnvironment(String driver, String url, String user, String password) {
+        try {
+            log.info("Setting up H2 database under jetty in development mode");
+            H2DbUtil.createEmptyH2DBFromDDL(url, driver,  user, password);
+        }
+        catch(Exception e) {
+            log.error("Unable to create local h2 database for jetty environment",e);
+        }
+    }
 
     /**
      * For unfathomable reasons, logback 1.4.11 does not support the construction
@@ -169,6 +203,22 @@ public class ContextListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         log.debug("Service destroyed");
+        markRunningJobsAsStopped();
     }
 
+    private void markRunningJobsAsStopped() {
+        BasicStorage.performStorageAction("Stop all running jobs", JobStorage::new, (JobStorage storage) ->{
+           storage.getJobs(null, JobStatusDto.RUNNING).forEach(jobDto -> {
+               jobDto.setJobStatus(JobStatusDto.STOPPED);
+               jobDto.setEndTime(Instant.now());
+               jobDto.setMessage("Stopped by shutdown");
+               try {
+                   storage.updateJob(jobDto);
+               } catch (SQLException e) {
+                   throw new RuntimeException(e);
+               }
+           });
+           return null;
+        });
+    }
 }
