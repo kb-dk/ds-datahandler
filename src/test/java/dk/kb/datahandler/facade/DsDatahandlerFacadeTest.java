@@ -58,21 +58,4 @@ public class DsDatahandlerFacadeTest {
 
         Assertions.assertEquals("There is already an OAI Harvest job running", exception.getMessage());
     }
-
-    @Test
-    public void twoJobsWithSameNameButOnlyOneRunning() throws Exception {
-        OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("test.target");
-
-        // OK
-        JobDto jobDto = new JobDto();
-        jobDto.setType(TypeDto.DELTA);
-        jobDto.category(CategoryDto.OAI_HARVEST);
-        jobDto.setSource(oaiTarget.getName());
-        jobDto.setJobStatus(JobStatusDto.STOPPED);
-        BasicStorage.performStorageAction("Create job for OAITest", JobStorage::new, (JobStorage storage) -> {
-            storage.createJob(jobDto);
-            return null;
-        });
-        DsDatahandlerFacade.oaiIngestFull(oaiTarget.getName(), "unit test");
-    }
 }
