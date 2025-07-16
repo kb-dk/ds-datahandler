@@ -19,7 +19,7 @@ public class Application_v1 extends javax.ws.rs.core.Application {
         OpenApiResource.setConfig(ServiceConfig.getConfig());
 
         return new HashSet<>(Arrays.asList(
-                JacksonJsonProvider.class,
+                CustomJacksonJsonProvider.class,
                 DsDatahandlerApiServiceImpl.class,
                 ServiceApiServiceImpl.class,
                 ServiceExceptionMapper.class,
