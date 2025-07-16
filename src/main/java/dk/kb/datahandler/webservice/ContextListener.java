@@ -16,11 +16,9 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.JobStatusDto;
 import dk.kb.datahandler.storage.BasicStorage;
 import dk.kb.datahandler.storage.JobStorage;
-import dk.kb.storage.storage.DsStorage;
 import dk.kb.storage.util.H2DbUtil;
 import dk.kb.util.BuildInfoManager;
 import dk.kb.util.Files;
@@ -96,6 +94,7 @@ public class ContextListener implements ServletContextListener {
         }
 
         JobStorage.initialize(driver,url,user,password);
+        handleRunningJobs(JobStatusDto.FAILED, "Marked as failed on startup");
     }
 
     private void createLocalH2ForJettyEnvironment(String driver, String url, String user, String password) {
@@ -203,10 +202,10 @@ public class ContextListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         log.debug("Service destroyed");
-        markRunningJobsAsStopped();
+        handleRunningJobs(JobStatusDto.STOPPED, "Stopped By shutdown.");
     }
 
-    private void markRunningJobsAsStopped() {
+    private void handleRunningJobs(JobStatusDto newStatus, String message) {
         BasicStorage.performStorageAction("Stop all running jobs", JobStorage::new, (JobStorage storage) ->{
            storage.getJobs(null, JobStatusDto.RUNNING).forEach(jobDto -> {
                jobDto.setJobStatus(JobStatusDto.STOPPED);
