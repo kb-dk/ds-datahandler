@@ -145,6 +145,14 @@ public class JobStorage extends BasicStorage {
         }
     }
 
+    /**
+     * List the number of jobs in the database
+     *
+     * @param categoryDto limit to a specific category
+     * @param jobStatusDto limit to a job status
+     * @return A list of jobs
+     * @throws SQLException
+     */
     public List<JobDto> getJobs(CategoryDto categoryDto, JobStatusDto jobStatusDto) throws SQLException {
         List<JobDto> jobs = new ArrayList<>();
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_QUERY)) {
