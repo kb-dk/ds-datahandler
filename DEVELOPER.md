@@ -92,7 +92,7 @@ implementation: Files and folders added to the `src/main/webapp/` folder are ser
 [http://localhost:9071/<application-ID>/](http://localhost:9071/<application-ID>/).
 
 While it is possible to use [JSP](https://en.wikipedia.org/wiki/Jakarta_Server_Pages), as the sample 
-[index.jsp](./src/main/webapp/index.jsp) shows, this is considered legacy technology.
+[index.jsp](ds-datahandler-web/src/main/webapp/index.jsp) shows, this is considered legacy technology.
 With an [API first](http://apievangelist.com/2020/03/09/what-is-api-first/) approach, the web application
 will typically be static files and JavaScript.
 
@@ -101,7 +101,7 @@ will typically be static files and JavaScript.
 [OpenAPI 1.3](https://swagger.io/specification/) generates interfaces and skeleton code for webservices.
 It also generates online documentation, which includes sample calls and easy testing of the endpoints.
 
-Everything is defined centrally in the file [src/main/openapi/openapi_v1.yaml](src/main/openapi/openapi_v1.yaml).
+Everything is defined centrally in the file [src/main/openapi/openapi_v1.yaml](ds-datahandler-api/src/main/openapi/openapi_v1.yaml).
 IntelliJ IDEA has a plugin for editing OpenAPI files that provides a semi-live preview of the generated GUI and
 the online [Swagger Editor](https://editor.swagger.io/) can be used by copy-pasting the content of `openapi_v1.yaml`.
 
@@ -129,13 +129,13 @@ Persistence between calls must be handled as statics or outside of the classes.
 When an API end point shall return anything else than the default response (HTTP response code 200),
 this is done by throwing an exception.
 
-See how we map exceptions to responsecodes in [ServiceExceptionMapper](./src/main/java/dk/kb/webservice/ServiceExceptionMapper.java) 
+See how we map exceptions to responsecodes in [ServiceExceptionMapper](ds-datahandler-web/src/main/java/dk/kb/webservice/ServiceExceptionMapper.java) 
 
-See [ServiceException](./src/main/java/dk/kb/webservice/exception/ServiceException.java) and its specializations for samples.
+See [ServiceException](ds-datahandler-web/src/main/java/dk/kb/webservice/exception/ServiceException.java) and its specializations for samples.
 
 ### Mustache templates
 
-The templates in [src/main/templates/](./src/main/templates/) overrides the default Swagger templates.
+The templates in [src/main/templates/](ds-datahandler-api/src/main/templates/) overrides the default Swagger templates.
 They are needed in order to provide functionality needed by the Royal Danish Library, e.g. delivering a streaming
 response while announcing a well-defined structure in the Swagger UI.
 

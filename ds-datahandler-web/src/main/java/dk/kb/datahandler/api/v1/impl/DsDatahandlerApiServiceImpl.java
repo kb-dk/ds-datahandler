@@ -1,13 +1,11 @@
 package dk.kb.datahandler.api.v1.impl;
 
-import dk.kb.datahandler.api.v1.DsDatahandlerApi;
+import dk.kb.datahandler.api.v1.DsDatahandlerApiApi;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.IndexTypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.util.webservice.ImplBase;
-import dk.kb.util.webservice.exception.InternalServiceException;
-
 import org.apache.cxf.interceptor.InInterceptors;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
@@ -19,13 +17,8 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.core.*;
 import javax.ws.rs.ext.Providers;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +31,7 @@ import java.util.List;
  *
  */
 @InInterceptors(interceptors = "dk.kb.datahandler.webservice.KBAuthorizationInterceptor")
-public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApi {
+public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApiApi {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerApiServiceImpl.class);
 
 

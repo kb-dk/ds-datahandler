@@ -4,7 +4,7 @@
 *-local.yaml
 
 # Ignore everything relating to gradle, we use maven
-gradle/
+ds-datahandler-web/gradle/
 .gradle
 build
 
@@ -29,19 +29,19 @@ hs_err_pid*
 /.project
 /.settings/
 /.openapi-generator/
+/ds-datahandler-api/.openapi-generator-ignore
 /.classpath
-/.openapi-generator-ignore
 
 # Contains username and password for test instance
 oai_harvest.conf
-/src/test/resources/xml/4f706cda-f474-46c8-824b-5a62ed5a8bee.xml
-/src/test/resources/xml/054c55b3-ed3a-442c-99dd-1b80c0218114.xml
-/src/test/resources/xml/twoprofiles.xml
-/src/test/resources/xml/updatedprofileswithrecord.xml
-/src/test/resources/xml/08909897-cf37-4bd9-a230-1b48c87cea18.xml
-/src/test/resources/xml/aaa668c2-bf17-4ce7-bf24-d0ff5d29d097.xml
-/src/test/resources/xml/ebcbe76b-f130-4093-baa6-127fc7558fc5.xml
-/src/test/resources/audio/NoisyPillars.mp3
+/ds-datahandler-web/src/test/resources/xml/4f706cda-f474-46c8-824b-5a62ed5a8bee.xml
+/ds-datahandler-web/src/test/resources/xml/054c55b3-ed3a-442c-99dd-1b80c0218114.xml
+/ds-datahandler-web/src/test/resources/xml/twoprofiles.xml
+/ds-datahandler-web/src/test/resources/xml/updatedprofileswithrecord.xml
+/ds-datahandler-web/src/test/resources/xml/08909897-cf37-4bd9-a230-1b48c87cea18.xml
+/ds-datahandler-web/src/test/resources/xml/aaa668c2-bf17-4ce7-bf24-d0ff5d29d097.xml
+/ds-datahandler-web/src/test/resources/xml/ebcbe76b-f130-4093-baa6-127fc7558fc5.xml
+/ds-datahandler-web/src/test/resources/audio/NoisyPillars.mp3
 
 # We use pom.xml as the source of truth and don't rely on a specific IDE
 .idea

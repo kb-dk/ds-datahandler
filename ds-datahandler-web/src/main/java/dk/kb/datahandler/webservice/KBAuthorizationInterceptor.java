@@ -14,6 +14,7 @@
  */
 package dk.kb.datahandler.webservice;
         
+import dk.kb.ds.shared.oauth.KBAuthorization;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import io.swagger.annotations.AuthorizationScope;
 import org.apache.cxf.helpers.CastUtils;

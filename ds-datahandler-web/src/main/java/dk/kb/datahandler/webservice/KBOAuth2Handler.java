@@ -14,6 +14,7 @@
  */
 package dk.kb.datahandler.webservice;
 
+import dk.kb.ds.shared.oauth.KBAuthorization;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import dk.kb.datahandler.config.ServiceConfig;
