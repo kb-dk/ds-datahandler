@@ -13,6 +13,50 @@
     <version>${project.parent.version}</version>
     <packaging>war</packaging>
 
+    <dependencies>
+        <dependency>
+            <groupId>dk.kb.datahandler</groupId>
+            <artifactId>ds-datahandler-api</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <!-- Client for ds-storage This will also require the org.openapitools dependency-->
+        <dependency>
+            <groupId>dk.kb.storage</groupId>
+            <artifactId>ds-storage-api</artifactId>
+            <version>3.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <!-- TODO remove the dependency to ds-present-web !! -->
+        <!-- TODO fix the DsPresentClient (transformSolrSchema) so it is not tight coupled to the web implementation!!! -->
+        <dependency>
+            <groupId>dk.kb.present</groupId>
+            <artifactId>ds-present-web</artifactId>
+            <version>3.0.1-SNAPSHOT</version>
+            <type>jar</type>
+            <classifier>classes</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>dk.kb.present</groupId>
+            <artifactId>ds-present-api</artifactId>
+            <version>3.0.1-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>dk.kb.kaltura</groupId>
+            <artifactId>ds-kaltura</artifactId>
+            <version>3.0.2-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+
     <build>
         <resources>
             <resource>
@@ -111,48 +155,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>dk.kb.datahandler</groupId>
-            <artifactId>ds-datahandler-api</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-
-        <!-- Client for ds-storage This will also require the org.openapitools dependency-->
-        <dependency>
-            <groupId>dk.kb.storage</groupId>
-            <artifactId>ds-storage-api</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
-            <type>jar</type>
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>*</groupId>-->
-<!--                    <artifactId>*</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-        </dependency>
-
-        <!-- Client for ds-storage This will also require the org.openapitools dependency-->
-        <dependency>
-            <groupId>dk.kb.present</groupId>
-            <artifactId>ds-present</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
-            <type>jar</type>
-            <classifier>classes</classifier>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>dk.kb.kaltura</groupId>
-            <artifactId>ds-kaltura</artifactId>
-            <version>3.0.2-SNAPSHOT</version>
-            <type>jar</type>
-        </dependency>
-    </dependencies>
 </project>
