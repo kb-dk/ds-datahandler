@@ -105,16 +105,8 @@ This can be used from an external project by adding the following to the [pom.xm
 <dependency>
     <groupId>dk.kb.license</groupId>
     <artifactId>ds-datahandler</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>3.0.1-SNAPSHOT</version>
     <type>jar</type>
-    <classifier>classes</classifier>
-    <!-- Do not perform transitive dependency resolving for the OpenAPI client -->
-    <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-    </exclusions>
 </dependency>
 ```
 after this a client can be created with

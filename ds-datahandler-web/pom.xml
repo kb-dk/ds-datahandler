@@ -27,21 +27,6 @@
             <version>3.0.1-SNAPSHOT</version>
         </dependency>
 
-        <!-- TODO remove the dependency to ds-present-web !! -->
-        <!-- TODO fix the DsPresentClient (transformSolrSchema) so it is not tight coupled to the web implementation!!! -->
-        <dependency>
-            <groupId>dk.kb.present</groupId>
-            <artifactId>ds-present-web</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
-            <type>jar</type>
-            <classifier>classes</classifier>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>dk.kb.present</groupId>
             <artifactId>ds-present-api</artifactId>
