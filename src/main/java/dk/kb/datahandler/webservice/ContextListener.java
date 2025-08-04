@@ -198,15 +198,20 @@ public class ContextListener implements ServletContextListener {
         return redirectFile;
     }
 
-    
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         log.debug("Service destroyed");
         handleRunningJobs(JobStatusDto.STOPPED, "Stopped by shutdown.");
     }
 
-    private void handleRunningJobs(JobStatusDto newStatus, String message) {
-        BasicStorage.performStorageAction("Stop all running jobs", JobStorage::new, (JobStorage storage) ->{
+    /**
+     * Checks if there is running jobs when starting the application, and mark running jobs as failed, because of ungracefully shutdown,
+     * and checks if there is running jobs when gracefully shut down the application, and mark jobs as stopped.
+     * @param jobStatus what status the job should change to
+     * @param message why the job was marked stopped/failed
+     */
+    private void handleRunningJobs(JobStatusDto jobStatus, String message) {
+        BasicStorage.performStorageAction("Stop all running jobs", JobStorage::new, (JobStorage storage) -> {
            storage.getJobs(null, JobStatusDto.RUNNING).forEach(jobDto -> {
                jobDto.setJobStatus(jobStatus);
                jobDto.setEndTime(Instant.now());
