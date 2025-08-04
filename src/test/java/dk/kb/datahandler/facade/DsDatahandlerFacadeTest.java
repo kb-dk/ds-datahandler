@@ -53,7 +53,7 @@ public class DsDatahandlerFacadeTest {
 
         // Try add another
         InvalidArgumentServiceException exception = Assertions.assertThrows(InvalidArgumentServiceException.class,
-                () -> DsDatahandlerFacade.oaiIngestFull(oaiTarget.getName(), "unit test")
+                () -> DsDatahandlerFacade.oaiIngestFull(oaiTarget.getName(), "Unit test")
         );
 
         Assertions.assertEquals("There is already an OAI Harvest job running", exception.getMessage());
