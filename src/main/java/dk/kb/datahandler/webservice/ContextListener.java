@@ -208,9 +208,9 @@ public class ContextListener implements ServletContextListener {
     private void handleRunningJobs(JobStatusDto newStatus, String message) {
         BasicStorage.performStorageAction("Stop all running jobs", JobStorage::new, (JobStorage storage) ->{
            storage.getJobs(null, JobStatusDto.RUNNING).forEach(jobDto -> {
-               jobDto.setJobStatus(JobStatusDto.STOPPED);
+               jobDto.setJobStatus(jobStatus);
                jobDto.setEndTime(Instant.now());
-               jobDto.setMessage("Stopped by shutdown");
+               jobDto.setMessage(message);
                try {
                    storage.updateJob(jobDto);
                } catch (SQLException e) {
