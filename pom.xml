@@ -123,12 +123,12 @@
             </exclusions>
         </dependency>
 
-      <dependency>
-          <groupId>dk.kb.kaltura</groupId>
-          <artifactId>ds-kaltura</artifactId>
-          <version>3.0.2-SNAPSHOT</version>
-          <type>jar</type>
-      </dependency>
+        <dependency>
+            <groupId>dk.kb.kaltura</groupId>
+            <artifactId>ds-kaltura</artifactId>
+            <version>3.0.2-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
 
         <dependency>
             <groupId>jakarta.servlet</groupId>
