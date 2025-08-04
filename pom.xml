@@ -122,20 +122,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-     <!-- Client for ds-storage This will also require the org.openapitools dependency-->
-      <dependency>
-        <groupId>dk.kb.present</groupId>
-        <artifactId>ds-present</artifactId>
-          <version>3.0.1-SNAPSHOT</version>
-          <type>jar</type>
-          <classifier>classes</classifier>
-          <exclusions>
-            <exclusion>
-              <groupId>*</groupId>
-              <artifactId>*</artifactId>
-            </exclusion>
-        </exclusions>
-      </dependency>
 
       <dependency>
           <groupId>dk.kb.kaltura</groupId>
