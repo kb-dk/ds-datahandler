@@ -227,7 +227,7 @@ public class DsDatahandlerFacade {
 
         String response;
 
-        JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.SOLR_INDEX,origin, null, user);
+        JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.SOLR_INDEX, origin, null, user);
 
         try {
             response = SolrUtils.indexOrigin(origin, 0L);

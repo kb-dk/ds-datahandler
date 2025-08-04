@@ -94,16 +94,16 @@ public class ContextListener implements ServletContextListener {
         }
 
         JobStorage.initialize(driver,url,user,password);
-        handleRunningJobs(JobStatusDto.FAILED, "Marked as failed on startup");
+        handleRunningJobs(JobStatusDto.FAILED, "Marked as failed on startup.");
     }
 
     private void createLocalH2ForJettyEnvironment(String driver, String url, String user, String password) {
         try {
             log.info("Setting up H2 database under jetty in development mode");
-            H2DbUtil.createEmptyH2DBFromDDL(url, driver,  user, password);
+            H2DbUtil.createEmptyH2DBFromDDL(url, driver, user, password);
         }
         catch(Exception e) {
-            log.error("Unable to create local h2 database for jetty environment",e);
+            log.error("Unable to create local h2 database for jetty environment", e);
         }
     }
 
@@ -202,7 +202,7 @@ public class ContextListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         log.debug("Service destroyed");
-        handleRunningJobs(JobStatusDto.STOPPED, "Stopped By shutdown.");
+        handleRunningJobs(JobStatusDto.STOPPED, "Stopped by shutdown.");
     }
 
     private void handleRunningJobs(JobStatusDto newStatus, String message) {

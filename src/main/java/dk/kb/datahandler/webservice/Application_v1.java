@@ -26,6 +26,4 @@ public class Application_v1 extends javax.ws.rs.core.Application {
                 OpenApiResource.class
         ));
     }
-
-
 }
