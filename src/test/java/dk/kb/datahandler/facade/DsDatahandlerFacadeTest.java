@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.time.Instant;
 
 public class DsDatahandlerFacadeTest {
     protected static final String TEST_CLASSES_PATH = new File(Thread.currentThread().getContextClassLoader().getResource("logback-test.xml").getPath()).getParentFile().getAbsolutePath();
@@ -45,7 +46,9 @@ public class DsDatahandlerFacadeTest {
         jobDto.setType(TypeDto.DELTA);
         jobDto.category(CategoryDto.OAI_HARVEST);
         jobDto.setSource(oaiTarget.getName());
+        jobDto.setCreatedBy("Unit test");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
+        jobDto.setStartTime(Instant.now());
         BasicStorage.performStorageAction("Create job for OAITest", JobStorage::new, (JobStorage storage) -> {
             storage.createJob(jobDto);
             return null;
