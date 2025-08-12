@@ -19,7 +19,7 @@ import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.model.v1.JobStatusDto;
 import dk.kb.datahandler.storage.BasicStorage;
 import dk.kb.datahandler.storage.JobStorage;
-import dk.kb.storage.util.H2DbUtil;
+import dk.kb.datahandler.util.H2DbUtil;
 import dk.kb.util.BuildInfoManager;
 import dk.kb.util.Files;
 import dk.kb.util.Resolver;
