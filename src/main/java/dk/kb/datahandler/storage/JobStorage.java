@@ -85,7 +85,7 @@ public class JobStorage extends BasicStorage {
      * @return id UUID for inserted row
      * @throws SQLException
      */
-    public UUID createJob(JobDto jobDto) throws SQLException{
+    public UUID createJob(JobDto jobDto) throws SQLException {
         UUID id = UUID.randomUUID();
         try (PreparedStatement stmt = connection.prepareStatement(INSERT_JOB_QUERY)) {
             stmt.setObject(1, id);
@@ -102,25 +102,6 @@ public class JobStorage extends BasicStorage {
     }
 
     /**
-     * Return a job
-     * @param id UUID primary key on job
-     * @return job with matching id
-     * @throws SQLException
-     */
-    public JobDto getJob(UUID id) throws SQLException {
-        try(PreparedStatement stmt = connection.prepareStatement(GET_JOB_QUERY)) {
-            stmt.setString(1, id.toString());
-            try (ResultSet result = stmt.executeQuery()) {
-                if (!result.next()) {
-                    return null;
-                }
-                JobDto jobDto = createJobDtoFromResult(result);
-                return jobDto;
-            }
-        }
-    }
-
-    /**
      * Check if there is a running job matching category and source
      * @param categoryDto what category the job is
      * @param source where is the data harvest/index/upload from
@@ -128,7 +109,6 @@ public class JobStorage extends BasicStorage {
      * @throws SQLException
      */
     public boolean hasRunningJob(CategoryDto categoryDto, String source) throws SQLException {
-
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS)) {
             stmt.setString(1, categoryDto.name());
             stmt.setString(2, source);

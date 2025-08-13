@@ -7,7 +7,6 @@ import dk.kb.datahandler.model.v1.JobStatusDto;
 import dk.kb.datahandler.model.v1.TypeDto;
 import dk.kb.datahandler.util.H2DbUtil;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +16,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,7 +47,12 @@ public class JobStorageTest {
         JobDto jobDto = genetrateJobDto();
         UUID jobId = storage.createJob(jobDto);
 
-        JobDto jobDtoFromDb = storage.getJob(jobId);
+        List<JobDto> listJobDtoFromDb = storage.getJobs(jobDto.getCategory(), jobDto.getJobStatus());
+
+        assertNotNull(listJobDtoFromDb);
+        assertEquals(1, listJobDtoFromDb.size());
+
+        JobDto jobDtoFromDb = listJobDtoFromDb.get(0);
 
         assertNotNull(jobDtoFromDb);
         assertEquals(jobId, jobDtoFromDb.getId());
@@ -77,10 +82,16 @@ public class JobStorageTest {
         JobDto jobDto = genetrateJobDto();
         UUID jobId = storage.createJob(jobDto);
 
-        JobDto jobDtoFromDb = storage.getJob(jobId);
+        List<JobDto> listJobDtoFromDb = storage.getJobs(jobDto.getCategory(), jobDto.getJobStatus());
+
+        assertNotNull(listJobDtoFromDb);
+        assertEquals(1, listJobDtoFromDb.size());
+
+        JobDto jobDtoFromDb = listJobDtoFromDb.get(0);
 
         assertNotNull(jobDtoFromDb);
 
+        // Update job to be completed
         jobDtoFromDb.setJobStatus(JobStatusDto.COMPLETED);
         jobDtoFromDb.setEndTime(OffsetDateTime.now(ZoneOffset.UTC));
         jobDtoFromDb.setNumberOfRecords(777777);
@@ -90,7 +101,12 @@ public class JobStorageTest {
         int numberOfUpdatedRows = storage.updateJob(jobDtoFromDb);
         assertEquals(1, numberOfUpdatedRows);
 
-        JobDto updatedJobDtoFromDb = storage.getJob(jobDtoFromDb.getId());
+        List<JobDto> listUpdatedJobDtoFromDb = storage.getJobs(jobDtoFromDb.getCategory(), jobDtoFromDb.getJobStatus());
+
+        assertNotNull(listUpdatedJobDtoFromDb);
+        assertEquals(1, listUpdatedJobDtoFromDb.size());
+        JobDto updatedJobDtoFromDb = listUpdatedJobDtoFromDb.get(0);
+
         assertNotNull(updatedJobDtoFromDb);
         assertEquals(jobId, updatedJobDtoFromDb.getId());
         assertEquals(jobDto.getType(), updatedJobDtoFromDb.getType());
