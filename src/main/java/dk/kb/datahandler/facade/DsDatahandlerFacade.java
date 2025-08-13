@@ -14,6 +14,7 @@ import java.util.zip.ZipInputStream;
 import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
+import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.storage.BasicStorage;
 import dk.kb.datahandler.storage.JobStorage;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
@@ -226,17 +227,14 @@ public class DsDatahandlerFacade {
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
     public static String indexSolrFull(String origin, String user) throws InternalServiceException {
-
-        String response;
+        SolrIndexResponse solrIndexResponse;
 
         JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.SOLR_INDEX, origin, null, user);
 
         try {
-            response = SolrUtils.indexOrigin(origin, 0L);
+            solrIndexResponse = SolrUtils.indexOrigin(origin, 0L);
 
-            // TODO: How do we get the number of indexed records here, so we can save it in the database?
-            // TODO: the number of records is known in indexOrigin, but it changes the response to json in SolrUtils, maybe we should do that here instead?
-            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), null, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), solrIndexResponse.getAllDocumentsIndexed().intValue(), null);
 
         } catch(Exception e) {
 
@@ -245,7 +243,7 @@ public class DsDatahandlerFacade {
             throw e;
         }
 
-        return response;
+        return SolrUtils.solrIndexObjectAsJSON(solrIndexResponse);
     }
 
     /**
@@ -259,18 +257,16 @@ public class DsDatahandlerFacade {
      */
     public static String indexSolrDelta(String origin, String user) throws InternalServiceException, SolrServerException, IOException {
         Long lastStorageModifiedTime = SolrUtils.getLatestMTimeForOrigin(origin);
-        String response;
+        SolrIndexResponse solrIndexResponse;
 
         OffsetDateTime offsetDateTimeLastStorageModifiedTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(lastStorageModifiedTime), ZoneOffset.UTC);
 
         JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.SOLR_INDEX, origin, offsetDateTimeLastStorageModifiedTime, user);
 
         try {
-            response = SolrUtils.indexOrigin(origin, lastStorageModifiedTime);
+            solrIndexResponse = SolrUtils.indexOrigin(origin, lastStorageModifiedTime);
 
-            // TODO: How do we get the number of indexed records here, so we can save it in the database?
-            // TODO: the number of records is known in indexOrigin, but it changes the response to json in SolrUtils, maybe we should do that here instead?
-            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), null, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), solrIndexResponse.getAllDocumentsIndexed().intValue(), null);
 
         } catch (Exception e) {
 
@@ -279,7 +275,7 @@ public class DsDatahandlerFacade {
             throw e;
         }
 
-        return response;
+        return SolrUtils.solrIndexObjectAsJSON(solrIndexResponse);
     }
 
     /**

@@ -73,7 +73,7 @@ public class SolrUtils {
      * @param sinceTime A long representation of time since epoch.
      * @return          A status on how many records have been indexed.
      */
-    public static String indexOrigin(String origin, Long sinceTime){
+    public static SolrIndexResponse indexOrigin(String origin, Long sinceTime){
         //DS-present client
         DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getDsPresentUrl());
         // Solr update client
@@ -159,7 +159,7 @@ public class SolrUtils {
              throw new InternalServiceException(e);
            }
         }                
-        return solrIndexObjectAsJSON(finalResponse);
+        return finalResponse;
     }
 
 
@@ -194,11 +194,17 @@ public class SolrUtils {
         finalResponse.incrementCombinedQTime(currentResponseHeader.getqTime());
     }
 
-    private static String solrIndexObjectAsJSON(SolrIndexResponse solrIndexResponse) {
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    /**
+     * Convert a solr index response to a string representing a JSON structure
+     * @param solrIndexResponse
+     * @return a string representing a JSON structure
+     */
+    public static String solrIndexObjectAsJSON(SolrIndexResponse solrIndexResponse) {
+        ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String result = "";
+
         try {
-            result = ow.writeValueAsString(solrIndexResponse);
+            result = objectWriter.writeValueAsString(solrIndexResponse);
         } catch (JsonProcessingException e) {
             log.warn("An error occurred when trying to convert a response from solr to JSON. Indexing has not been affected ");
         }
