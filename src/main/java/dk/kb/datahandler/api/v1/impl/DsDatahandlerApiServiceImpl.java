@@ -94,7 +94,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     
     @Override
     public Integer oaiIngestDelta(String oaiTarget) {
-        log.debug("oaiIngestDelta(oaiTargetjobs='{}') called with call details: {}", oaiTarget, getCallDetails());
+        log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
             int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget, getCurrentUserID());
             return numberIngested;
