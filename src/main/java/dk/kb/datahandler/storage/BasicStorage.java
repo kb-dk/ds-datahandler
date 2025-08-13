@@ -32,7 +32,7 @@ public abstract class BasicStorage implements AutoCloseable {
         dataSource.setDefaultAutoCommit(false);
         dataSource.setMaxOpenPreparedStatements(connectionPoolSize);
 
-        log.info("DsStorage initialized with driverName = '{}', driverURL = '{}', connectionPoolSize = '{}'", driverName, driverUrl,connectionPoolSize);
+        log.info("DsStorage initialized with driverName='{}', driverURL='{}', connectionPoolSize='{}'", driverName, driverUrl,connectionPoolSize);
     }
 
     public BasicStorage() throws SQLException {

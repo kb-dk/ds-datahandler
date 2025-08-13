@@ -83,7 +83,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
     @Override
     public Integer oaiIngestFull(String oaiTarget) {
-        log.debug("oaiIngestFull(oaiTarget = '{}') called with call details: {}", oaiTarget, getCallDetails());
+        log.debug("oaiIngestFull(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
             int numberIngested = DsDatahandlerFacade.oaiIngestFull(oaiTarget, getCurrentUserID());
             return numberIngested;
@@ -94,7 +94,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     
     @Override
     public Integer oaiIngestDelta(String oaiTarget) {
-        log.debug("oaiIngestDelta(oaiTargetjobs = '{}') called with call details: {}", oaiTarget, getCallDetails());
+        log.debug("oaiIngestDelta(oaiTargetjobs='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
             int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget, getCurrentUserID());
             return numberIngested;
@@ -121,7 +121,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
     @Override
     public ArrayList<String> importFromZip(String origin, Attachment fileNameDetail) {
-        log.debug("importFromZip(origin = '{}', ...) called with call details: {}", origin, getCallDetails());
+        log.debug("importFromZip(origin='{}', ...) called with call details: {}", origin, getCallDetails());
         try {
             InputStream is = fileNameDetail.getDataHandler().getInputStream();
             return DsDatahandlerFacade.ingestFromZipfile(origin,is);
@@ -132,7 +132,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
     @Override
     public String indexSolr(@NotNull String origin, TypeDto typeDto) {
-        log.debug("indexSolr(origin = '{}', ...) called with call details: {}", origin, getCallDetails());
+        log.debug("indexSolr(origin='{}', ...) called with call details: {}", origin, getCallDetails());
         try {
             switch (typeDto){
                 case FULL:                                      
