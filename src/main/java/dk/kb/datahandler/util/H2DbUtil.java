@@ -18,7 +18,6 @@ public class H2DbUtil {
     
     private static final Logger log = LoggerFactory.getLogger(H2DbUtil.class);
     
-    
     public static void createEmptyH2DBFromDDL(String url, String driver, String username, String password) throws Exception {
         try {
             Class.forName(driver); // load the driver

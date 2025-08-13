@@ -43,7 +43,7 @@ public class OaiHarvestClient {
     private String resumptionToken=null;
     private String from;
 
-    public OaiHarvestClient(OaiTargetDto oaiTarget, String from){
+    public OaiHarvestClient(OaiTargetDto oaiTarget, String from) {
         this.oaiTarget=oaiTarget;
         this.from=from;
     }

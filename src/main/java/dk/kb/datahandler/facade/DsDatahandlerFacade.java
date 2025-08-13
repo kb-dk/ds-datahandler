@@ -82,7 +82,7 @@ public class DsDatahandlerFacade {
         long recordsWithoutReferenceId = 0;
         List<DsRecordMinimalDto> records;
 
-        OffsetDateTime offsetDatetimeModifiedTimeFrom =  OffsetDateTime.ofInstant(Instant.ofEpochMilli(modifiedTimeFrom), ZoneOffset.UTC);
+        OffsetDateTime offsetDatetimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.ofEpochMilli(modifiedTimeFrom), ZoneOffset.UTC);
 
         JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.KALTURA_UPLOAD, origin, offsetDatetimeModifiedTimeFrom, user);
 
@@ -104,7 +104,7 @@ public class DsDatahandlerFacade {
                 }
 
                 modifiedTimeFrom = records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
-                log.debug("Getting DsRecordMinimal from storage for origin={}, batchSize={}, modifiedTimeFrom={}", origin, batchSize, modifiedTimeFrom);
+                log.debug("Getting DsRecordMinimal from storage for origin = {}, batchSize = {}, modifiedTimeFrom = {}", origin, batchSize, modifiedTimeFrom);
 
                 ArrayList<String> referenceIdsList= new ArrayList<String>();
                 for (DsRecordMinimalDto record: records) {

@@ -53,6 +53,7 @@ public class DsDatahandlerFacadeTest {
         jobDto.setCreatedBy("Unit test");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
         jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+
         BasicStorage.performStorageAction("Create job for OAITest", JobStorage::new, (JobStorage storage) -> {
             storage.createJob(jobDto);
             return null;
@@ -100,6 +101,7 @@ public class DsDatahandlerFacadeTest {
         jobDto.setCreatedBy("Unit test");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
         jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+
         BasicStorage.performStorageAction("Create job for OAITest", JobStorage::new, (JobStorage storage) -> {
             storage.createJob(jobDto);
             return null;

@@ -178,12 +178,14 @@ public class JobStorageTest {
     @NotNull
     private static JobDto genetrateJobDto() {
         JobDto jobDto = new JobDto();
+
         jobDto.setType(TypeDto.DELTA);
         jobDto.setCategory(CategoryDto.OAI_HARVEST);
         jobDto.setCreatedBy("Unit test");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
         jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
         jobDto.setModifiedTimeFrom(OffsetDateTime.now(ZoneOffset.UTC));
+
         return jobDto;
     }
 }

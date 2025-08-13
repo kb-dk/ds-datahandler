@@ -220,6 +220,7 @@ public class ContextListener implements ServletContextListener {
                jobDto.setJobStatus(jobStatus);
                jobDto.setEndTime(OffsetDateTime.now(ZoneOffset.UTC));
                jobDto.setMessage(message);
+
                try {
                    storage.updateJob(jobDto);
                } catch (SQLException e) {

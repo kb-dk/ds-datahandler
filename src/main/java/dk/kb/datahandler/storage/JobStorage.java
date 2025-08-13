@@ -12,8 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class JobStorage extends BasicStorage {
+
     private static final String INSERT_JOB_QUERY = """
-        INSERT INTO jobs ( 
+        INSERT INTO jobs (
             id,
             type,
             category,
@@ -35,7 +36,7 @@ public class JobStorage extends BasicStorage {
             message = ?,
             end_time = ?,
             number_of_records = ?,
-            restart_value = ? 
+            restart_value = ?
         WHERE
             id = ?
     """;
@@ -54,24 +55,24 @@ public class JobStorage extends BasicStorage {
     """;
 
     private static final String GET_JOB_QUERY = """
-        SELECT 
-            * 
-        FROM 
-            jobs 
-        WHERE 
+        SELECT
+            *
+        FROM
+            jobs
+        WHERE
             id = ?
     """;
 
     private static final String GET_JOBS_QUERY = """
-        SELECT 
-            * 
-        FROM 
-            jobs 
-        WHERE 
-            category LIKE ? 
-          AND 
-            status LIKE ? 
-        ORDER BY 
+        SELECT
+            *
+        FROM
+            jobs
+        WHERE
+            category LIKE ?
+          AND
+            status LIKE ?
+        ORDER BY
             start_time
     """;
 
@@ -87,6 +88,7 @@ public class JobStorage extends BasicStorage {
      */
     public UUID createJob(JobDto jobDto) throws SQLException {
         UUID id = UUID.randomUUID();
+
         try (PreparedStatement stmt = connection.prepareStatement(INSERT_JOB_QUERY)) {
             stmt.setObject(1, id);
             stmt.setString(2, jobDto.getType().name());
@@ -97,6 +99,7 @@ public class JobStorage extends BasicStorage {
             stmt.setObject(7, jobDto.getModifiedTimeFrom());
             stmt.setObject(8, jobDto.getStartTime());
             stmt.executeUpdate();
+
             return id;
         }
     }
@@ -113,6 +116,7 @@ public class JobStorage extends BasicStorage {
             stmt.setString(1, categoryDto.name());
             stmt.setString(2, source);
             stmt.setString(3, JobStatusDto.RUNNING.name());
+
             try (ResultSet result = stmt.executeQuery()) {
                 if (!result.next()) {
                     return false;
@@ -132,9 +136,11 @@ public class JobStorage extends BasicStorage {
      */
     public List<JobDto> getJobs(CategoryDto categoryDto, JobStatusDto jobStatusDto) throws SQLException {
         List<JobDto> jobs = new ArrayList<>();
+
         try(PreparedStatement stmt = connection.prepareStatement(GET_JOBS_QUERY)) {
             stmt.setString(1, categoryDto == null ? "%" : categoryDto.name());
             stmt.setString(2, jobStatusDto == null ? "%" : jobStatusDto.name());
+
             try (ResultSet result = stmt.executeQuery()) {
                 while (result.next()) {
                     jobs.add(createJobDtoFromResult(result));
@@ -159,12 +165,14 @@ public class JobStorage extends BasicStorage {
             stmt.setObject(5, modifiedJobDto.getNumberOfRecords());
             stmt.setObject(6, modifiedJobDto.getModifiedTimeFrom());
             stmt.setObject(7, modifiedJobDto.getId());
+
             return stmt.executeUpdate();
         }
     }
 
     private JobDto createJobDtoFromResult(ResultSet result) throws SQLException {
         JobDto jobDto = new JobDto();
+
         jobDto.setId(result.getObject("id", UUID.class));
         jobDto.setType(TypeDto.valueOf(result.getString("type")));
         jobDto.setCategory(CategoryDto.valueOf(result.getString("category")));
@@ -178,6 +186,7 @@ public class JobStorage extends BasicStorage {
         jobDto.setEndTime(result.getObject("end_time", OffsetDateTime.class));
         jobDto.setNumberOfRecords(result.getObject("number_of_records", Integer.class));
         jobDto.setRestartValue(result.getObject("restart_value", OffsetDateTime.class));
+
         return jobDto;
     }
 }

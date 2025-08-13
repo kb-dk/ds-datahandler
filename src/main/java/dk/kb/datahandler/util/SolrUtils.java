@@ -73,7 +73,7 @@ public class SolrUtils {
      * @param sinceTime A long representation of time since epoch.
      * @return          A status on how many records have been indexed.
      */
-    public static SolrIndexResponse indexOrigin(String origin, Long sinceTime){
+    public static SolrIndexResponse indexOrigin(String origin, Long sinceTime) {
         //DS-present client
         DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getDsPresentUrl());
         // Solr update client

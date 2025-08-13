@@ -28,7 +28,6 @@ import javax.ws.rs.core.Request;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,32 +82,26 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
 
     @Override
-    public Integer oaiIngestFull(String oaiTarget){
-        log.debug("oaiIngestFull(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
+    public Integer oaiIngestFull(String oaiTarget) {
+        log.debug("oaiIngestFull(oaiTarget = '{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget, getCurrentUserID());
+            int numberIngested = DsDatahandlerFacade.oaiIngestFull(oaiTarget, getCurrentUserID());
             return numberIngested;
-
         } catch (Exception e){
             throw handleException(e);
         }
-
     }
     
     @Override
     public Integer oaiIngestDelta(String oaiTarget) {
-        log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
+        log.debug("oaiIngestDelta(oaiTargetjobs = '{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget,getCurrentUserID());
+            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget, getCurrentUserID());
             return numberIngested;
-
         } catch (Exception e){
             throw handleException(e);
         }
-
-
     }
-
 
     @Override
     public List<OaiTargetDto> getOaiTargetsConfiguration() {
@@ -120,16 +113,15 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
             for (String target : oaiTargets.keySet()) {
                 targets.add(oaiTargets.get(target));                               
             }
-
-            return  targets;
-        } catch (Exception e){
+            return targets;
+        } catch (Exception e) {
             throw handleException(e);
         }
     }
 
     @Override
     public ArrayList<String> importFromZip(String origin, Attachment fileNameDetail) {
-        log.debug("importFromZip(origin='{}', ...) called with call details: {}", origin, getCallDetails());
+        log.debug("importFromZip(origin = '{}', ...) called with call details: {}", origin, getCallDetails());
         try {
             InputStream is = fileNameDetail.getDataHandler().getInputStream();
             return DsDatahandlerFacade.ingestFromZipfile(origin,is);
@@ -140,18 +132,17 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
     @Override
     public String indexSolr(@NotNull String origin, TypeDto typeDto) {
-        log.debug("indexSolr(origin='{}', ...) called with call details: {}", origin, getCallDetails());
+        log.debug("indexSolr(origin = '{}', ...) called with call details: {}", origin, getCallDetails());
         try {
             switch (typeDto){
                 case FULL:                                      
-                    return DsDatahandlerFacade.indexSolrFull(origin,getCurrentUserID());
+                    return DsDatahandlerFacade.indexSolrFull(origin, getCurrentUserID());
                 case DELTA:
-                    return DsDatahandlerFacade.indexSolrDelta(origin,getCurrentUserID());
+                    return DsDatahandlerFacade.indexSolrDelta(origin, getCurrentUserID());
                 default:
                     log.error("No indexing type has been selected. Indexing cannot continue without knowing which records to index.");
                     return "No indexing type has been selected. Indexing cannot continue without knowing which records to index.";
             }
-
         }  catch (Exception e){
             throw handleException(e);
         }
@@ -169,7 +160,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     @Override
     public void kalturaDeltaUpload(Long mTimeFrom) {    
         try {
-           DsDatahandlerFacade.kalturaDeltaUpload(mTimeFrom,getCurrentUserID());
+           DsDatahandlerFacade.kalturaDeltaUpload(mTimeFrom, getCurrentUserID());
         }
         catch(Exception e) {
             throw handleException(e);
