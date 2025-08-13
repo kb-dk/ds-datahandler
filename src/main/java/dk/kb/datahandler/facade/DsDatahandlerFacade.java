@@ -104,7 +104,7 @@ public class DsDatahandlerFacade {
                 }
 
                 modifiedTimeFrom = records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
-                log.debug("Getting DsRecordMinimal from storage for origin = {}, batchSize = {}, modifiedTimeFrom = {}", origin, batchSize, modifiedTimeFrom);
+                log.debug("Getting DsRecordMinimal from storage for origin={}, batchSize={}, modifiedTimeFrom={}", origin, batchSize, modifiedTimeFrom);
 
                 ArrayList<String> referenceIdsList= new ArrayList<String>();
                 for (DsRecordMinimalDto record: records) {
@@ -158,7 +158,7 @@ public class DsDatahandlerFacade {
             // TODO: can updated be an Integer instead of a Long?
             updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), (int) updated, null);
 
-            throw new InternalServiceException("Error updating kalturaIds",e);
+            throw new InternalServiceException("Error updating kalturaIds", e);
         }
     }
 
