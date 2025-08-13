@@ -142,11 +142,6 @@
             <artifactId>kb-util</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.httpcomponents.core5</groupId>
-            <artifactId>httpcore5</artifactId>
-        </dependency>
-
         <!-- Client for ds-storage This will also require the org.openapitools dependency-->
         <dependency>
             <groupId>dk.kb.storage</groupId>
