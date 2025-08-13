@@ -31,8 +31,10 @@ public class DsDatahandlerFacadeTest {
     @BeforeAll
     public static void beforeClass() throws Exception {
         ServiceConfig.initialize("ds-datahandler-unittest.yaml");
+
         H2DbUtil.createEmptyH2DBFromDDL(DB_URL, DRIVER, USERNAME, PASSWORD);
         JobStorage.initialize(DRIVER, DB_URL, USERNAME, PASSWORD);
+
         storage = new JobStorageForUnitTests();
     }
 
@@ -43,7 +45,6 @@ public class DsDatahandlerFacadeTest {
 
     @Test
     void testGetJobs() {
-
         OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("test.target");
 
         JobDto jobDto = new JobDto();
@@ -90,7 +91,6 @@ public class DsDatahandlerFacadeTest {
      */
     @Test
     void testOnly1JobWithSameName() {
-        
         OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("test.target");
         
         // OK

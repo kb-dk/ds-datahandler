@@ -11,7 +11,6 @@ import java.sql.SQLException;
 
 /*
  * When running in Jetty mode, it needs to set up the database. This class can not in test packages or it can not be loaded
- * 
  */
 public class H2DbUtil {
     protected static final String CREATE_TABLES_DDL_FILE = "ddl/create_ds_datahandler_storage.ddl";
@@ -31,7 +30,7 @@ public class H2DbUtil {
 
             if (!file.exists()) {
                 log.error("DDL script not found: {}", file.getAbsolutePath());
-                throw new RuntimeException("DDL Script file not found:" + file.getAbsolutePath());
+                throw new RuntimeException("DDL Script file not found: " + file.getAbsolutePath());
             }
 
             connection.createStatement().execute("RUNSCRIPT FROM '" + file.getAbsolutePath() + "'");
@@ -46,6 +45,4 @@ public class H2DbUtil {
     protected static File getFile(String resource) {
        return Resolver.getPathFromClasspath(resource).toFile(); 
     }
-
-
 }

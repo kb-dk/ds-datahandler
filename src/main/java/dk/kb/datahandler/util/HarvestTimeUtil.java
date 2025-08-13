@@ -97,7 +97,7 @@ public class HarvestTimeUtil {
                 throw new InvalidArgumentServiceException(errorMsg);
             }
 
-            log.info("OAI target: " + oaiTargetNameFile + " has last harvestDate:" + lastHarvestDate);
+            log.info("OAI target: " + oaiTargetNameFile + " has last harvestDate: " + lastHarvestDate);
             return lastHarvestDate;
         }               
     }

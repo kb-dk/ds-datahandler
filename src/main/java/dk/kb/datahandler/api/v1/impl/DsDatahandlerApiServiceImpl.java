@@ -174,6 +174,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     private static String getCurrentUserID() {
         Message message = JAXRSUtils.getCurrentMessage();
         AccessToken token = (AccessToken) message.get(KBAuthorizationInterceptor.ACCESS_TOKEN);
+
         if (token != null) {
             return token.getName();
         }

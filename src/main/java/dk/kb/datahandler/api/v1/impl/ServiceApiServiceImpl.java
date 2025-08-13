@@ -92,12 +92,14 @@ public class ServiceApiServiceImpl extends ImplBase implements ServiceApi {
     @Override
     public List<JobDto> jobs(CategoryDto category, JobStatusDto jobStatus) {
         List<JobDto> jobs;
+
         try {
             jobs = DsDatahandlerFacade.getJobs(category, jobStatus);
         } catch (Exception e) {
             log.warn("status(): Unable to get jobs", e);
             throw new InternalServiceException("Unable to load jobs",e);
-        }      
+        }
+
         return jobs;        
     }
     
