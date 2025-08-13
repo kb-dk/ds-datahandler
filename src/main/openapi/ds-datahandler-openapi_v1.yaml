@@ -250,11 +250,11 @@ paths:
     get:
       tags:
         - Service
-      summary: 'Health check + list of running and past jobs'
+      summary: 'Health check'
       operationId: status
       responses:
         '200':
-          description: 'Health check + List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first'
+          description: 'Health check'
           content:
             application/json:
               schema:

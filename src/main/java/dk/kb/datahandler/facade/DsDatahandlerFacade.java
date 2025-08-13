@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -79,9 +81,9 @@ public class DsDatahandlerFacade {
         long recordsWithoutReferenceId = 0;
         List<DsRecordMinimalDto> records;
 
-        Instant instantModifiedTimeFrom = Instant.ofEpochMilli(modifiedTimeFrom);
+        OffsetDateTime offsetDatetimeModifiedTimeFrom =  OffsetDateTime.ofInstant(Instant.ofEpochMilli(modifiedTimeFrom), ZoneOffset.UTC);
 
-        JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.KALTURA_UPLOAD, origin, instantModifiedTimeFrom, user);
+        JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.KALTURA_UPLOAD, origin, offsetDatetimeModifiedTimeFrom, user);
 
         if (modifiedTimeFrom == null) {
             modifiedTimeFrom = 0L;
@@ -146,14 +148,14 @@ public class DsDatahandlerFacade {
                     updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
 
             // TODO: can updated be an Integer instead of a Long?
-            updateJob(jobDto, JobStatusDto.COMPLETED, null, Instant.now(), (int) updated, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), (int) updated, null);
 
             return updated;
         }
         catch (Exception e) {
 
             // TODO: can updated be an Integer instead of a Long?
-            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), Instant.now(), (int) updated, null);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), (int) updated, null);
 
             throw new InternalServiceException("Error updating kalturaIds",e);
         }
@@ -234,11 +236,11 @@ public class DsDatahandlerFacade {
 
             // TODO: How do we get the number of indexed records here, so we can save it in the database?
             // TODO: the number of records is known in indexOrigin, but it changes the response to json in SolrUtils, maybe we should do that here instead?
-            updateJob(jobDto, JobStatusDto.COMPLETED, null, Instant.now(), null, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), null, null);
 
         } catch(Exception e) {
 
-            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), Instant.now(), null, null);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), null, null);
 
             throw e;
         }
@@ -256,21 +258,23 @@ public class DsDatahandlerFacade {
      * @throws IOException
      */
     public static String indexSolrDelta(String origin, String user) throws InternalServiceException, SolrServerException, IOException {
-        Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
+        Long lastStorageModifiedTime = SolrUtils.getLatestMTimeForOrigin(origin);
         String response;
 
-        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.SOLR_INDEX, origin, Instant.ofEpochSecond(lastStorageMTime), user);
+        OffsetDateTime offsetDateTimeLastStorageModifiedTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(lastStorageModifiedTime), ZoneOffset.UTC);
+
+        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.SOLR_INDEX, origin, offsetDateTimeLastStorageModifiedTime, user);
 
         try {
-            response = SolrUtils.indexOrigin(origin, lastStorageMTime);
+            response = SolrUtils.indexOrigin(origin, lastStorageModifiedTime);
 
             // TODO: How do we get the number of indexed records here, so we can save it in the database?
             // TODO: the number of records is known in indexOrigin, but it changes the response to json in SolrUtils, maybe we should do that here instead?
-            updateJob(jobDto, JobStatusDto.COMPLETED, null, Instant.now(), null, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), null, null);
 
         } catch (Exception e) {
 
-            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), Instant.now(), null, null);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), null, null);
 
             throw e;
         }
@@ -303,7 +307,9 @@ public class DsDatahandlerFacade {
      */
     public static void kalturaDeltaUpload(Long mTimeFrom, String user) throws InternalServiceException, SolrServerException, IOException {
 
-        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.KALTURA_UPLOAD, null, Instant.ofEpochSecond(mTimeFrom), user);
+        OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.ofEpochMilli(mTimeFrom), ZoneOffset.UTC);
+
+        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.KALTURA_UPLOAD, null, offsetDateModifiedTimeFrom, user);
 
         log.info("Starting kaltura delta upload from mTimeFrom: " + mTimeFrom);
         try {
@@ -312,7 +318,7 @@ public class DsDatahandlerFacade {
 
             log.info("Kaltura delta uploaded completed successfully. #streams uploaded={}", numberStreamsUploaded);
 
-            updateJob(jobDto, JobStatusDto.COMPLETED, null,  Instant.now(), numberStreamsUploaded, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null,  OffsetDateTime.now(ZoneOffset.UTC), numberStreamsUploaded, null);
 
             //Index the records that has mTime modified due to kalturaId was set on record.
             if (numberStreamsUploaded > 0) {
@@ -324,7 +330,7 @@ public class DsDatahandlerFacade {
         catch (Exception e) {
             log.error("Kaltura delta upload/indexing stopped due to error", e);
 
-            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(),  Instant.now(), null, null);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(),  OffsetDateTime.now(ZoneOffset.UTC), null, null);
 
             throw e; 
         }
@@ -393,19 +399,19 @@ public class DsDatahandlerFacade {
                     "'. See the config method for list of configured targets.");
         }
 
-        JobDto jobDto = startJob(typeDto, CategoryDto.OAI_HARVEST, oaiTargetName, HarvestTimeUtil.parseModifiedTimeFromToInstant(modifiedTimeFrom), user);
+        JobDto jobDto = startJob(typeDto, CategoryDto.OAI_HARVEST, oaiTargetName, HarvestTimeUtil.parseModifiedTimeFromToOffsetDatetime(modifiedTimeFrom), user);
 
         try {
             Integer numberOfRecords = oaiIngestPerform(oaiTargetDto, modifiedTimeFrom);
 
-            updateJob(jobDto, JobStatusDto.COMPLETED, null,  Instant.now(), numberOfRecords, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null,  OffsetDateTime.now(ZoneOffset.UTC), numberOfRecords, null);
 
             return numberOfRecords;
 
         } catch (Exception e) {
             log.error("Oai harvest did not complete successfully for target: oaiTarget:'{}' jobId:'{}'", oaiTargetName, jobDto.getId());
 
-            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(),  Instant.now(), null, null);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(),  OffsetDateTime.now(ZoneOffset.UTC), null, null);
 
             throw new InternalServiceException("Error harvesting oai target: oaiTarget: " + oaiTargetName + " jobId: " + jobDto.getId(), e);
         }
@@ -418,9 +424,7 @@ public class DsDatahandlerFacade {
      * @return List of jobs with status
      */    
     public static List<JobDto> getJobs(CategoryDto categoryDto, JobStatusDto jobStatusDto) {
-        return BasicStorage.performStorageAction("Get all jobs", JobStorage::new, (JobStorage storage) -> {
-            return storage.getJobs(categoryDto, jobStatusDto);
-        });
+        return BasicStorage.performStorageAction("Get all jobs", JobStorage::new, (JobStorage storage) -> storage.getJobs(categoryDto, jobStatusDto));
     }
 
     /**
@@ -525,7 +529,7 @@ public class DsDatahandlerFacade {
      * @param user
      * @return jobDto JobDto that is running
      */
-    private static JobDto startJob(TypeDto typeDto, CategoryDto categoryDto, String source, Instant modifiedTimeFrom, String user) {
+    private static JobDto startJob(TypeDto typeDto, CategoryDto categoryDto, String source, OffsetDateTime modifiedTimeFrom, String user) {
         JobDto jobDto = new JobDto();
 
         jobDto.setId(UUID.randomUUID());
@@ -535,7 +539,7 @@ public class DsDatahandlerFacade {
         jobDto.setJobStatus(JobStatusDto.RUNNING);
         jobDto.setModifiedTimeFrom(modifiedTimeFrom);
         jobDto.setCreatedBy(user);
-        jobDto.setStartTime(Instant.now());
+        jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
 
         String databaseMessage = jobDto.getJobStatus().getValue() + " " + jobDto.getType().getValue() + " " + jobDto.getCategory().getValue();
 
@@ -559,7 +563,7 @@ public class DsDatahandlerFacade {
      * @param endTime if the job is set to FAILED, STOPPED or COMPLETED
      * @param numberOfRecords number of records created or updated by the job
      */
-    private static void updateJob(JobDto jobDto, JobStatusDto jobStatusDto, String message, Instant endTime, Integer numberOfRecords, Instant restartValue) {
+    private static void updateJob(JobDto jobDto, JobStatusDto jobStatusDto, String message, OffsetDateTime endTime, Integer numberOfRecords, OffsetDateTime restartValue) {
         jobDto.setJobStatus(jobStatusDto);
         jobDto.setMessage(message);
         jobDto.setEndTime(endTime);

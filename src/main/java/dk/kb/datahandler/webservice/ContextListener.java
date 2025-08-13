@@ -8,7 +8,8 @@ import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.sql.SQLException;
-import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -76,7 +77,10 @@ public class ContextListener implements ServletContextListener {
         } catch (NamingException e) {
             throw new RuntimeException("Failed to lookup settings", e);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load settings", e);        } 
+            throw new RuntimeException("Failed to load settings", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Exception thrown", e);
+        }
         log.info("Service initialized.");
     }
 
@@ -214,7 +218,7 @@ public class ContextListener implements ServletContextListener {
         BasicStorage.performStorageAction("Stop all running jobs", JobStorage::new, (JobStorage storage) -> {
            storage.getJobs(null, JobStatusDto.RUNNING).forEach(jobDto -> {
                jobDto.setJobStatus(jobStatus);
-               jobDto.setEndTime(Instant.now());
+               jobDto.setEndTime(OffsetDateTime.now(ZoneOffset.UTC));
                jobDto.setMessage(message);
                try {
                    storage.updateJob(jobDto);

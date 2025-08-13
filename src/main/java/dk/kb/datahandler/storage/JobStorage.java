@@ -6,7 +6,6 @@ import dk.kb.datahandler.model.v1.JobStatusDto;
 import dk.kb.datahandler.model.v1.TypeDto;
 
 import java.sql.*;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,10 +94,8 @@ public class JobStorage extends BasicStorage {
             stmt.setString(4, jobDto.getSource());
             stmt.setString(5, jobDto.getCreatedBy());
             stmt.setString(6, jobDto.getJobStatus().name());
-            stmt.setTimestamp(7, jobDto.getModifiedTimeFrom() == null ?
-                    null : Timestamp.from(jobDto.getModifiedTimeFrom()));
-            stmt.setTimestamp(8, jobDto.getStartTime() == null ?
-                    null : Timestamp.from(jobDto.getStartTime()));
+            stmt.setObject(7, jobDto.getModifiedTimeFrom());
+            stmt.setObject(8, jobDto.getStartTime());
             stmt.executeUpdate();
             return id;
         }
@@ -178,11 +175,9 @@ public class JobStorage extends BasicStorage {
             stmt.setString(1, modifiedJobDto.getJobStatus().name());
             stmt.setObject(2, modifiedJobDto.getErrorCorrelationId());
             stmt.setString(3, modifiedJobDto.getMessage());
-            stmt.setTimestamp(4, modifiedJobDto.getEndTime() == null ?
-                    null : Timestamp.from(modifiedJobDto.getEndTime()));
+            stmt.setObject(4, modifiedJobDto.getEndTime());
             stmt.setObject(5, modifiedJobDto.getNumberOfRecords());
-            stmt.setTimestamp(6, modifiedJobDto.getModifiedTimeFrom() == null ?
-                    null : Timestamp.from(modifiedJobDto.getModifiedTimeFrom()));
+            stmt.setObject(6, modifiedJobDto.getModifiedTimeFrom());
             stmt.setObject(7, modifiedJobDto.getId());
             return stmt.executeUpdate();
         }
@@ -198,19 +193,11 @@ public class JobStorage extends BasicStorage {
         jobDto.setCreatedBy(result.getString("created_by"));
         jobDto.setErrorCorrelationId(result.getObject("error_correlation_id", UUID.class));
         jobDto.setMessage(result.getString("message"));
-        jobDto.setModifiedTimeFrom(createInstantFromTimeStamp(result,"modified_time_from"));
-        jobDto.setStartTime(createInstantFromTimeStamp(result, "start_time"));
-        jobDto.setEndTime(createInstantFromTimeStamp(result,"end_time"));
+        jobDto.setModifiedTimeFrom(result.getObject("modified_time_from", OffsetDateTime.class));
+        jobDto.setStartTime(result.getObject("start_time", OffsetDateTime.class));
+        jobDto.setEndTime(result.getObject("end_time", OffsetDateTime.class));
         jobDto.setNumberOfRecords(result.getObject("number_of_records", Integer.class));
-        jobDto.setRestartValue(createInstantFromTimeStamp(result,"restart_value"));
+        jobDto.setRestartValue(result.getObject("restart_value", OffsetDateTime.class));
         return jobDto;
-    }
-
-    private Instant createInstantFromTimeStamp(ResultSet result, String column) throws SQLException {
-        OffsetDateTime offsetDateTime = result.getObject(column, OffsetDateTime.class);
-        if (offsetDateTime != null) {
-            return offsetDateTime.toInstant();
-        }
-        return null;
     }
 }

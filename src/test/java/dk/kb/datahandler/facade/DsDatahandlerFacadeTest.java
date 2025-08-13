@@ -13,7 +13,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.time.Instant;
+import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DsDatahandlerFacadeTest {
     protected static final String TEST_CLASSES_PATH = new File(Thread.currentThread().getContextClassLoader().getResource("logback-test.xml").getPath()).getParentFile().getAbsolutePath();
@@ -37,6 +42,52 @@ public class DsDatahandlerFacadeTest {
     }
 
     @Test
+    void testGetJobs() {
+
+        OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("test.target");
+
+        JobDto jobDto = new JobDto();
+        jobDto.setType(TypeDto.DELTA);
+        jobDto.category(CategoryDto.OAI_HARVEST);
+        jobDto.setSource(oaiTarget.getName());
+        jobDto.setCreatedBy("Unit test");
+        jobDto.setJobStatus(JobStatusDto.RUNNING);
+        jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+        BasicStorage.performStorageAction("Create job for OAITest", JobStorage::new, (JobStorage storage) -> {
+            storage.createJob(jobDto);
+            return null;
+        });
+
+        // List of all jobs saved in database
+        List<JobDto> actualJobDtoList = DsDatahandlerFacade.getJobs(null, null);
+
+        assertEquals(1, actualJobDtoList.size());
+
+        JobDto returnedJobDto = actualJobDtoList.get(0);
+
+        assertNotNull(returnedJobDto.getId());
+        assertEquals(jobDto.getType(), returnedJobDto.getType());
+        assertEquals(jobDto.getCategory(), returnedJobDto.getCategory());
+        assertEquals(jobDto.getSource(), returnedJobDto.getSource());
+        assertEquals(jobDto.getCreatedBy(), returnedJobDto.getCreatedBy());
+        assertEquals(jobDto.getJobStatus(), returnedJobDto.getJobStatus());
+        assertNull(returnedJobDto.getErrorCorrelationId());
+        assertNull(returnedJobDto.getMessage());
+        assertNull(returnedJobDto.getModifiedTimeFrom());
+
+        assertNotNull(returnedJobDto.getStartTime());
+        // Assert that result is 'close enough'
+        assertTrue(Duration.between(jobDto.getStartTime(), returnedJobDto.getStartTime()).toSeconds() <= 0);
+
+        assertNull(returnedJobDto.getEndTime());
+        assertNull(returnedJobDto.getNumberOfRecords());
+        assertNull(returnedJobDto.getRestartValue());
+    }
+
+    /**
+     * Can only have one job with the same name running at the same time even if one is a delta job and the other is a full job
+     */
+    @Test
     void testOnly1JobWithSameName() {
         
         OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("test.target");
@@ -48,7 +99,7 @@ public class DsDatahandlerFacadeTest {
         jobDto.setSource(oaiTarget.getName());
         jobDto.setCreatedBy("Unit test");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
-        jobDto.setStartTime(Instant.now());
+        jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
         BasicStorage.performStorageAction("Create job for OAITest", JobStorage::new, (JobStorage storage) -> {
             storage.createJob(jobDto);
             return null;
