@@ -8,7 +8,7 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import javax.ws.rs.ext.Provider;
 
 @Provider
-public class CustomJacksonJsonProvider extends JacksonJsonProvider {
+public final class CustomJacksonJsonProvider extends JacksonJsonProvider {
 
     /**
      * We add our own JacksonJsonProvider to register Java Time 8
