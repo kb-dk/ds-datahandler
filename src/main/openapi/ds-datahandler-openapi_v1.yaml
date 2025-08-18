@@ -505,6 +505,18 @@ components:
           description: 'Format YYYY-MM-DDTHH:MM:SSZ'
           example: '2021-01-30T08:30:00Z'
 
+    Type:
+      type: string
+      enum:
+        - full
+        - delta
+      x-enum-varnames:
+        - FULL
+        - DELTA
+      x-enum-descriptions:
+        - full
+        - delta
+
     Category:
       type: string
       enum:
@@ -537,18 +549,6 @@ components:
         - completed
         - stopped
         - failed
-
-    Type:
-      type: string
-      enum:
-        - full
-        - delta
-      x-enum-varnames:
-        - FULL
-        - DELTA
-      x-enum-descriptions:
-        - full
-        - delta
 
     Whoami:
       type: object
