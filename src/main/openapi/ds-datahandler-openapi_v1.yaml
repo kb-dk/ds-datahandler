@@ -140,6 +140,7 @@ paths:
                         The type of index. If value is "FULL" then all records from storage will be transformed to solr 
                         documents and indexed. If value is "DELTA" then only records from ds-storage with an mTime newer
                         than the last date_modified in the solr index will be fetched, transformed and indexed.
+          required: true
           schema:
             $ref: '#/components/schemas/Type'
 
