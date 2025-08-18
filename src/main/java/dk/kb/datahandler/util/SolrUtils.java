@@ -57,6 +57,9 @@ public class SolrUtils {
 
             // Parse response to get last modified field
             response = solrClient.query(query);
+        } catch (Exception exception) {
+            log.error("Exception: ", exception);
+            throw new InternalServiceException(exception.getMessage());
         }
 
         if (!response.getResults().isEmpty()) {
