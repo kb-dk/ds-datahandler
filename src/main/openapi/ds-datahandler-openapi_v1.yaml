@@ -472,7 +472,7 @@ components:
           description: 'Who started the job'
         jobStatus:
           $ref: '#/components/schemas/JobStatus'
-          description: 'CREATED, STARTED, ENDED, STOPPED or COMPLETED.'
+          description: 'What status the job have'
         errorCorrelationId:
           type: string
           format: uuid
