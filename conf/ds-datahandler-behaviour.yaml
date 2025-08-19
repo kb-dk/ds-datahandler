@@ -208,6 +208,7 @@ kaltura:
   url:  'XX'
   partnerId:  xxx
   userId:  'xxx@kb.dk'
+  adminSecret: ''
   token: 'XXXX'
   tokenId: 'XXX'
   sessionDurationSeconds: 86400
