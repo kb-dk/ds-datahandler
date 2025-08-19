@@ -73,7 +73,8 @@ public class JobStorage extends BasicStorage {
           AND
             status LIKE ?
         ORDER BY
-            start_time
+            category ASC,
+            start_time ASC
     """;
 
     public JobStorage() throws SQLException {
