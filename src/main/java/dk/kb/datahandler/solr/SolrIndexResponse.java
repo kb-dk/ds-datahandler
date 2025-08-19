@@ -1,17 +1,17 @@
 package dk.kb.datahandler.solr;
 
-import dk.kb.datahandler.model.v1.IndexTypeDto;
+import dk.kb.datahandler.model.v1.TypeDto;
 
 /**
  * An object used to create a response for the API method:
- * {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, IndexTypeDto)}.
+ * {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, TypeDto)}.
  * <p>
  * This object is used to deliver information on the completed indexing done through the aforementioned method.
  * The object contains the following information:
  * <ul>
  *     <li>{@link SolrIndexResponse#combinedQTime}: The combined QTime value from all indexed {@link SolrResponseHeader}</li>
  *     <li>{@link SolrIndexResponse#allDocumentsIndexed}: The combined number of documents indexed through the
- *     {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, IndexTypeDto)} call.</li>
+ *     {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, TypeDto)} call.</li>
  *     <li>{@link SolrIndexResponse#lastSolrResponseHeader}: The last solr response header added to the object. </li>
  * </ul>
  *

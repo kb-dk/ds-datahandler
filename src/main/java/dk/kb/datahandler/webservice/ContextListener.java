@@ -7,6 +7,9 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -14,6 +17,10 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.model.v1.JobStatusDto;
+import dk.kb.datahandler.storage.BasicStorage;
+import dk.kb.datahandler.storage.JobStorage;
+import dk.kb.datahandler.util.H2DbUtil;
 import dk.kb.util.BuildInfoManager;
 import dk.kb.util.Files;
 import dk.kb.util.Resolver;
@@ -66,13 +73,43 @@ public class ContextListener implements ServletContextListener {
             String configFile = (String) ctx.lookup("java:/comp/env/application-config");
             //TODO this should not refer to something in template. Should we perhaps use reflection here?
             ServiceConfig.initialize(configFile);
+            initializeStorage();
         } catch (NamingException e) {
             throw new RuntimeException("Failed to lookup settings", e);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load settings", e);        } 
+            throw new RuntimeException("Failed to load settings", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Exception thrown", e);
+        }
         log.info("Service initialized.");
     }
 
+    public void initializeStorage() {
+        log.info("Initializing storage");
+
+        String driver = ServiceConfig.getDBDriver();
+        String url = ServiceConfig.getDBUrl();
+        String user = ServiceConfig.getDBUserName();
+        String password = ServiceConfig.getDBPassword();
+
+        //If running jetty for development
+        if ("org.h2.Driver".equals(driver)) { //Would be slightly better if we can detect it is jetty in local environment
+            createLocalH2ForJettyEnvironment(driver, url, user, password);
+        }
+
+        JobStorage.initialize(driver,url,user,password);
+        handleRunningJobs(JobStatusDto.FAILED, "Marked as failed on startup.");
+    }
+
+    private void createLocalH2ForJettyEnvironment(String driver, String url, String user, String password) {
+        try {
+            log.info("Setting up H2 database under jetty in development mode");
+            H2DbUtil.createEmptyH2DBFromDDL(url, driver, user, password);
+        }
+        catch(Exception e) {
+            log.error("Unable to create local h2 database for jetty environment", e);
+        }
+    }
 
     /**
      * For unfathomable reasons, logback 1.4.11 does not support the construction
@@ -165,10 +202,32 @@ public class ContextListener implements ServletContextListener {
         return redirectFile;
     }
 
-    
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         log.debug("Service destroyed");
+        handleRunningJobs(JobStatusDto.STOPPED, "Stopped by shutdown.");
     }
 
+    /**
+     * Checks if there is running jobs when starting the application, and mark running jobs as failed, because of ungracefully shutdown,
+     * and checks if there is running jobs when gracefully shut down the application, and mark jobs as stopped.
+     * @param jobStatus what status the job should change to
+     * @param message why the job was marked stopped/failed
+     */
+    private void handleRunningJobs(JobStatusDto jobStatus, String message) {
+        BasicStorage.performStorageAction("Stop all running jobs", JobStorage::new, (JobStorage storage) -> {
+           storage.getJobs(null, JobStatusDto.RUNNING).forEach(jobDto -> {
+               jobDto.setJobStatus(jobStatus);
+               jobDto.setEndTime(OffsetDateTime.now(ZoneOffset.UTC));
+               jobDto.setMessage(message);
+
+               try {
+                   storage.updateJob(jobDto);
+               } catch (SQLException e) {
+                   throw new RuntimeException(e);
+               }
+           });
+           return null;
+        });
+    }
 }

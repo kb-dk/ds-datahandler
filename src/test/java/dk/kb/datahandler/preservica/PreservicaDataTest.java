@@ -1,7 +1,5 @@
 package dk.kb.datahandler.preservica;
 
-import dk.kb.datahandler.job.JobCache;
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.oai.*;
 import dk.kb.datahandler.util.PreservicaOaiRecordHandler;
@@ -94,8 +92,7 @@ public class PreservicaDataTest {
 
         //Empty test OAI Target
         OaiTargetDto oaiDto = new OaiTargetDto();
-        DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiDto,null);
-        OaiHarvestClient client = new OaiHarvestClient(job,oaiDto, "test");
+        OaiHarvestClient client = new OaiHarvestClient(oaiDto, "test");
         OaiRecord oaiRecord = client.extractRecordsFromXml(doc).get(0);
         String testStorageId = "ds.test:" + oaiRecord.getId();
 

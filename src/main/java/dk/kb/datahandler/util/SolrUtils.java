@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.IndexTypeDto;
+import dk.kb.datahandler.model.v1.TypeDto;
 import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.solr.SolrResponseHeader;
 import dk.kb.present.model.v1.FormatDto;
@@ -57,6 +57,9 @@ public class SolrUtils {
 
             // Parse response to get last modified field
             response = solrClient.query(query);
+        } catch (Exception exception) {
+            log.error("Exception: ", exception);
+            throw new InternalServiceException(exception.getMessage());
         }
 
         if (!response.getResults().isEmpty()) {
@@ -73,7 +76,7 @@ public class SolrUtils {
      * @param sinceTime A long representation of time since epoch.
      * @return          A status on how many records have been indexed.
      */
-    public static String indexOrigin(String origin, Long sinceTime){
+    public static SolrIndexResponse indexOrigin(String origin, Long sinceTime) {
         //DS-present client
         DsPresentClient presentClient = new DsPresentClient(ServiceConfig.getDsPresentUrl());
         // Solr update client
@@ -159,14 +162,14 @@ public class SolrUtils {
              throw new InternalServiceException(e);
            }
         }                
-        return solrIndexObjectAsJSON(finalResponse);
+        return finalResponse;
     }
 
 
     /**
      * Update the final {@code SolrIndexResponse} with the content from the single {@code individualSolrResponse}.
      * The updated {@code SolrIndexResponse} is used as the response for the endpoint
-     * {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, IndexTypeDto)}. This
+     * {@link dk.kb.datahandler.api.v1.impl.DsDatahandlerApiServiceImpl#indexSolr(String, Long, TypeDto)}. This
      * updated response contains information on the amount of documents that have been indexed in total and not just
      * during the last batch of the stream.
      * @param individualSolrResponse a string representation of a JSON solr response returned when indexing a batch of
@@ -194,11 +197,17 @@ public class SolrUtils {
         finalResponse.incrementCombinedQTime(currentResponseHeader.getqTime());
     }
 
-    private static String solrIndexObjectAsJSON(SolrIndexResponse solrIndexResponse) {
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+    /**
+     * Convert a solr index response to a string representing a JSON structure
+     * @param solrIndexResponse
+     * @return a string representing a JSON structure
+     */
+    public static String solrIndexObjectAsJSON(SolrIndexResponse solrIndexResponse) {
+        ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String result = "";
+
         try {
-            result = ow.writeValueAsString(solrIndexResponse);
+            result = objectWriter.writeValueAsString(solrIndexResponse);
         } catch (JsonProcessingException e) {
             log.warn("An error occurred when trying to convert a response from solr to JSON. Indexing has not been affected ");
         }
