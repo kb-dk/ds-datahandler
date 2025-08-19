@@ -13,4 +13,3 @@ CREATE TABLE IF NOT EXISTS jobs (
     number_of_records INTEGER NULL,
     restart_value TIMESTAMP WITH TIME ZONE NULL
 )
-
