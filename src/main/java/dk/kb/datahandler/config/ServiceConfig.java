@@ -107,7 +107,8 @@ public class ServiceConfig {
         kalturaToken = ServiceConfig.getConfig().getString("kaltura.token");
         kalturaTokenId = ServiceConfig.getConfig().getString("kaltura.tokenId");
         //Do not use kaltura adminsecret, use token and tokenId instead.
-        kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
+        //Must not be shared or exposed. Use token,tokenId.
+        kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret", "");
       
         
         kalturaSessionDurationSeconds = ServiceConfig.getConfig().getInteger("kaltura.sessionDurationSeconds", 86400);
