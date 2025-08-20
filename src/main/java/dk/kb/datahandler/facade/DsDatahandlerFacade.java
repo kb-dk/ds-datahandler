@@ -153,9 +153,7 @@ public class DsDatahandlerFacade {
             return updated;
         }
         catch (Exception e) {
-
-            // TODO: can updated be an Integer instead of a Long?
-            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), (int) updated, null);
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), updated, null);
 
             throw new InternalServiceException("Error updating kalturaIds", e);
         }
