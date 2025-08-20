@@ -78,7 +78,7 @@ public class DsDatahandlerFacade {
         DsKalturaClient kalturaClient = getKalturaClient();
 
         long processed = 0;
-        long updated = 0;
+        int updated = 0;
         long recordsWithoutReferenceId = 0;
         List<DsRecordMinimalDto> records;
 
@@ -148,8 +148,7 @@ public class DsDatahandlerFacade {
                     "reference ID processed: '{}' The full request lasted '{}' milliseconds.",
                     updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
 
-            // TODO: can updated be an Integer instead of a Long?
-            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), (int) updated, null);
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), updated, null);
 
             return updated;
         }
