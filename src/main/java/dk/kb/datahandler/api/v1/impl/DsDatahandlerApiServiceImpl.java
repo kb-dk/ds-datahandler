@@ -85,7 +85,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public Integer oaiIngestFull(String oaiTarget) {
         log.debug("oaiIngestFull(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested = DsDatahandlerFacade.oaiIngestFull(oaiTarget, getCurrentUserID());
+            int numberIngested = DsDatahandlerFacade.oaiIngestFull(oaiTarget, getCurrentUsername());
             return numberIngested;
         } catch (Exception e){
             throw handleException(e);
@@ -96,7 +96,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public Integer oaiIngestDelta(String oaiTarget) {
         log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget, getCurrentUserID());
+            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget, getCurrentUsername());
             return numberIngested;
         } catch (Exception e){
             throw handleException(e);
@@ -136,9 +136,9 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         try {
             switch (typeDto){
                 case FULL:                                      
-                    return DsDatahandlerFacade.indexSolrFull(origin, getCurrentUserID());
+                    return DsDatahandlerFacade.indexSolrFull(origin, getCurrentUsername());
                 case DELTA:
-                    return DsDatahandlerFacade.indexSolrDelta(origin, getCurrentUserID());
+                    return DsDatahandlerFacade.indexSolrDelta(origin, getCurrentUsername());
                 default:
                     log.error("No indexing type has been selected. Indexing cannot continue without knowing which records to index.");
                     return "No indexing type has been selected. Indexing cannot continue without knowing which records to index.";
@@ -151,7 +151,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     @Override
     public Long updateKalturaIds(String origin, Long mTimeFrom) {        
         try {
-            return DsDatahandlerFacade.fetchKalturaIdsAndUpdateRecords(origin, mTimeFrom, getCurrentUserID());
+            return DsDatahandlerFacade.fetchKalturaIdsAndUpdateRecords(origin, mTimeFrom, getCurrentUsername());
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -160,7 +160,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     @Override
     public void kalturaDeltaUpload(Long mTimeFrom) {    
         try {
-           DsDatahandlerFacade.kalturaDeltaUpload(mTimeFrom, getCurrentUserID());
+           DsDatahandlerFacade.kalturaDeltaUpload(mTimeFrom, getCurrentUsername());
         }
         catch(Exception e) {
             throw handleException(e);
@@ -171,13 +171,17 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
      * Gets the name of the current user from the OAuth token.
      * @return
      */
-    private static String getCurrentUserID() {
-        Message message = JAXRSUtils.getCurrentMessage();
-        AccessToken token = (AccessToken) message.get(KBAuthorizationInterceptor.ACCESS_TOKEN);
+    private static String getCurrentUsername() {
+        final String UNKNOWN = "Unknown";
 
-        if (token != null) {
+        Message message = JAXRSUtils.getCurrentMessage();
+        if (message == null) {
+            return UNKNOWN;
+        }
+        AccessToken token = (AccessToken) message.get(KBAuthorizationInterceptor.ACCESS_TOKEN);
+        if (token != null && token.getName() != null) {
             return token.getName();
         }
-        return "no user";
+        return UNKNOWN;
     }
 }
