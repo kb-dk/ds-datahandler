@@ -195,7 +195,7 @@ public class HarvestTimeUtil {
 
     /**
      * Parsing modifiedTimeFrom to an OffsetDateTime so it can be saved in the Job table.
-     * If the parsing fails we try to add `T00:00:00Z` to the date
+     * If parsing fails we try adding `T00:00:00Z` to the date
      *
      * @param modifiedTimeFrom
      * @return modifiedTimeFrom parsed to an Instant
@@ -207,18 +207,14 @@ public class HarvestTimeUtil {
         try {
             offsetDateTimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.parse(modifiedTimeFrom), ZoneOffset.UTC);
         } catch (DateTimeParseException dateTimeParseException) {
-
-            log.info("DateTimeParseException was cast, modifiedTimeFrom is properly only a date: " + modifiedTimeFrom);
-
             if(modifiedTimeFrom.length() == 10) {
+                log.info("modifiedTimeFrom was probably only a date: {}, so adding hours to a new String modifiedTimeFromWithHours", modifiedTimeFrom);
 
-                log.info("modifiedTimeFrom was a date, so adding hours to a new String modifiedTimeFromWithHours");
-
-                modifiedTimeFromWithHours = modifiedTimeFrom + "T00:00:00Z";// expand if modifiedTimeFrom is only a date
+                modifiedTimeFromWithHours = modifiedTimeFrom + "T00:00:00Z";// expand modifiedTimeFrom if it's only a date
 
                 offsetDateTimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.parse(modifiedTimeFromWithHours), ZoneOffset.UTC);
             } else {
-                log.error("DateTimeParseException was cast: {}", dateTimeParseException.getMessage());
+                log.error("Failed to parse: {}, DateTimeParseException was cast: {}", modifiedTimeFrom, dateTimeParseException.getMessage(), dateTimeParseException);
 
                 throw new InvalidArgumentServiceException("Invalid from query parameter: ", dateTimeParseException.getMessage());
             }
