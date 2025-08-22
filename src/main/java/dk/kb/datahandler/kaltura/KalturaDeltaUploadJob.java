@@ -254,7 +254,7 @@ public class KalturaDeltaUploadJob {
      * @param  kalturaEntryId  The internal kaltura entryId
      * @throws IOException If API error
      */
-    public static void deleteStream(String kalturaEntryId) throws IOException {
+    public static void deleteStream(String kalturaEntryId) throws IOException, APIException {
         initKalturaClient();            
         boolean deleteStreamByEntryId = kalturaClient.deleteStreamByEntryId( kalturaEntryId);
         if (deleteStreamByEntryId) {
@@ -274,7 +274,7 @@ public class KalturaDeltaUploadJob {
      * @throws IOException
      * 
      */
-    private static String getInternalIdKaltura(String file_id) throws IOException {
+    private static String getInternalIdKaltura(String file_id) throws IOException, APIException {
 
         initKalturaClient();
 
