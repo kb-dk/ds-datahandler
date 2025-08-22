@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import com.kaltura.client.types.APIException;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
@@ -62,7 +63,7 @@ public class DsDatahandlerFacade {
      * @throws ServiceException
      */
     @Deprecated 
-    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long mTimeFrom) throws IOException, ServiceException {
+    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long mTimeFrom) throws IOException, ServiceException, APIException {
         if (mTimeFrom == null) {
             mTimeFrom = 0L;
         }
@@ -466,7 +467,7 @@ public class DsDatahandlerFacade {
         return oaiFilter.getProcessed();
     }
 
-    private static DsKalturaClient getKalturaClient() throws IOException {
+    private static DsKalturaClient getKalturaClient() throws IOException, APIException {
         String kalturaUrl= ServiceConfig.getKalturaUrl();
         String adminSecret = ServiceConfig.getKalturaAdminSecret();
         Integer partnerId = ServiceConfig.getKalturaPartnerId();  
