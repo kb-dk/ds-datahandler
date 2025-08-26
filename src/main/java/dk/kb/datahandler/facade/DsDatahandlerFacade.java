@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import com.kaltura.client.types.APIException;
 import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
@@ -64,7 +65,7 @@ public class DsDatahandlerFacade {
      * @throws ServiceException
      */
     @Deprecated
-    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long modifiedTimeFrom, String user) throws IOException, ServiceException {
+    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long modifiedTimeFrom, String user) throws IOException, ServiceException, APIException {
 
         long start = System.currentTimeMillis();
         long timer = start;
@@ -338,14 +339,14 @@ public class DsDatahandlerFacade {
      * @return Number of harvested records.
      */        
     public static Integer oaiIngestFull(String oaiTargetName, String user) throws Exception {
-        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);
 
         String modifiedTimeFrom = HarvestTimeUtil.generateFrom(oaiTargetDto, null); // from == null, use default start day for OAI target instead
         Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, modifiedTimeFrom, user, TypeDto.FULL);
 
         log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
 
-        return totalHarvested;            
+        return totalHarvested;
     }
 
     /**
@@ -488,7 +489,7 @@ public class DsDatahandlerFacade {
         return oaiFilter.getProcessed();
     }
 
-    private static DsKalturaClient getKalturaClient() throws IOException {
+    private static DsKalturaClient getKalturaClient() throws IOException, APIException {
         String kalturaUrl= ServiceConfig.getKalturaUrl();
         String adminSecret = ServiceConfig.getKalturaAdminSecret();
         Integer partnerId = ServiceConfig.getKalturaPartnerId();  

@@ -339,7 +339,7 @@ public class KalturaDeltaUploadJob {
 
         String kalturaUrl = ServiceConfig.getKalturaUrl();
         Integer partnerId = ServiceConfig.getKalturaPartnerId();
-        String adminSecret = null;// We use appTokens instead
+        String adminSecret = ServiceConfig.getKalturaAdminSecret();
         String userId = ServiceConfig.getKalturaUserId();
         String token = ServiceConfig.getKalturaToken();
         String tokenId = ServiceConfig.getKalturaTokenId();
