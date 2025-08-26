@@ -4,15 +4,20 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import com.kaltura.client.types.APIException;
+import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
+import dk.kb.datahandler.solr.SolrIndexResponse;
+import dk.kb.datahandler.storage.BasicStorage;
+import dk.kb.datahandler.storage.JobStorage;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 
 import org.apache.commons.io.IOUtils;
@@ -23,11 +28,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
-import dk.kb.datahandler.model.v1.OaiTargetDto;
 
 import dk.kb.datahandler.oai.OaiHarvestClient;
-import dk.kb.datahandler.job.JobCache;
 import dk.kb.datahandler.kaltura.KalturaDeltaUploadJob;
 import dk.kb.datahandler.oai.OaiRecord;
 import dk.kb.datahandler.oai.OaiResponse;
@@ -49,7 +51,7 @@ public class DsDatahandlerFacade {
 
     /**
      * Deprecated. The use of the mapping table was a temporary solution for "skygge prod"
-     * 
+     *
      * <p>
      * Will load all referenceId defined in storage and call Kaltura to map them to KalturaId.
      * The results will be saved in ds-storage in the mapping table.
@@ -57,16 +59,13 @@ public class DsDatahandlerFacade {
      * If the job fails before all mappingss are loaded, the records will not be enriched from the mapping table.
      * </p>
      * @param origin Only update mappings from this origin
-     * @param mTimeFrom Only update mappings for records with mTime after mTimeFrom
+     * @param modifiedTimeFrom Only update mappings for records with modifiedTime after modifiedTimeFrom
      * @return Number of mappings updated.
      * @throws IOException
      * @throws ServiceException
      */
-    @Deprecated 
-    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long mTimeFrom) throws IOException, ServiceException, APIException {
-        if (mTimeFrom == null) {
-            mTimeFrom = 0L;
-        }
+    @Deprecated
+    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long modifiedTimeFrom, String user) throws IOException, ServiceException, APIException {
 
         long start = System.currentTimeMillis();
         long timer = start;
@@ -74,16 +73,24 @@ public class DsDatahandlerFacade {
         //This is a good value and can also be used as batchSize against Kaltura.
 
         log.info("Starting resolving of Kaltura entry ID's for origin: '{}'. Resolving in batches of '{}' records.",
-                origin, batchSize);
+                 origin, batchSize);
 
         DsStorageClient dsAPI = getDsStorageApiClient();
         DsKalturaClient kalturaClient = getKalturaClient();
 
         long processed = 0;
-        long updated = 0;
+        int updated = 0;
         long recordsWithoutReferenceId = 0;
         List<DsRecordMinimalDto> records;
-        DsDatahandlerJobDto job = JobCache.createKalturaEnrichmentJob(origin, mTimeFrom);
+
+        OffsetDateTime offsetDatetimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.ofEpochMilli(modifiedTimeFrom), ZoneOffset.UTC);
+
+        JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.KALTURA_UPLOAD, origin, offsetDatetimeModifiedTimeFrom, user);
+
+        if (modifiedTimeFrom == null) {
+            modifiedTimeFrom = 0L;
+        }
+
         try {
             while(true) {
                 if (processed % 500 == 0) {
@@ -92,13 +99,13 @@ public class DsDatahandlerFacade {
                     timer = System.currentTimeMillis();
                 }
 
-                records = dsAPI.getMinimalRecords(origin, batchSize, mTimeFrom);
+                records = dsAPI.getMinimalRecords(origin, batchSize, modifiedTimeFrom);
                 if (records.isEmpty()) { //no more records
                     break;
                 }
 
-                mTimeFrom = records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
-                log.debug("Getting DsRecordMinimal from storage for origin={}, batchSize={}, mTimeFrom={}", origin, batchSize, mTimeFrom);
+                modifiedTimeFrom = records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
+                log.debug("Getting DsRecordMinimal from storage for origin={}, batchSize={}, modifiedTimeFrom={}", origin, batchSize, modifiedTimeFrom);
 
                 ArrayList<String> referenceIdsList= new ArrayList<String>();
                 for (DsRecordMinimalDto record: records) {
@@ -142,12 +149,14 @@ public class DsDatahandlerFacade {
                     "reference ID processed: '{}' The full request lasted '{}' milliseconds.",
                     updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
 
-            JobCache.finishJob(job ,(int) updated, false); //no error
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), updated, null);
+
             return updated;
         }
         catch (Exception e) {
-            JobCache.finishJob(job ,(int) updated, true);  //error            
-            throw new InternalServiceException("Error updating kalturaIds",e);         
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), updated, null);
+
+            throw new InternalServiceException("Error updating kalturaIds", e);
         }
     }
 
@@ -158,7 +167,7 @@ public class DsDatahandlerFacade {
      * @param is InputStream. Must be a zip-file containing single files that each is an XML record.
      * @return List of strings containing the records that failed parsing.
      * @throws ServiceException
-     */    
+     */
     public static ArrayList<String> ingestFromZipfile(String origin, InputStream is) throws ServiceException {
         ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
 
@@ -215,23 +224,24 @@ public class DsDatahandlerFacade {
      * @param origin Origin must be defined on the ds-present server.
      * @exception InternalServiceException Will throw exception is the dsPresentCollectionName is not known, or if server communication fails.
      */    
-    public static String indexSolrFull(String origin) throws InternalServiceException {
+    public static String indexSolrFull(String origin, String user) throws InternalServiceException {
+        SolrIndexResponse solrIndexResponse;
 
-        DsDatahandlerJobDto job = JobCache.createIndexSolrJob(origin, 0L);
+        JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.SOLR_INDEX, origin, null, user);
 
-        String response=null;
         try {
-          response= SolrUtils.indexOrigin(origin, 0L);
-          
+            solrIndexResponse = SolrUtils.indexOrigin(origin, 0L);
+
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), solrIndexResponse.getAllDocumentsIndexed().intValue(), null);
+
+        } catch(Exception e) {
+
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), null, null);
+
+            throw e;
         }
-        
-        catch(Exception e){
-            JobCache.finishJob(job, -1, true); //error
-            throw e; 
-        }        
-        
-        JobCache.finishJob(job, -1, false); //No error. We do not know how many records processed. But can be parsed from response.
-        return response;
+
+        return SolrUtils.solrIndexObjectAsJSON(solrIndexResponse);
     }
 
     /**
@@ -243,19 +253,27 @@ public class DsDatahandlerFacade {
      * @throws SolrServerException
      * @throws IOException
      */
-    public static String indexSolrDelta(String origin) throws InternalServiceException, SolrServerException, IOException {
-        Long lastStorageMTime = SolrUtils.getLatestMTimeForOrigin(origin);
-        String response = null;
-        DsDatahandlerJobDto job = JobCache.createIndexSolrJob(origin, lastStorageMTime);
+    public static String indexSolrDelta(String origin, String user) throws InternalServiceException, SolrServerException, IOException {
+        Long lastStorageModifiedTime = SolrUtils.getLatestMTimeForOrigin(origin);
+        SolrIndexResponse solrIndexResponse;
+
+        OffsetDateTime offsetDateTimeLastStorageModifiedTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(lastStorageModifiedTime), ZoneOffset.UTC);
+
+        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.SOLR_INDEX, origin, offsetDateTimeLastStorageModifiedTime, user);
+
         try {
-         response= SolrUtils.indexOrigin(origin, lastStorageMTime);
+            solrIndexResponse = SolrUtils.indexOrigin(origin, lastStorageModifiedTime);
+
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), solrIndexResponse.getAllDocumentsIndexed().intValue(), null);
+
+        } catch (Exception e) {
+
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), null, null);
+
+            throw e;
         }
-        catch(Exception e){
-            JobCache.finishJob(job, -1, true); //error
-            throw e; 
-        }                
-        JobCache.finishJob(job, -1, false); //No error. We do not know how many records processed. (But can be parsed from response maybe)
-        return response;
+
+        return SolrUtils.solrIndexObjectAsJSON(solrIndexResponse);
     }
 
     /**
@@ -281,31 +299,37 @@ public class DsDatahandlerFacade {
      * @throws SolrServerException
      * @throws IOException
      */
-    public static void kalturaDeltaUpload(Long mTimeFrom) throws InternalServiceException, SolrServerException, IOException {
+    public static void kalturaDeltaUpload(Long mTimeFrom, String user) throws InternalServiceException, SolrServerException, IOException {
 
-        DsDatahandlerJobDto job = JobCache.createKalturaDeltaUploadJob(mTimeFrom); //For job cache
+        OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.ofEpochMilli(mTimeFrom), ZoneOffset.UTC);
+
+        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.KALTURA_UPLOAD, null, offsetDateModifiedTimeFrom, user);
+
         log.info("Starting kaltura delta upload from mTimeFrom: " + mTimeFrom);
         try {
-          
-          //upload strems  
-          int numberStreamsUploaded=KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
-          log.info("Kaltura delta uploaded completed sucessfully. #streams uploaded={}", numberStreamsUploaded);
-          
-          //Index the records that has mTime modified due to kalturaId was set on record.
-          if (numberStreamsUploaded >0) {
-             log.info("Starting solr delta index job");
-             indexSolrDelta("ds.tv");          
-             indexSolrDelta("ds.radio");
-          }
+            //upload streams
+            int numberStreamsUploaded = KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
+
+            log.info("Kaltura delta uploaded completed successfully. #streams uploaded={}", numberStreamsUploaded);
+
+            updateJob(jobDto, JobStatusDto.COMPLETED, null,  OffsetDateTime.now(ZoneOffset.UTC), numberStreamsUploaded, null);
+
+            //Index the records that has mTime modified due to kalturaId was set on record.
+            if (numberStreamsUploaded > 0) {
+                log.info("Starting solr delta index job");
+                indexSolrDelta("ds.tv", user);
+                indexSolrDelta("ds.radio", user);
+            }
         }
-        catch(Throwable e){
-            log.error("Kaltura delta upload/indexing stopped due to error",e);
-            JobCache.finishJob(job, -1, true); //error
+        catch (Exception e) {
+            log.error("Kaltura delta upload/indexing stopped due to error", e);
+
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(),  OffsetDateTime.now(ZoneOffset.UTC), null, null);
+
             throw e; 
-        }                
-        JobCache.finishJob(job, -1, false); //No error.
+        }
     }
-    
+
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  
@@ -314,13 +338,15 @@ public class DsDatahandlerFacade {
      * @param oaiTargetName the location of the image, relative to the url argument
      * @return Number of harvested records.
      */        
-    public static Integer oaiIngestFull(String oaiTargetName) {
+    public static Integer oaiIngestFull(String oaiTargetName, String user) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);
 
-        String from = HarvestTimeUtil.generateFrom(oaiTargetDto, null); // from == null, use default start day for OAI target instead
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, from);
+        String modifiedTimeFrom = HarvestTimeUtil.generateFrom(oaiTargetDto, null); // from == null, use default start day for OAI target instead
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, modifiedTimeFrom, user, TypeDto.FULL);
+
         log.info("Full ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
-        return totalHarvested;            
+
+        return totalHarvested;
     }
 
     /**
@@ -332,15 +358,17 @@ public class DsDatahandlerFacade {
      * @param oaiTargetName The name for the OAI target in the configuration
      * @return Number of harvested records.
      */
-    public static Integer oaiIngestDelta(String oaiTargetName) throws Exception {
+    public static Integer oaiIngestDelta(String oaiTargetName, String user) throws Exception {
         OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);       
         String lastHarvestTime = HarvestTimeUtil.loadLastHarvestTime(oaiTargetDto);
 
         //Will be 1 interval for OAI targets that does not need to split into days
-        String from= HarvestTimeUtil.generateFrom(oaiTargetDto, lastHarvestTime);
-        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, from);
+        String modifiedTimeFrom = HarvestTimeUtil.generateFrom(oaiTargetDto, lastHarvestTime);
+        Integer totalHarvested = oaiIngestJobScheduler(oaiTargetName, modifiedTimeFrom, user, TypeDto.DELTA);
+
         log.info("Delta ingest of target={} completed with records={}", oaiTargetName, totalHarvested);
-        return totalHarvested;    	    	
+
+        return totalHarvested;
     }
 
     /**
@@ -351,35 +379,36 @@ public class DsDatahandlerFacade {
      * For each interval this method will start a new OAI job and call {@link #oaiIngestPerform(OaiTargetJob, String, String)}-method}<br>
      *  
      * @param oaiTargetName the name of the configured oai-target
-     * @param fromUntilList List of date intervals. When calling this method the date formats must be in format accepted by the target.
-     * @return Total number of records harvest from all intervals. Records that are discarded will not be counted.
+     * @param modifiedTimeFrom List of date intervals. When calling this method the date formats must be in format accepted by the target.
+     * @return Total number of records harvest modifiedTimeFrom all intervals. Records that are discarded will not be counted.
      * @throws InternalServiceException
      */
-    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String from) throws InternalServiceException {
-        int totalNumber = 0;
+    protected static Integer oaiIngestJobScheduler(String oaiTargetName, String modifiedTimeFrom, String user, TypeDto typeDto) throws InternalServiceException {
 
-        log.info("Starting jobs from: " + from + " for target: " + oaiTargetName);
+        log.info("Starting jobs modifiedTimeFrom: " + modifiedTimeFrom + " for target: " + oaiTargetName);
                        
-            OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);                
-            if (oaiTargetDto == null) {
-                throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
-                        "'. See the config method for list of configured targets.");
-            }
+        OaiTargetDto oaiTargetDto = ServiceConfig.getOaiTargets().get(oaiTargetName);
+        if (oaiTargetDto == null) {
+            throw new InvalidArgumentServiceException("No target found in configuration with name: '" + oaiTargetName +
+                    "'. See the config method for list of configured targets.");
+        }
 
-            DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTargetDto,from);        
-        
-            try {                       
-                int number = oaiIngestPerform(job, oaiTargetDto, from);
-                JobCache.finishJob(job, number, false); //No error
-                totalNumber += number;
-            }
-            catch (Exception e) {
-                log.error("Oai harvest did not complete successfully for target: '{}'", oaiTargetName);                
-                JobCache.finishJob(job, totalNumber, true); //Error
-                throw new InternalServiceException("Error harvesting oai target: " + oaiTargetName, e);
-            }
-        
-        return totalNumber;
+        JobDto jobDto = startJob(typeDto, CategoryDto.OAI_HARVEST, oaiTargetName, HarvestTimeUtil.parseModifiedTimeFromToOffsetDatetime(modifiedTimeFrom), user);
+
+        try {
+            Integer numberOfRecords = oaiIngestPerform(oaiTargetDto, modifiedTimeFrom);
+
+            updateJob(jobDto, JobStatusDto.COMPLETED, null,  OffsetDateTime.now(ZoneOffset.UTC), numberOfRecords, null);
+
+            return numberOfRecords;
+
+        } catch (Exception e) {
+            log.error("Oai harvest did not complete successfully for target: oaiTarget:'{}' jobId:'{}'", oaiTargetName, jobDto.getId());
+
+            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(),  OffsetDateTime.now(ZoneOffset.UTC), null, null);
+
+            throw new InternalServiceException("Error harvesting oai target: oaiTarget: " + oaiTargetName + " jobId: " + jobDto.getId(), e);
+        }
     }
 
     /**
@@ -388,13 +417,8 @@ public class DsDatahandlerFacade {
      *  
      * @return List of jobs with status
      */    
-    public static List<DsDatahandlerJobDto> getJobs() {
-        List<DsDatahandlerJobDto> running=JobCache.getRunningJobsMostRecentFirst();
-        List<DsDatahandlerJobDto> completed=JobCache.getCompletedJobsMostRecentFirst();
-        List<DsDatahandlerJobDto> result = new ArrayList<>();
-        result.addAll(running);
-        result.addAll(completed);
-        return result;
+    public static List<JobDto> getJobs(CategoryDto categoryDto, JobStatusDto jobStatusDto) {
+        return BasicStorage.performStorageAction("Get all jobs", JobStorage::new, (JobStorage storage) -> storage.getJobs(categoryDto, jobStatusDto));
     }
 
     /**
@@ -402,15 +426,13 @@ public class DsDatahandlerFacade {
      * The scheduler method will set up the job and responsible for status of the job. <br>
      * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
      * For each successful response the persistent datestamp for the OAI target will be updated with datestamp from last parsed records.<br>
-     *      
-     * @param job The configured OAI target
+     *
      * @param from Datestamp format that will be accepted for that OAI target
-     * @param until Datestamp format that will be accepted for that OAI target
      * @return Number of harvested records for this date interval. Records discarded by filter etc. will not be counted.
      * @throws IOException If anything unexpected happens. OAI target does not respond, invalid xml, XSLT (filtering) failed etc.
      * @throws ServiceException
      */
-    private static Integer oaiIngestPerform(DsDatahandlerJobDto job, OaiTargetDto oaiTargetDto, String from) throws IOException, ServiceException {
+    private static Integer oaiIngestPerform(OaiTargetDto oaiTargetDto, String from) throws IOException, ServiceException {
 
         //In the OAI spec, the from-parameter can be both yyyy-MM-dd or full UTC timestamp (2021-10-09T09:42:03Z)
         //But COP only supports the short version. So when this is called use short format
@@ -422,7 +444,7 @@ public class DsDatahandlerFacade {
         String targetName = oaiTargetDto.getName();
 
         DsStorageClient dsAPI = getDsStorageApiClient();
-        OaiHarvestClient client = new OaiHarvestClient(job, oaiTargetDto, from);
+        OaiHarvestClient client = new OaiHarvestClient(oaiTargetDto, from);
         OaiResponse response = client.next();
 
         OaiResponseFilter oaiFilter;
@@ -473,10 +495,10 @@ public class DsDatahandlerFacade {
         Integer partnerId = ServiceConfig.getKalturaPartnerId();  
         String userId = ServiceConfig.getKalturaUserId();                               
         String token= ServiceConfig.getKalturaToken();
-        String tokenId= ServiceConfig.getKalturaTokenId();               
+        String tokenId= ServiceConfig.getKalturaTokenId();
         int sessionDurationSeconds=ServiceConfig.getKalturaSessionDurationSeconds();
         int sessionRefreshThreshold=ServiceConfig.getKalturaSessionRefreshThreshold();
-                
+
         log.info("creating kaltura client for partnerID:"+partnerId);     
         DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, sessionDurationSeconds, sessionRefreshThreshold);
         return kalturaClient;
@@ -490,5 +512,63 @@ public class DsDatahandlerFacade {
         String dsStorageUrl = ServiceConfig.getDsStorageUrl();
         storageClient = new DsStorageClient(dsStorageUrl);
         return storageClient;
+    }
+
+    /**
+     * Creates new a new running job
+     * @param typeDto
+     * @param categoryDto
+     * @param source
+     * @param modifiedTimeFrom
+     * @param user
+     * @return jobDto JobDto that is running
+     */
+    private static JobDto startJob(TypeDto typeDto, CategoryDto categoryDto, String source, OffsetDateTime modifiedTimeFrom, String user) {
+        JobDto jobDto = new JobDto();
+
+        jobDto.setId(UUID.randomUUID());
+        jobDto.setType(typeDto);
+        jobDto.setCategory(categoryDto);
+        jobDto.setSource(source);
+        jobDto.setJobStatus(JobStatusDto.RUNNING);
+        jobDto.setModifiedTimeFrom(modifiedTimeFrom);
+        jobDto.setCreatedBy(user);
+        jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+
+        String databaseMessage = jobDto.getJobStatus().getValue() + " " + jobDto.getType().getValue() + " " + jobDto.getCategory().getValue();
+
+        UUID jobId = BasicStorage.performStorageAction(databaseMessage, JobStorage::new, (JobStorage storage) -> {
+            if (storage.hasRunningJob(categoryDto, source)) {
+                throw new InvalidArgumentServiceException("There is already an OAI Harvest job running");
+            }
+            return storage.createJob(jobDto);
+        });
+
+        jobDto.setId(jobId);
+
+        return jobDto;
+    }
+
+    /**
+     * Updates an existing job
+     * @param jobDto the job to update
+     * @param jobStatusDto the new status of the job
+     * @param message error message if the job has failed
+     * @param endTime if the job is set to FAILED, STOPPED or COMPLETED
+     * @param numberOfRecords number of records created or updated by the job
+     */
+    private static void updateJob(JobDto jobDto, JobStatusDto jobStatusDto, String message, OffsetDateTime endTime, Integer numberOfRecords, OffsetDateTime restartValue) {
+        jobDto.setJobStatus(jobStatusDto);
+        jobDto.setMessage(message);
+        jobDto.setEndTime(endTime);
+        jobDto.setNumberOfRecords(numberOfRecords);
+        jobDto.setRestartValue(restartValue);
+
+        String databaseMessage = jobDto.getJobStatus().getValue() + " " + jobDto.getType().getValue() + " " + jobDto.getCategory().getValue();
+
+        BasicStorage.performStorageAction(databaseMessage, JobStorage::new, (JobStorage storage) -> {
+            storage.updateJob(jobDto);
+            return null;
+        });
     }
 }

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Moved JobCache from memory to database (*Remember: OPS need to create jobs table in database, the ddl is found in /src/main/resources/ddl/create_ds_datahandler_storage.ddl*)
 - KalturaDeltaUploadJob will now use kaltura.adminSecret if present.
 
 ## [3.0.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.2) - 2025-07-07

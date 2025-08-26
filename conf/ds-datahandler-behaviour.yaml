@@ -251,5 +251,13 @@ security:
     # This typically used for calls between services, where there is a need for elevated access.
     secret: '01234567-89ab-cdef-0123-456789abcdef'
 
-
+db:
+  # In production this will always be PostgreSQL
+  # Only use H2 for smaller-scale (a million records max) test setups
+  url: jdbc:h2:${env:TMPDIR:-/tmp}/h2_ds_storage;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+  # url: jdbc:h2:/home/XXX/workspace/ds-storage/target/h2/ds_storage;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+  driver: org.h2.Driver
+  username: ''
+  password: ''
+  connectionPoolSize: 10
       
