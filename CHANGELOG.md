@@ -6,20 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
 ### Added
 
 ### Changed
 - Moved JobCache from memory to database (*Remember: OPS need to create jobs table in database, the ddl is found in /src/main/resources/ddl/create_ds_datahandler_storage.ddl*)
 - KalturaDeltaUploadJob will now use kaltura.adminSecret if present.
 
+### Fixed
+
 ## [3.0.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.3) - 2025-09-01
 ### Changed
-- Bumped ds-kaltura to version 3.0.2. Handlig new Exception and benefit from changes in kaltura
+- Bumped ds-kaltura to version 3.0.2. Handling new Exception and benefit from changes in kaltura
 - Bumped ds-present to version 3.0.1 to benefit from changes in that module
 - Bumped ds-storage to version 3.0.1 to benefit from changes in that module
-
 
 ## [3.0.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.2) - 2025-07-07
 ### Changed
@@ -32,7 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.0) - 2025-06-12
 ### Added
 -  New service method '/kaltura/deltaupload' that will upload new streams to Kaltura. The method will also update storage records with kaltura entryId after each  upload. When all uploads are completed it will start a solr delta-index job. Errors will streams will be marked with StreamErrorTypeDto enum values. License module must be updated so both missing kalturaId's and id's that start with 'ERROR_' are filtered away.
-
 
 ### Changed
 - Refactored OAI Response filters, to remove duplicate code from Preservica and DR filter
