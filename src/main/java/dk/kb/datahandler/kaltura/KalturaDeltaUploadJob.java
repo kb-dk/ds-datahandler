@@ -252,10 +252,9 @@ public class KalturaDeltaUploadJob {
      * This method is not called by the upload flow, but from the integration unittest. 
      * 
      * @param  kalturaEntryId  The internal kaltura entryId
-     * @throws IOException If API error
-     * @throws APIException
+     * @throws APIException If API error
      */
-    public static void deleteStream(String kalturaEntryId) throws IOException, APIException {
+    public static void deleteStream(String kalturaEntryId) throws APIException {
         initKalturaClient();            
         boolean deleteStreamByEntryId = kalturaClient.deleteStreamByEntryId( kalturaEntryId);
         if (deleteStreamByEntryId) {
@@ -273,7 +272,8 @@ public class KalturaDeltaUploadJob {
      * @param file_id Our reference to the stream.
      * @return kalturaId or null if does not exist.
      * @throws IOException
-     * @throws APIException
+     * @throws APIException If API error
+     *
      */
     private static String getInternalIdKaltura(String file_id) throws IOException, APIException {
 
@@ -339,7 +339,7 @@ public class KalturaDeltaUploadJob {
 
         String kalturaUrl = ServiceConfig.getKalturaUrl();
         Integer partnerId = ServiceConfig.getKalturaPartnerId();
-        String adminSecret = ServiceConfig.getKalturaAdminSecret();
+        String adminSecret = null;// We use appTokens instead
         String userId = ServiceConfig.getKalturaUserId();
         String token = ServiceConfig.getKalturaToken();
         String tokenId = ServiceConfig.getKalturaTokenId();

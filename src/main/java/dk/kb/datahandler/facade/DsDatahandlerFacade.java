@@ -489,7 +489,7 @@ public class DsDatahandlerFacade {
         return oaiFilter.getProcessed();
     }
 
-    private static DsKalturaClient getKalturaClient() throws IOException, APIException {
+    private static DsKalturaClient getKalturaClient() throws APIException {
         String kalturaUrl= ServiceConfig.getKalturaUrl();
         String adminSecret = ServiceConfig.getKalturaAdminSecret();
         Integer partnerId = ServiceConfig.getKalturaPartnerId();  
