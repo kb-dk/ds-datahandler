@@ -1,141 +1,130 @@
-#!/usr/bin/env groovy
-
-
-openshift.withCluster() { // Use "default" cluster or fallback to OpenShift cluster detection
-
-
-    echo "Hello from the project running Jenkins: ${openshift.project()}"
-
-    //Create template with maven settings.xml, so we have credentials for nexus
-    podTemplate(
-            inheritFrom: 'maven',
-            cloud: 'openshift', //cloud must be openshift
-            envVars: [ //This fixes the error with en_US.utf8 not being found
-                    envVar(key:"LC_ALL", value:"C.utf8")
-            ],
-            volumes: [ //mount the settings.xml
-                       secretVolume(mountPath: '/etc/m2', secretName: 'maven-settings')
-            ]) {
-
-        //Stages outside a node declaration runs on the jenkins host
-
-        String projectName = encodeName("${JOB_NAME}")
-        echo "name=${projectName}"
-
-        try {
-            //GO to a node with maven and settings.xml
-            node(POD_LABEL) {
-                //Do not use concurrent builds
-                properties([disableConcurrentBuilds()])
-
-                def mvnCmd = "mvn -s /etc/m2/settings.xml --batch-mode"
-
-                stage('checkout') {
-                    checkout scm
-                }
-
-                stage('Mvn clean package') {
-                    sh "${mvnCmd} -PallTests clean package"
-                }
-
-                stage('Analyze build results') {
-                    recordIssues aggregatingResults: true,
-                        tools: [java(),
-                                javaDoc(),
-                                mavenConsole(),
-                                taskScanner(highTags:'FIXME', normalTags:'TODO', includePattern: '**/*.java', excludePattern: 'target/**/*')]
-                }
-
-// Disabled 2022-12-05 due to internal Jenkins problems @ the Royal Danish Library
-// This should be re-enabled when the problems has been solved
-//                stage('Create test project') {
-//                    recreateProject(projectName)
-//
-//                    openshift.withProject(projectName) {
-//
-//                        stage("Create build and deploy application") {
-//                            openshift.newBuild("--strategy source", "--binary", "-i kb-infra/kb-s2i-tomcat90", "--name java-webapp")
-//                            openshift.startBuild("java-webapp", "--from-dir=.", "--follow")
-//                            openshift.newApp("java-webapp:latest")
-//                            openshift.create("route", "edge", "--service=java-webapp")
-//                        }
-//                    }
-//                }
-
-                stage('Push to Nexus (if Master)') {
-                    sh 'env'
-                    echo "Branch name ${env.BRANCH_NAME}"
-                    if (env.BRANCH_NAME == 'master') {
-	                sh "${mvnCmd} clean deploy -DskipTests=true"
-                    } else {
-	                echo "Branch ${env.BRANCH_NAME} is not master, so no mvn deploy"
-                    }
-                }
-
-                stage('Cleanup') {
-                    openshift.selector("project/${projectName}").delete()
-                }
-            }
-        } catch (e) {
-            currentBuild.result = 'FAILURE'
-            throw e
-        } 
+pipeline {
+    agent {
+        label 'DS agent'
     }
-}
 
+    environment {
+        MVN_SETTINGS = '/etc/m2/settings.xml' //This should be changed in Jenkins config for the DS agent
+        PROJECT = 'ds-datahandler'
+        BUILD_TO_TRIGGER = 'ds-discover'
+    }
 
-private void recreateProject(String projectName) {
-    echo "Delete the project ${projectName}, ignore errors if the project does not exist"
-    try {
-        openshift.selector("project/${projectName}").delete()
+    triggers {
+        // This triggers the pipeline when a PR is opened or updated or so I hope
+        githubPush()
+    }
 
-        openshift.selector("project/${projectName}").watch {
-            echo "Waiting for the project ${projectName} to be deleted"
-            return it.count() == 0
+    parameters {
+        string(name: 'ORIGINAL_BRANCH', defaultValue: "${env.BRANCH_NAME}", description: 'Branch of first job to run, will also be PI_ID for a PR')
+        string(name: 'ORIGINAL_JOB', defaultValue: "${env.PROJECT}", description: 'What job was the first to build?')
+        string(name: 'TARGET_BRANCH', defaultValue: "${env.CHANGE_TARGET}", description: 'Target branch if PR')
+    }
+
+    stages {
+        stage('Echo Environment Variables') {
+            steps {
+                echo "ORIGINAL_BRANCH: ${env.ORIGINAL_BRANCH}"
+                echo "PROJECT: ${env.PROJECT}"
+                echo "ORIGINAL_JOB: ${env.ORIGINAL_JOB}"
+                echo "BUILD_TO_TRIGGER: ${env.BUILD_TO_TRIGGER}"
+                echo "TARGET_BRANCH: ${env.TARGET_BRANCH}"
+            }
         }
 
-    } catch (e) {
+        stage('Change version if part of PR') {
+            when {
+                expression {
+                    env.ORIGINAL_BRANCH ==~ "PR-[0-9]+"
+                }
+            }
+            steps {
+                script {
+                    sh "mvn -s ${env.MVN_SETTINGS} versions:set -DnewVersion=${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-${env.PROJECT}-SNAPSHOT"
+                    echo "Changing MVN version to: ${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-${env.PROJECT}-SNAPSHOT"
+                }
+            }
+        }
 
+        stage('Change dependencies') {
+            when {
+                expression {
+                    env.ORIGINAL_BRANCH ==~ "PR-[0-9]+"
+                }
+            }
+            steps {
+                script {
+                    if ( env.ORIGINAL_JOB == 'ds-storage' ){
+                        sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.storage:* -DdepVersion=${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-${env.ORIGINAL_JOB}-SNAPSHOT -DforceVersion=true"
+                        sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.present:* -DdepVersion=${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-ds-present-SNAPSHOT -DforceVersion=true"
+                        sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.kaltura:* -DdepVersion=${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT -DforceVersion=true"
+                        echo "Changing MVN dependency storage to: ${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-${env.ORIGINAL_JOB}-SNAPSHOT"
+                        echo "Changing MVN dependency present to: ${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-ds-present-SNAPSHOT"
+                        echo "Changing MVN dependency kaltura to: ${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT"
+                    }
+                    if ( env.ORIGINAL_JOB == 'ds-license' || env.ORIGINAL_JOB == 'ds-present'){
+                        sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.present:* -DdepVersion=${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-ds-present-SNAPSHOT -DforceVersion=true"
+                        sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.kaltura:* -DdepVersion=${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT -DforceVersion=true"
+                        echo "Changing MVN dependency present to: ${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-ds-present-SNAPSHOT"
+                        echo "Changing MVN dependency kaltura to: ${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT"
+                    }
+                    if ( env.ORIGINAL_JOB == 'ds-kaltura' ){
+                        sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.kaltura:* -DdepVersion=${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-${env.ORIGINAL_JOB}-SNAPSHOT -DforceVersion=true"
+                        echo "Changing MVN dependency kaltura to: ${env.ORIGINAL_BRANCH}-${env.ORIGINAL_JOB}-${env.ORIGINAL_JOB}-SNAPSHOT"
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    // Execute Maven build
+                    sh "mvn -s ${env.MVN_SETTINGS} clean package"
+                }
+            }
+        }
+
+        stage('Push to Nexus') {
+            when {
+                // Check if Build was successful
+                expression {
+                    currentBuild.currentResult == "SUCCESS" && env.ORIGINAL_BRANCH ==~ "master|release_v[0-9]+|PR-[0-9]+"
+                }
+            }
+            steps {
+                sh "mvn -s ${env.MVN_SETTINGS} clean deploy -DskipTests=true"
+            }
+        }
+
+        stage('Trigger Kaltura Build') {
+            when {
+                expression {
+                    currentBuild.currentResult == "SUCCESS" && env.ORIGINAL_BRANCH ==~ "master|release_v[0-9]+|PR-[0-9]+"
+                }
+            }
+            steps {
+                script {
+                    if ( env.ORIGINAL_BRANCH ==~ "PR-[0-9]+" ) {
+                        echo "Triggering: DS-GitHub/${env.BUILD_TO_TRIGGER}/${env.TARGET_BRANCH}"
+
+                        def result = build job: "DS-GitHub/${env.BUILD_TO_TRIGGER}/${env.TARGET_BRANCH}",
+                        parameters: [
+                            string(name: 'ORIGINAL_BRANCH', value: env.ORIGINAL_BRANCH),
+                            string(name: 'ORIGINAL_JOB', value: env.ORIGINAL_JOB),
+                            string(name: 'TARGET_BRANCH', value: env.TARGET_BRANCH)
+                        ]
+                        wait: true // Wait for the pipeline to finish
+                    }
+
+                    else if ( env.ORIGINAL_BRANCH ==~ "master|release_v[0-9]+" ){
+                        echo "Triggering: DS-GitHub/${env.BUILD_TO_TRIGGER}/${env.ORIGINAL_BRANCH}"
+
+                        def result = build job: "DS-GitHub/${env.BUILD_TO_TRIGGER}/${env.ORIGINAL_BRANCH}"
+                        wait: true // Wait for the pipeline to finish
+                    }
+                    echo "Child Pipeline Result: ${result}"
+                }
+            }
+        }
     }
-//
-//    //Wait for the project to be gone
-//    sh "until ! oc get project ${projectName}; do date;sleep 2; done; exit 0"
-
-    echo "Create the project ${projectName}"
-    openshift.newProject(projectName)
 }
-
-/**
- * Encode the jobname as a valid openshift project name
- * @param jobName the name of the job
- * @return the jobname as a valid openshift project name
- */
-private static String encodeName(groovy.lang.GString jobName) {
-    def jobTokens = jobName.tokenize("/")
-    def org = jobTokens[0]
-    if(org.contains('-')) {
-        org = org.tokenize("-").collect{it.take(1)}.join("")
-    } else {
-        org = org.take(3)
-    }
-
-    // Repository have a very long name, lets shorten it further
-    def repo = jobTokens[1]
-    if(repo.contains('-')) {
-        repo = repo.tokenize("-").collect{it.take(1)}.join("")
-    } else if(repo.contains('_')) {
-        repo = repo.tokenize("_").collect{it.take(1)}.join("")
-    } else {
-        repo = repo.take(3)
-    }
-
-
-    def name = ([org, repo] + jobTokens.drop(2)).join("-")
-            .replaceAll("\\s", "-")
-            .replaceAll("_", "-")
-            .replace("/", '-')
-            .replaceAll("^openshift-", "")
-            .toLowerCase()
-    return name
-}
-
