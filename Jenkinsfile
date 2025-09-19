@@ -31,6 +31,19 @@ pipeline {
             }
         }
 
+        stage('Checkout aegis and copy files') {
+            steps {
+
+                dir('aegis') {
+                git url: 'https://github.com/kb-dk/aegis.git', branch: 'master', credentialsId: 'kb-dk-jenkins-github-app'
+                }
+
+                sh 'cp -RT aegis/ds-datahandler/local/src/test/resources/ ./src/test/resources/'
+                sh 'rm -r aegis'
+
+            }
+        }
+
         stage('Change version if part of PR') {
             when {
                 expression {
@@ -96,7 +109,7 @@ pipeline {
             }
         }
 
-        stage('Trigger Kaltura Build') {
+        stage('Trigger Discover Build') {
             when {
                 expression {
                     currentBuild.currentResult == "SUCCESS" && env.ORIGINAL_BRANCH ==~ "master|release_v[0-9]+|PR-[0-9]+"
