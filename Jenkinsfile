@@ -33,14 +33,18 @@ pipeline {
 
         stage('Checkout aegis and copy files') {
             steps {
-
                 dir('aegis') {
-                git url: 'https://github.com/kb-dk/aegis.git', branch: 'master', credentialsId: 'kb-dk-jenkins-github-app'
+                    checkout scmGit(
+                        branches: [[name: 'refs/heads/master']],
+                        userRemoteConfigs: [[
+                            credentialsId: 'kb-dk-jenkins-github-app',
+                            url: 'https://github.com/kb-dk/aegis.git'
+                        ]]
+                    )
                 }
 
-                sh 'cp -RT aegis/ds-datahandler/local/src/test/resources/ ./src/test/resources/'
-                sh 'rm -r aegis'
-
+                sh 'cp --recursive -T aegis/ds-datahandler/local/src/test/resources/ ./src/test/resources/'
+                sh 'rm --recursive aegis'
             }
         }
 
