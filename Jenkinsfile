@@ -43,7 +43,7 @@ pipeline {
                     )
                 }
 
-                sh 'cp --recursive aegis/ds-datahandler/local/src/test/resources/. ./src/test/resources/'
+                sh "cp --recursive aegis/ds-datahandler/local/src/test/resources/. ${env.WORKSPACE}/src/test/resources/"
                 sh 'rm --recursive aegis'
             }
         }
