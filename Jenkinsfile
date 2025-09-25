@@ -43,10 +43,10 @@ pipeline {
                     )
                 }
 
-                sh 'cp --recursive -T aegis/ds-datahandler/local/src/test/resources/ ./src/test/resources/'
+                sh 'cp --recursive aegis/ds-datahandler/local/src/test/resources/. ./src/test/resources/'
                 sh 'rm --recursive aegis'
             }
-        }
+        }z
 
         stage('Change version if part of PR') {
             when {
