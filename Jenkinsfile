@@ -79,6 +79,19 @@ pipeline {
             steps {
                 script {
                     switch (params.ORIGINAL_JOB) {
+                        case ['ds-parent']:
+                            sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.dsparent:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-parent-SNAPSHOT -DforceVersion=true"
+                            sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.dsshared:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-shared-SNAPSHOT -DforceVersion=true"
+                            sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.storage:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-storage-SNAPSHOT -DforceVersion=true"
+                            sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.present:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-present-SNAPSHOT -DforceVersion=true"
+                            sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.kaltura:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT -DforceVersion=true"
+                            
+                            echo "Changing MVN dependency ds-parent to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-parent-SNAPSHOT"
+                            echo "Changing MVN dependency ds-shared to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-shared-SNAPSHOT"
+                            echo "Changing MVN dependency ds-storage to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-storage-SNAPSHOT"
+                            echo "Changing MVN dependency ds-present to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-present-SNAPSHOT"
+                            echo "Changing MVN dependency ds-kaltura to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT"
+                            break
                         case ['ds-shared']:
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.dsshared:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-shared-SNAPSHOT -DforceVersion=true"
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.storage:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-storage-SNAPSHOT -DforceVersion=true"
