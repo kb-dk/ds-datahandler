@@ -149,7 +149,6 @@ harvest() {
             continue
         fi
 
-
         RESUMPTION_TOKEN="$(grep -o '<resumptionToken>.*</resumptionToken>' "$DEST" | sed 's/<resumptionToken>\(.*\)<\/resumptionToken>/\1/')"
 
         local LEND=$(date +%s)
