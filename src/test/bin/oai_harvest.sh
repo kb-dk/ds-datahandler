@@ -142,12 +142,11 @@ harvest() {
             curl -s -X POST "$CALL" -H "Content-Type: ${CONTENT_TYPE}" --user "$USER_PASS" > "$DEST"
         fi
 
-        grep -q "401 returned" $DEST
-        if [ $? -eq 0 ]; then
-            echo "Failed to get batch due to 401 error. Backing off and the retrying..."
-            sleep 3
-            continue
-        fi
+	if grep -q "401 returned" $DEST ; then
+	    echo "Failed to get batch due to 401 error. Backing off and the retrying..."
+	    sleep 3
+	    continue
+	fi
 
         RESUMPTION_TOKEN="$(grep -o '<resumptionToken>.*</resumptionToken>' "$DEST" | sed 's/<resumptionToken>\(.*\)<\/resumptionToken>/\1/')"
 
