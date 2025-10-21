@@ -144,7 +144,7 @@ harvest() {
 
         grep -q "401 returned" $DEST
         if [ $? -eq 0 ]; then
-            echo "  Failed to get batch due to 401 error. Backing off and the retrying..."
+            echo "Failed to get batch due to 401 error. Backing off and the retrying..."
             sleep 3
             continue
         fi
