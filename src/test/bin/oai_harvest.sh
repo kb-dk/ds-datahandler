@@ -142,6 +142,7 @@ harvest() {
             curl -s -X POST "$CALL" -H "Content-Type: ${CONTENT_TYPE}" --user "$USER_PASS" > "$DEST"
         fi
 
+	# Preservica will occasionally return 401 even though we present the right credentials
 	if grep -q "401 returned" $DEST ; then
 	    echo "Failed to get batch due to 401 error. Backing off and the retrying..."
 	    sleep 3
