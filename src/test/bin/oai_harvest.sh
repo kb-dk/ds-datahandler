@@ -125,7 +125,7 @@ harvest() {
     
     echo "Storing harvested records in ${OUTPUT_PREFIX}_.....${OUTPUT_POSTFIX}"
 
-    while [[ true ]]; do
+    while true; do
         local LSTART=$(date +%s)
         local DEST="${OUTPUT_PREFIX}_$(printf "%.10d" $COUNTER)${OUTPUT_POSTFIX}"
         
@@ -143,8 +143,8 @@ harvest() {
         fi
 
         # Preservica will occasionally return 401 even though we present the right credentials
-        if grep -q "401 returned" $DEST ; then
-            echo "Failed to get batch due to 401 error. Backing off and the retrying..."
+        if grep --quiet "401 returned" $DEST; then
+            echo "Failed to get batch due to 401 error. Backing off and retrying..."
             sleep 3
         continue
         fi
