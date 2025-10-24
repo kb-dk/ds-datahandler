@@ -278,7 +278,7 @@ public class DsDatahandlerFacade {
 
     /**
      * <p>
-     * Start job that uploading streams to kaltura that does not have an kaltura_id from the given mTimeFrom
+     * Start job that uploading streams to kaltura that does not have an kaltura_id.
      * <p>
      * Will only extract records from Solr with access_malfunction:false and production_code_allowed:true 
      * <p>
@@ -293,22 +293,22 @@ public class DsDatahandlerFacade {
      *
      * <p>
      * A solr delta indexing job will be started if both the job completes succesfully or fails. 
-     * 
-     * @param mTimeFrom only uploading missing streams for records with mTimeFrom this value or higher 
+     *  
      * @throws InternalServiceException
      * @throws SolrServerException
      * @throws IOException
      */
-    public static void kalturaDeltaUpload(Long mTimeFrom, String user) throws InternalServiceException, SolrServerException, IOException {
+    public static void kalturaDeltaUpload(String user) throws InternalServiceException, SolrServerException, IOException {
 
-        OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.ofEpochMilli(mTimeFrom), ZoneOffset.UTC);
+        //This value will always be year 1970. It is not defined for kalturaDeltaUpload
+        OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneOffset.UTC);
 
         JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.KALTURA_UPLOAD, null, offsetDateModifiedTimeFrom, user);
 
-        log.info("Starting kaltura delta upload from mTimeFrom: " + mTimeFrom);
+        log.info("Starting kaltura delta upload");
         try {
             //upload streams
-            int numberStreamsUploaded = KalturaDeltaUploadJob.uploadStreamsToKaltura(mTimeFrom);
+            int numberStreamsUploaded = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
             log.info("Kaltura delta uploaded completed successfully. #streams uploaded={}", numberStreamsUploaded);
 

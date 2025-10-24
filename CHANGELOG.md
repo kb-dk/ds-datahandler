@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved JobCache from memory to database (*Remember: OPS need to create jobs table in database, the ddl is found in
   /src/main/resources/ddl/create_ds_datahandler_storage.ddl*)
 - KalturaDeltaUploadJob will now use kaltura.adminSecret if present.
+- Removed mTimeFrom from service method /kaltura/deltaupload. Method will automatic only load records that are missing kaltura-id.
 
 ### Fixed
 

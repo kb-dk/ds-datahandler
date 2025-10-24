@@ -67,10 +67,10 @@ public class KalturaDeltaUploadJob {
      * @param mTimeFrom Upload all streams for records in solr with mTimeFrom higher than this value. 
      * @throws InternalServiceException If any Solr or Kaltura call fails. Stop uploading more. Maybe allow single kaltura upload jobs to fail later.  
      */
-    public static int uploadStreamsToKaltura(long mTimeFrom) throws InternalServiceException{
+    public static int uploadStreamsToKaltura() throws InternalServiceException{
 
         boolean moreSolrRecords = true;
-        long mTimeFromCurrent = mTimeFrom;
+        long mTimeFromCurrent = 0; //Use this for batching. It will still only extract records without kaltura_id
         Integer numberStreamsUploaded = 0;
         String uploadTagForKaltura=getUploadTagForKaltura();  
         //The minimumFileSizeInBytesvalue has been defined by Asger+Petur. It has been burned into the kaltura bulk upload and must not be changed, unless we start with a new empty kaltura partnerid.
