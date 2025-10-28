@@ -11,7 +11,7 @@
       <destName>ds-datahandler.xml.SAMPLE</destName>
     </file>
     <file>
-      <source>src/main/resources/ddl/create_ds_datahandler_db.ddl</source>
+      <source>src/test/resources/ddl/create_ds_datahandler_db.ddl</source>
       <outputDirectory>/</outputDirectory>
       <destName>create_ds_datahandler_db.ddl</destName>
     </file>
