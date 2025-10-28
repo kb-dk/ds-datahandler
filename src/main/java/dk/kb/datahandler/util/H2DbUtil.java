@@ -13,7 +13,7 @@ import java.sql.SQLException;
  * When running in Jetty mode, it needs to set up the database. This class can not in test packages or it can not be loaded
  */
 public class H2DbUtil {
-    protected static final String CREATE_TABLES_DDL_FILE = "ddl/create_ds_datahandler_storage.ddl";
+    protected static final String CREATE_TABLES_DDL_FILE = "ddl/create_ds_datahandler_h2_unittest.ddl";
     
     private static final Logger log = LoggerFactory.getLogger(H2DbUtil.class);
     
