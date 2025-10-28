@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved JobCache from memory to database (*Remember: OPS need to create jobs table in database, the ddl is found in
   /src/test/resources/ddl/create_ds_datahandler_db.ddl*)
 - KalturaDeltaUploadJob will now use kaltura.adminSecret if present.
+- Use CustomJacksonJsonProvider.class from `ds-shared`
+
 
 ### Fixed
 
