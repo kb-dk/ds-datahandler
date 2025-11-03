@@ -14,6 +14,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,6 +33,7 @@ import org.xml.sax.InputSource;
 
 import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.util.XmlUtils;
 import dk.kb.util.xml.XMLEscapeSanitiser;
 
 import org.w3c.dom.ls.*;
@@ -75,6 +77,7 @@ public class OaiHarvestClient {
         String xmlResponse = null;
         try {
             xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());
+           //log.debug("XML FROM OAI:"+xmlResponse); //Only enable if really needed. Even for debug it will fill log.
         } catch (InterruptedException e) {
             throw new InternalServiceException(e);
         }
@@ -137,14 +140,20 @@ public class OaiHarvestClient {
     }
 
     public ArrayList<OaiRecord> extractRecordsFromXml( Document document ) {
-        NodeList nList = document.getElementsByTagName("record"); 
+        
+        NodeList nList = document.getElementsByTagName("ListRecords"); //This is the OAI tag, not part of preservica data.
+        Element recordsElement = (Element) nList.item(0); //always one.
+        List<Element> elementList = new ArrayList<Element>();
+        elementList.add(recordsElement);
+        
+        List<Element> recordList = XmlUtils.getDirectChildsByTag(elementList, "record");
 
         ArrayList<OaiRecord> records= new ArrayList<OaiRecord>();
-        for (int i =0;i<nList.getLength();i++) {                                         
+        for (int i =0;i<recordList.size();i++) {                                         
 
             OaiRecord oaiRecord = new OaiRecord();
             records.add(oaiRecord);
-            Element record =  (Element)nList.item(i);                                                                    
+            Element record =  (Element)recordList.get(i);                                                                    
             String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();                        
             String datestamp =  record.getElementsByTagName("datestamp").item(0).getTextContent();
             String headerStatus = getHeaderStatus(record);            
@@ -350,7 +359,5 @@ public class OaiHarvestClient {
             return "?";                    
         }
     }
-
-
-
+          
 }
