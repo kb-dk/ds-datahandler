@@ -302,9 +302,9 @@ public class DsDatahandlerFacade {
      * @throws IOException
      */
 
-    public static void kalturaDeltaUpload(Long mTimeFrom, String user) throws InternalServiceException, SolrServerException, IOException {
+    public static void kalturaDeltaUpload(String user) throws InternalServiceException, SolrServerException, IOException {
         // mTimeFrom is in microseconds
-        OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.EPOCH.plus(mTimeFrom, ChronoUnit.MICROS), ZoneOffset.UTC);
+        OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.EPOCH.plus(0, ChronoUnit.MICROS), ZoneOffset.UTC);
 
         JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.KALTURA_UPLOAD, null, offsetDateModifiedTimeFrom, user);
 
