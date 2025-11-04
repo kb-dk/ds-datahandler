@@ -125,9 +125,9 @@ harvest() {
     
     echo "Storing harvested records in ${OUTPUT_PREFIX}_.....${OUTPUT_POSTFIX}"
 
-    while [[ true ]]; do
+    while true; do
         local LSTART=$(date +%s)
-        local DEST="${OUTPUT_PREFIX}_$(printf "%.5d" $COUNTER)${OUTPUT_POSTFIX}"
+        local DEST="${OUTPUT_PREFIX}_$(printf "%.10d" $COUNTER)${OUTPUT_POSTFIX}"
         
         if [[ -z "$RESUMPTION_TOKEN" ]]; then
             local CALL="$BASE"
@@ -142,6 +142,13 @@ harvest() {
             curl -s -X POST "$CALL" -H "Content-Type: ${CONTENT_TYPE}" --user "$USER_PASS" > "$DEST"
         fi
 
+        # Preservica will occasionally return 401 even though we present the right credentials
+        if grep --quiet "401 returned" $DEST; then
+            echo "Failed to get batch due to 401 error. Backing off and retrying..."
+            sleep 3
+        continue
+        fi
+
         RESUMPTION_TOKEN="$(grep -o '<resumptionToken>.*</resumptionToken>' "$DEST" | sed 's/<resumptionToken>\(.*\)<\/resumptionToken>/\1/')"
 
         local LEND=$(date +%s)
@@ -153,6 +160,7 @@ harvest() {
         fi
 
         COUNTER=$((COUNTER+1))
+
     done
     local END_TIME=$(date +%s)
     # SECONDS is not local as it is to be used in report()
@@ -160,7 +168,6 @@ harvest() {
 }
 
 report() {
-    echo "sss"
     T=$(mktemp)
     grep -o '<datestamp>[^<]*<\/datestamp>' ${OUTPUT_PREFIX}_*${OUTPUT_POSTFIX} | cut -d: -f2- | grep -o '[0-9T:.Z-]*'| sort > "$T"
     TOTAL=$(wc -l < "$T")
@@ -168,6 +175,8 @@ report() {
     FIRST=$(head -n 1 < "$T")
     LAST=$(tail -n 1 < "$T")
     rm "$T"
+
+    UNIQUE_IDENTIFIERS=$(LC_ALL=C grep -horP '(?<=<identifier>oai:)(.*?)(?=</identifier)' . | sort | uniq | wc -l)
     
     echo "Finished harvesting"
     echo ""
@@ -179,6 +188,7 @@ report() {
     echo "Total records: $TOTAL"
     echo "Total seconds: $SECONDS"
     echo "Record/second: $SPEED"
+    echo "Total unique identifiers: $UNIQUE_IDENTIFIERS"
     echo ""
     echo "Harvest start: $START_TIME"
     echo "Harvest end:   $(date +"%Y-%m-%d %H:%M")"
