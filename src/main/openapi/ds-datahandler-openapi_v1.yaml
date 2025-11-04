@@ -8,7 +8,6 @@ info:
     email: '${user.name}@kb.dk'
   license:
     name: '${license.name}'
-    url: '${license.url}'
 servers:
   #  /api must match servlet-mapping in web.xml
   - url: '${config:openapi.serverurl}'
@@ -208,15 +207,6 @@ paths:
         - KBOAuth:
           - any   
       operationId: kalturaDeltaUpload
-      parameters:    
-        - name: mTimeFrom
-          in: query
-          description: 'Start from records with this mTimeFrom or later. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
-          required: false
-          schema:
-            type: integer
-            format: int64
-            default: 0
       responses:
         '204':
           description: No Content - The job finished and the server did not deliver any content.
