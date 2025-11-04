@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -83,7 +84,8 @@ public class DsDatahandlerFacade {
         long recordsWithoutReferenceId = 0;
         List<DsRecordMinimalDto> records;
 
-        OffsetDateTime offsetDatetimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.ofEpochMilli(modifiedTimeFrom), ZoneOffset.UTC);
+        // modifiedTimeFrom is in microseconds
+        OffsetDateTime offsetDatetimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.EPOCH.plus(modifiedTimeFrom, ChronoUnit.MICROS), ZoneOffset.UTC);
 
         JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.KALTURA_UPLOAD, origin, offsetDatetimeModifiedTimeFrom, user);
 
@@ -257,7 +259,8 @@ public class DsDatahandlerFacade {
         Long lastStorageModifiedTime = SolrUtils.getLatestMTimeForOrigin(origin);
         SolrIndexResponse solrIndexResponse;
 
-        OffsetDateTime offsetDateTimeLastStorageModifiedTime = OffsetDateTime.ofInstant(Instant.ofEpochMilli(lastStorageModifiedTime), ZoneOffset.UTC);
+        // lastStorageModifiedTime is in microseconds
+        OffsetDateTime offsetDateTimeLastStorageModifiedTime = OffsetDateTime.ofInstant(Instant.EPOCH.plus(lastStorageModifiedTime, ChronoUnit.MICROS), ZoneOffset.UTC);
 
         JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.SOLR_INDEX, origin, offsetDateTimeLastStorageModifiedTime, user);
 
@@ -298,10 +301,10 @@ public class DsDatahandlerFacade {
      * @throws SolrServerException
      * @throws IOException
      */
-    public static void kalturaDeltaUpload(String user) throws InternalServiceException, SolrServerException, IOException {
 
-        //This value will always be year 1970. It is not defined for kalturaDeltaUpload
-        OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneOffset.UTC);
+    public static void kalturaDeltaUpload(Long mTimeFrom, String user) throws InternalServiceException, SolrServerException, IOException {
+        // mTimeFrom is in microseconds
+        OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.EPOCH.plus(mTimeFrom, ChronoUnit.MICROS), ZoneOffset.UTC);
 
         JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.KALTURA_UPLOAD, null, offsetDateModifiedTimeFrom, user);
 
