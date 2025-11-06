@@ -52,4 +52,12 @@ public class OaiRecord {
     public void setDateStamp(String dateStamp) {
         this.dateStamp = dateStamp;
     }
+
+
+    @Override
+    public String toString() {
+        return "OaiRecord [id=" + id + ", metadata=" + metadata + ", dateStamp=" + dateStamp + ", deleted=" + deleted + "]";
+    }
+    
+    
 }

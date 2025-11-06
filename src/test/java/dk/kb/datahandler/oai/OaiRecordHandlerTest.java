@@ -40,12 +40,13 @@ public class OaiRecordHandlerTest {
     }
 
     @Test
-    public void testRecordHasMetadata() throws IOException, SAXException, ParserConfigurationException {
+    public void testRecordHasMetadataAndNestedRecord() throws IOException, SAXException, ParserConfigurationException {
         SAXParser saxParser = factory.newSAXParser();
         PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
 
         saxParser.parse(Resolver.resolveStream("xml/054c55b3-ed3a-442c-99dd-1b80c0218114.xml"), handler);
 
+        //also tests that a nested record will not break parsing.
         assertTrue(handler.recordContainsMetadata());
     }
 

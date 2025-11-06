@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xip="http://www.tessella.com/XIP/v4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
   <responseDate>2023-10-25T10:22:15Z</responseDate>
-  <request verb="GetRecord" identifier="oai:du:e47690e4-4d37-464f-9006-ba3b017a7c51" metadataPrefix="XIP_full_schema">https://pvica-access-stage.statsbiblioteket.dk/OAI-PMH/</request>
-  <GetRecord>
+  <request verb="ListRecords" identifier="oai:du:e47690e4-4d37-464f-9006-ba3b017a7c51" metadataPrefix="XIP_full_schema">https://pvica-access-stage.statsbiblioteket.dk/OAI-PMH/</request>
+  <ListRecords>
     <record>
       <header>
         <identifier>oai:du:e47690e4-4d37-464f-9006-ba3b017a7c51</identifier>
@@ -22,5 +22,5 @@
         </aboutRecord:aboutRecord>
       </about>
     </record>
-  </GetRecord>
+  </ListRecords>
 </OAI-PMH>
