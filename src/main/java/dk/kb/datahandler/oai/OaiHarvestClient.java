@@ -76,8 +76,7 @@ public class OaiHarvestClient {
         //log.info("resumption token at:"+resumptionToken);
         String xmlResponse = null;
         try {
-            xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());
-           //log.debug("XML FROM OAI:"+xmlResponse); //Only enable if really needed. Even for debug it will fill log.
+            xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());          
         } catch (InterruptedException e) {
             throw new InternalServiceException(e);
         }
@@ -146,10 +145,10 @@ public class OaiHarvestClient {
         List<Element> elementList = new ArrayList<Element>();
         elementList.add(recordsElement);
         
-        List<Element> recordList = XmlUtils.getDirectChildsByTag(elementList, "record");
+        List<Element> recordList = XmlUtils.getDirectChildrenByTag(elementList, "record");
 
         ArrayList<OaiRecord> records= new ArrayList<OaiRecord>();
-        for (int i =0;i<recordList.size();i++) {                                         
+        for (int i =0; i<recordList.size(); i++) {                                         
 
             OaiRecord oaiRecord = new OaiRecord();
             records.add(oaiRecord);

@@ -12,18 +12,18 @@ public class XmlUtils {
      * Extract sub-nodes of type tagName that are direct children to the parent tag. 
      * 
      * @param elements List of elements
-     * @param tagName name of children tag so extract
+     * @param tagName name of children tag to extract
      * @return Total list of elements of the tag type that are direct children to the top nodes
      */
         
-    public static List<Element> getDirectChildsByTag(List<Element> elements, String tagName) {
+    public static List<Element> getDirectChildrenByTag(List<Element> elements, String tagName) {
         List<Element> res = new ArrayList<>();
 
         for (Element element : elements) {
-            NodeList allChilds = element.getElementsByTagName(tagName);
-            for (int i = 0; i < allChilds.getLength(); i++) {
-                if (allChilds.item(i).getParentNode().equals(element))
-                    res.add((Element) allChilds.item(i));
+            NodeList allChildren = element.getElementsByTagName(tagName);
+            for (int i = 0; i < allChildren.getLength(); i++) {
+                if (allChildren.item(i).getParentNode().equals(element))
+                    res.add((Element) allChildren.item(i));
             }
         }
 
@@ -36,10 +36,10 @@ public class XmlUtils {
      * @param tagName list of tags that will be exctraced recursive.
      * @return Total list of elements of direct children to the recursive tagName list.
      */
-    public static List<Element> getDirectChildsByTagRecursive(List<Element> elements, String... tagNames) {
-        List<Element> previous=elements;
+    public static List<Element> getDirectChildrenByTagRecursive(List<Element> elements, String... tagNames) {
+        List<Element> previous = elements;
         for (String tag : tagNames) {
-            previous=getDirectChildsByTag(previous, tag);
+            previous = getDirectChildrenByTag(previous, tag);
         }        
 
         return previous;
