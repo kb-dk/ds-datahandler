@@ -49,7 +49,7 @@ public class OaiHarvestClientIntegrationTest {
         //String set="oai:kb.dk:images:billed:2014:jun:hca";
         
         OaiTargetDto oaiTarget = new OaiTargetDto();       
-        oaiTarget.setUrl("http://www5.kb.dk/cop/oai/"); //Public KB service
+        oaiTarget.setUrl("https://www.kb.dk/cop/oai/"); //Public KB service
         oaiTarget.setMetadataprefix("mods");               
         oaiTarget.setSet(set);
         oaiTarget.setUsername(null);
