@@ -84,7 +84,7 @@ public class OaiHarvestClientIntegrationTest {
 
         YAML conf = ServiceConfig.getConfig();
 
-        // https://pvica-devel2.statsbiblioteket.dk/OAI-PMH/?verb=ListRecords&metadataPrefix=XIP_full_schema
+        //pvica-devel2
         OaiTargetDto oaiTarget = new OaiTargetDto();
         oaiTarget.setUrl(conf.getString("integration.oaiTargets[0].url")); //
         oaiTarget.setName("Unitest2");
