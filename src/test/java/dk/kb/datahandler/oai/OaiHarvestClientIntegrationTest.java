@@ -84,14 +84,14 @@ public class OaiHarvestClientIntegrationTest {
 
         YAML conf = ServiceConfig.getConfig();
 
-        // name: pvica6.devel
+        // https://pvica-devel2.statsbiblioteket.dk/OAI-PMH/?verb=ListRecords&metadataPrefix=XIP_full_schema
         OaiTargetDto oaiTarget = new OaiTargetDto();
-        oaiTarget.setUrl(conf.getString("integration.oaiTargets[1].url")); //Public KB service
+        oaiTarget.setUrl(conf.getString("integration.oaiTargets[0].url")); //
         oaiTarget.setName("Unitest2");
-        oaiTarget.setMetadataprefix(conf.getString("integration.oaiTargets[1].metadataPrefix"));
-        oaiTarget.setUsername(conf.getString("integration.oaiTargets[1].user"));
-        oaiTarget.setPassword(conf.getString("integration.oaiTargets[1].password"));;
-        oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
+        oaiTarget.setMetadataprefix(conf.getString("integration.oaiTargets[0].metadataPrefix"));
+        oaiTarget.setUsername(conf.getString("integration.oaiTargets[0].user"));
+        oaiTarget.setPassword(conf.getString("integration.oaiTargets[0].password"));;
+        oaiTarget.setDatasource(conf.getString("integration.oaiTargets[0].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
 
