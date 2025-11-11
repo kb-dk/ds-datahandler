@@ -84,14 +84,14 @@ public class OaiHarvestClientIntegrationTest {
 
         YAML conf = ServiceConfig.getConfig();
 
-        //pvica-devel2
+        //pvica.devel2
         OaiTargetDto oaiTarget = new OaiTargetDto();
-        oaiTarget.setUrl(conf.getString("integration.oaiTargets[0].url")); //
+        oaiTarget.setUrl(conf.getString("oaiTargets[0].url")); //
         oaiTarget.setName("Unitest2");
-        oaiTarget.setMetadataprefix(conf.getString("integration.oaiTargets[0].metadataPrefix"));
-        oaiTarget.setUsername(conf.getString("integration.oaiTargets[0].user"));
-        oaiTarget.setPassword(conf.getString("integration.oaiTargets[0].password"));;
-        oaiTarget.setDatasource(conf.getString("integration.oaiTargets[0].datasource"));
+        oaiTarget.setMetadataprefix(conf.getString("oaiTargets[0].metadataPrefix"));
+        oaiTarget.setUsername(conf.getString("oaiTargets[0].user"));
+        oaiTarget.setPassword(conf.getString("oaiTargets[0].password"));;
+        oaiTarget.setDatasource(conf.getString("oaiTargets[0].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
 
