@@ -206,7 +206,7 @@ present:
 # The two flavour params depend on the kaltura partnerId. The values 3 and 359 match stage and prod kaltura.
 kaltura:
   url:  'XX'
-  partnerId:  xxx
+  partnerId:  399
   userId:  'xxx@kb.dk'
   adminSecret: ''
   token: 'XXXX'

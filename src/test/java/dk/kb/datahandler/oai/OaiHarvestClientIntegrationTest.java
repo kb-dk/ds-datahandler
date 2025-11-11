@@ -49,7 +49,7 @@ public class OaiHarvestClientIntegrationTest {
         //String set="oai:kb.dk:images:billed:2014:jun:hca";
         
         OaiTargetDto oaiTarget = new OaiTargetDto();       
-        oaiTarget.setUrl("http://www5.kb.dk/cop/oai/"); //Public KB service
+        oaiTarget.setUrl("https://www.kb.dk/cop/oai/"); //Public KB service
         oaiTarget.setMetadataprefix("mods");               
         oaiTarget.setSet(set);
         oaiTarget.setUsername(null);
@@ -84,14 +84,14 @@ public class OaiHarvestClientIntegrationTest {
 
         YAML conf = ServiceConfig.getConfig();
 
-        // name: pvica6.devel
+        //pvica.devel2
         OaiTargetDto oaiTarget = new OaiTargetDto();
-        oaiTarget.setUrl(conf.getString("integration.oaiTargets[1].url")); //Public KB service
+        oaiTarget.setUrl(conf.getString("oaiTargets[0].url")); 
         oaiTarget.setName("Unitest2");
-        oaiTarget.setMetadataprefix(conf.getString("integration.oaiTargets[1].metadataPrefix"));
-        oaiTarget.setUsername(conf.getString("integration.oaiTargets[1].user"));
-        oaiTarget.setPassword(conf.getString("integration.oaiTargets[1].password"));;
-        oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
+        oaiTarget.setMetadataprefix(conf.getString("oaiTargets[0].metadataPrefix"));
+        oaiTarget.setUsername(conf.getString("oaiTargets[0].user"));
+        oaiTarget.setPassword(conf.getString("oaiTargets[0].password"));;
+        oaiTarget.setDatasource(conf.getString("oaiTargets[0].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
 
