@@ -86,7 +86,7 @@ public class OaiHarvestClientIntegrationTest {
 
         //pvica.devel2
         OaiTargetDto oaiTarget = new OaiTargetDto();
-        oaiTarget.setUrl(conf.getString("oaiTargets[0].url")); //
+        oaiTarget.setUrl(conf.getString("oaiTargets[0].url")); 
         oaiTarget.setName("Unitest2");
         oaiTarget.setMetadataprefix(conf.getString("oaiTargets[0].metadataPrefix"));
         oaiTarget.setUsername(conf.getString("oaiTargets[0].user"));
