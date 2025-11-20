@@ -9,7 +9,7 @@
 
     <groupId>dk.kb.datahandler</groupId>
     <artifactId>ds-datahandler</artifactId>
-    <version>3.0.4-SNAPSHOT</version>
+    <version>3.0.4</version>
     <packaging>war</packaging>
     <description>
     # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library. 
@@ -116,7 +116,7 @@
       <dependency>
         <groupId>dk.kb.present</groupId>
         <artifactId>ds-present</artifactId>
-          <version>3.0.1</version>
+          <version>3.0.2</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
