@@ -8,14 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
--  XML-dom parsing of OAI response into records fixed after a <record> had a nested <record>-tag as new xml fragment format for fuzzy match.
--  Delete record from OAI response fixed. Was blocking harvesting. The delete record has no metadata, so have to delete from both ds.radio or ds.tv. Only 1 will match. 
 
 ### Added
 
 
 ### Changed
 
+
+## [3.0.4](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.4) - 2025-11-20
+### Fixed
+-  XML-dom parsing of OAI response into records fixed after a <record> had a nested <record>-tag as new xml fragment format for fuzzy match.
+-  Delete record from OAI response fixed. Was blocking harvesting. The delete record has no metadata, so have to delete from both ds.radio or ds.tv. Only 1 will match.
 
 ## [3.0.3](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.3) - 2025-09-01
 ### Changed
