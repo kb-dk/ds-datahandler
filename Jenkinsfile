@@ -85,7 +85,7 @@ pipeline {
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.storage:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-storage-SNAPSHOT -DforceVersion=true"
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.present:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-present-SNAPSHOT -DforceVersion=true"
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.kaltura:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT -DforceVersion=true"
-
+                            
                             echo "Changing MVN dependency ds-parent to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-parent-SNAPSHOT"
                             echo "Changing MVN dependency ds-shared to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-shared-SNAPSHOT"
                             echo "Changing MVN dependency ds-storage to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-storage-SNAPSHOT"
@@ -107,7 +107,7 @@ pipeline {
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.storage:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-storage-SNAPSHOT -DforceVersion=true"
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.present:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-present-SNAPSHOT -DforceVersion=true"
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.kaltura:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT -DforceVersion=true"
-
+                            
                             echo "Changing MVN dependency ds-storage to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-storage-SNAPSHOT"
                             echo "Changing MVN dependency ds-present to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-present-SNAPSHOT"
                             echo "Changing MVN dependency ds-kaltura to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT"
@@ -115,13 +115,13 @@ pipeline {
                         case ['ds-license', 'ds-present']:
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.present:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-present-SNAPSHOT -DforceVersion=true"
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.kaltura:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT -DforceVersion=true"
-
+                            
                             echo "Changing MVN dependency ds-present to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-present-SNAPSHOT"
                             echo "Changing MVN dependency ds-kaltura to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT"
                             break
                         case ['ds-kaltura']:
                             sh "mvn -s ${env.MVN_SETTINGS} versions:use-dep-version -Dincludes=dk.kb.kaltura:* -DdepVersion=${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT -DforceVersion=true"
-
+                            
                             echo "Changing MVN dependency ds-kaltura to: ${params.ORIGINAL_BRANCH}-${params.ORIGINAL_JOB}-ds-kaltura-SNAPSHOT"
                             break
                     }
@@ -191,7 +191,7 @@ pipeline {
                         }
 
                         echo "Triggering: DS-GitHub/${env.BUILD_TO_TRIGGER}/${BRANCH_TO_USE}"
-
+                        
                         build job: "DS-GitHub/${env.BUILD_TO_TRIGGER}/${BRANCH_TO_USE}",
                             parameters: [
                                 string(name: 'ORIGINAL_BRANCH', value: params.ORIGINAL_BRANCH),

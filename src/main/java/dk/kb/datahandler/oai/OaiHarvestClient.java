@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -21,7 +19,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import dk.kb.datahandler.config.ServiceConfig;
-import dk.kb.datahandler.job.JobCache;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +28,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
+import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.util.XmlUtils;
 import dk.kb.util.xml.XMLEscapeSanitiser;
@@ -43,14 +40,12 @@ public class OaiHarvestClient {
 
     private static final Logger log = LoggerFactory.getLogger(OaiHarvestClient.class);
 
-    private DsDatahandlerJobDto dsDatahandlerJob = null;
     private OaiTargetDto oaiTarget = null;
     private boolean completed=false;
     private String resumptionToken=null;
     private String from;
 
-    public OaiHarvestClient(DsDatahandlerJobDto job, OaiTargetDto oaiTarget,String from){
-        this.dsDatahandlerJob=job;
+    public OaiHarvestClient(OaiTargetDto oaiTarget, String from) {
         this.oaiTarget=oaiTarget;
         this.from=from;
     }
@@ -76,7 +71,7 @@ public class OaiHarvestClient {
         //log.info("resumption token at:"+resumptionToken);
         String xmlResponse = null;
         try {
-            xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());          
+            xmlResponse = getHttpResponse(uri, oaiTarget.getUsername(), oaiTarget.getPassword());
         } catch (InterruptedException e) {
             throw new InternalServiceException(e);
         }
@@ -85,8 +80,7 @@ public class OaiHarvestClient {
 
         String errorMessage = getErrorMessage(document);
          if (errorMessage != null && errorMessage.trim().length() >1) {                       
-            log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);                    
-            dsDatahandlerJob.setCompletedTime(JobCache.formatSystemMillis(System.currentTimeMillis()));            
+            log.info("Error message from OAI server when harvesting set:"+set +" message:"+errorMessage);
             oaiResponse.setError(true);
             return oaiResponse;// will have no records
          }
@@ -117,7 +111,7 @@ public class OaiHarvestClient {
     /* Will construct the uri for next http request. Resumption token will be set if not null.
      * Also special coding since  Cumulus/Cups API is not OAI-PMH compliant. 
      */
-    private String addQueryParamsToUri(String uri,String set, String resumptionToken, String metadataPrefix, String from) {
+    private String addQueryParamsToUri(String uri, String set, String resumptionToken, String metadataPrefix, String from) {
 
         //For unknown reason cumulus/cups oai API failes if metaData+set parameter is repeated with resumptionToken! (bug)
         if (resumptionToken==null && set != null) { //COPS fails if set is still used with resumptiontoken
@@ -139,20 +133,20 @@ public class OaiHarvestClient {
     }
 
     public ArrayList<OaiRecord> extractRecordsFromXml( Document document ) {
-        
+
         NodeList nList = document.getElementsByTagName("ListRecords"); //This is the OAI tag, not part of preservica data.
         Element recordsElement = (Element) nList.item(0); //always one.
         List<Element> elementList = new ArrayList<Element>();
         elementList.add(recordsElement);
-        
+
         List<Element> recordList = XmlUtils.getDirectChildrenByTag(elementList, "record");
 
         ArrayList<OaiRecord> records= new ArrayList<OaiRecord>();
-        for (int i =0; i<recordList.size(); i++) {                                         
+        for (int i =0; i<recordList.size(); i++) {
 
             OaiRecord oaiRecord = new OaiRecord();
             records.add(oaiRecord);
-            Element record =  (Element)recordList.get(i);                                                                    
+            Element record =  (Element)recordList.get(i);
             String identifier =  record.getElementsByTagName("identifier").item(0).getTextContent();                        
             String datestamp =  record.getElementsByTagName("datestamp").item(0).getTextContent();
             String headerStatus = getHeaderStatus(record);            
@@ -358,5 +352,5 @@ public class OaiHarvestClient {
             return "?";                    
         }
     }
-          
+
 }

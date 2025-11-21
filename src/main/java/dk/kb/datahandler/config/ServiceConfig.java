@@ -107,7 +107,8 @@ public class ServiceConfig {
         kalturaToken = ServiceConfig.getConfig().getString("kaltura.token");
         kalturaTokenId = ServiceConfig.getConfig().getString("kaltura.tokenId");
         //Do not use kaltura adminsecret, use token and tokenId instead.
-        kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
+        //Must not be shared or exposed. Use token,tokenId.
+        kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret", "");
       
         
         kalturaSessionDurationSeconds = ServiceConfig.getConfig().getInteger("kaltura.sessionDurationSeconds", 86400);
@@ -352,5 +353,29 @@ public class ServiceConfig {
         return streamPathPreservicaRadio;
     }
 
+    public static  String getDBDriver() {
+        String dbDriver= serviceConfig.getString("db.driver");
+        return dbDriver;
+    }
+
+    public static  String getDBUrl() {
+        String dbUrl= serviceConfig.getString("db.url");
+        return dbUrl;
+    }
+
+    public static  String getDBUserName() {
+        String dbUserName= serviceConfig.getString("db.username");
+        return dbUserName;
+    }
+
+    public static  String getDBPassword() {
+        String dbPassword= serviceConfig.getString("db.password");
+        return dbPassword;
+    }
+
+    public static int getConnectionPoolSize() {
+        int connectionPoolSize= serviceConfig.getInteger("db.connectionPoolSize",10); //Default 10
+        return connectionPoolSize;
+    }
     
 }
