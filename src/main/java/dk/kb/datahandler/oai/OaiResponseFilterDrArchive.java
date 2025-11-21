@@ -50,6 +50,15 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
                 continue;
             }
 
+            //OAI delete record: <record><header status="deleted"><identifier>oai:io:3c0d8491-1766-42cf-ba65-8d6567e2ea5a</identifier><datestamp>2025-10-08T13:13:06.065Z</datestamp></header></record>
+            //deleted has no metadata. We do not know if it is radio or tv. So delete both options.            
+            if(oaiRecord.isDeleted()) { 
+                log.info("Deleting record with id:"+oaiRecord.getId());
+                addToStorage(oaiRecord, "ds.tv", null); //Why are these not enums? 
+                addToStorage(oaiRecord, "ds.radio", null); //Why are these not enums?               
+                return;
+            }
+
             PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
             try {
                 InputStream inputXml = new ByteArrayInputStream(oaiRecord.getMetadata().getBytes(StandardCharsets.UTF_8));
@@ -57,7 +66,7 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
             } catch (SAXException | IOException e) {
                 throw new InternalServiceException(e);
             }
-
+            
             // Filter out material that are not send on DR channels
             if (!handler.recordIsDr){
                 processed++;
@@ -74,7 +83,7 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
             if (!informationObjectContainsPbcoreBoolean(handler, recordId)){
                 continue;
             }
-
+            
             String origin = getOrigin(oaiRecord, datasource, handler);
 
             try {

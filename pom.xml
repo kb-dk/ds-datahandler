@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>dk.kb.dsparent</groupId>
@@ -10,7 +9,7 @@
 
     <groupId>dk.kb.datahandler</groupId>
     <artifactId>ds-datahandler</artifactId>
-    <version>3.0.4-SNAPSHOT</version>
+    <version>3.0.5-SNAPSHOT</version>
     <packaging>war</packaging>
     <description>
     # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library.
@@ -157,28 +156,29 @@
             </exclusions>
         </dependency>
 
-        <!-- Client for ds-storage This will also require the org.openapitools dependency-->
-        <dependency>
-            <groupId>dk.kb.present</groupId>
-            <artifactId>ds-present</artifactId>
-            <version>3.0.3-SNAPSHOT</version>
-            <type>jar</type>
-            <classifier>classes</classifier>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+     <!-- Client for ds-storage This will also require the org.openapitools dependency-->
+      <dependency>
+        <groupId>dk.kb.present</groupId>
+        <artifactId>ds-present</artifactId>
+          <version>3.0.4-SNAPSHOT</version>
+          <type>jar</type>
+          <classifier>classes</classifier>
+          <exclusions>
+            <exclusion>
+              <groupId>*</groupId>
+              <artifactId>*</artifactId>
+            </exclusion>
+        </exclusions>
+      </dependency>
 
-        <dependency>
-            <groupId>dk.kb.kaltura</groupId>
-            <artifactId>ds-kaltura</artifactId>
-            <version>3.0.3-SNAPSHOT</version>
-            <type>jar</type>
-        </dependency>
 
+      <dependency>
+          <groupId>dk.kb.kaltura</groupId>
+          <artifactId>ds-kaltura</artifactId>
+          <version>3.0.3-SNAPSHOT</version>
+          <type>jar</type>
+      </dependency>
+        
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
