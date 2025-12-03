@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-
+- Fixed delta upload for records with no title(s). New DR-DAT data does not have title always.
 
 ### Added
 
