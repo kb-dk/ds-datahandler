@@ -7,13 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Fixed delta upload for records with no title(s). New DR-DAT data does not have title always.
 
 ### Added
 
-
 ### Changed
 
+## [3.0.5] (https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.5) - 2025-12-03
+### Fixed
+- Fixed delta upload for records with no title(s). New DR-DAT data does not have title always.
 
 ## [3.0.4](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.4) - 2025-11-20
 ### Fixed
