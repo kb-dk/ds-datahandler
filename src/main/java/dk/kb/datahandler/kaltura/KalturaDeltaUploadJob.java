@@ -91,7 +91,7 @@ public class KalturaDeltaUploadJob {
 
                     String title = "";//Default
                     ArrayList<String> titles = (ArrayList<String>) doc.getFieldValue("title"); //multivalue
-                    if (titles.size() > 0) {
+                    if (titles != null && titles.size() > 0) {
                         title = titles.get(0);// take first
                     }                   
                     String description = (String) doc.getFieldValue("description");
