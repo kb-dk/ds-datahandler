@@ -7,6 +7,8 @@ import java.util.List;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import dk.kb.kaltura.enums.FileExtension;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
@@ -62,7 +64,7 @@ public class KalturaManualFileUploader {
                 String tag = "DS-KALTURA"; //So we can the uploaded collection easy in Kaltura.
                 
                 String referenceId = null;
-                referenceId = client.uploadMedia(filePath, refId, MediaType.AUDIO, title, description, tag);
+                referenceId = client.uploadMedia(filePath, refId, MediaType.AUDIO, title, description, tag, FileExtension.MP3);
                 
                 System.out.println("Uploaded file: " + file + " got kaltura referenceId: " + referenceId);
             }
