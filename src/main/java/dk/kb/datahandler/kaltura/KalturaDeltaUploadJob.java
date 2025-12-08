@@ -1,5 +1,6 @@
 package dk.kb.datahandler.kaltura;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +12,7 @@ import java.util.Locale;
 
 import com.kaltura.client.types.APIException;
 import dk.kb.kaltura.enums.FileExtension;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
@@ -130,7 +132,8 @@ public class KalturaDeltaUploadJob {
      * 
      */
     private static void processUpload(Integer numberStreamsUploaded, String uploadTagForKaltura, long minimumFileSizeInBytes, DsStorageClient storageClient,
-            String resourceDescription, String title, String description, String fileId, String id, String path, String fileExtension) {
+            String resourceDescription, String title, String description, String fileId, String id, String path,
+                                      String fileExtension) {
         try {                                    
             //upload stream
             MediaType mediaType = KalturaUtil.getMediaType(resourceDescription);
@@ -247,14 +250,30 @@ public class KalturaDeltaUploadJob {
                                       String tag, MediaType mediaType, int flavourParamId, String fileExtension) throws IOException,
             APIException {
 
-        initKalturaClient();
-        log.info("Starting upload stream. FilePath='{}' with flavorParamId='{}'", filePath,flavourParamId);
-        FileExtension fileExtEnum = FileExtension.fromString(fileExtension);
-        String entryId = kalturaClient.uploadMedia(filePath, referenceId, mediaType, title, description, tag,
-                flavourParamId, fileExtEnum);
-        log.info("Upload completed. FilePath='{}' with filerefence='{}' and got kaltura entryid='{}'", filePath,
-                referenceId,entryId);
-        return entryId;
+        FileExtension fileExtensionEnum;
+            if (StringUtils.isBlank(fileExtension)) {
+                switch (mediaType) {
+                    case AUDIO:
+                        fileExtensionEnum = FileExtension.MP3;
+                        break;
+                    case VIDEO:
+                        fileExtensionEnum = FileExtension.MP4;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("FileExtension is blank and is not a supported mediaType");
+                }
+            } else {
+                fileExtensionEnum = FileExtension.fromString(fileExtension);
+            }
+
+            initKalturaClient();
+            log.info("Starting upload stream. FilePath='{}' with flavorParamId='{}'", filePath, flavourParamId);
+
+            String entryId = kalturaClient.uploadMedia(filePath, referenceId, mediaType, title, description, tag,
+                    flavourParamId, fileExtensionEnum);
+            log.info("Upload completed. FilePath='{}' with filereference='{}' and got kaltura entryid='{}'", filePath,
+                    referenceId, entryId);
+            return entryId;
     }
     
     /**
