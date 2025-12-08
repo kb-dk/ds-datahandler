@@ -271,7 +271,7 @@ public class KalturaDeltaUploadJob {
 
             String entryId = kalturaClient.uploadMedia(filePath, referenceId, mediaType, title, description, tag,
                     flavourParamId, fileExtensionEnum);
-            log.info("Upload completed. FilePath='{}' with filereference='{}' and got kaltura entryid='{}'", filePath,
+            log.info("Upload completed. FilePath='{}' with fileReference='{}' and got kaltura entryId='{}'", filePath,
                     referenceId, entryId);
             return entryId;
     }
