@@ -226,7 +226,7 @@ streams:
 # When processing the transcriptions job will call ds-storage that will save the transcriptions. So they can be used when indexing etc.
 # The files will be moved to the completedFolder and addition extension .completed or .failed will be added to the filename.
 
-transcription:
+transcriptions:
   dropFolder: '/tmp' 
   completedFolder: '/tmp'
 

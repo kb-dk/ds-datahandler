@@ -167,6 +167,18 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }                       
     }
 
+    
+    @Override
+    public void transcriptionsLoad() {
+
+        try {
+            DsDatahandlerFacade.transcriptionsLoad();
+         }
+         catch(Exception e) {
+             throw handleException(e);
+         }                       
+     }
+    
     /**
      * Gets the name of the current user from the OAuth token.
      * @return
@@ -184,4 +196,6 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
         }
         return UNKNOWN;
     }
+
+  
 }

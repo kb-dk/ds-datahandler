@@ -210,6 +210,22 @@ paths:
       responses:
         '204':
           description: No Content - The job finished and the server did not deliver any content.
+
+
+  /transcriptions/load:
+    post:
+      tags:
+        - '${project.name}'
+      summary: 'Will process transcription json-files in the configured Drop-folder. Each transcription will be create or updated in the database
+      The transcription files will be moved to the configured Completed-folder. Each will be have appended .fail or .complete as last extension'
+      security: 
+        - KBOAuth:
+          - any   
+      operationId: transcriptionsLoad
+      responses:
+        '204':
+          description: No Content - The job finished and the server did not deliver any content.
+                
                 
 
   # The ping service should be in all projects, should not do any advanced processing

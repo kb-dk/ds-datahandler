@@ -19,6 +19,7 @@ import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.storage.BasicStorage;
 import dk.kb.datahandler.storage.JobStorage;
+import dk.kb.datahandler.transcriptions.TranscriptionJob;
 import dk.kb.storage.model.v1.DsRecordMinimalDto;
 
 import org.apache.commons.io.IOUtils;
@@ -333,6 +334,21 @@ public class DsDatahandlerFacade {
         }
     }
 
+    
+    
+    /**
+     * Process all new transcription json files in the dropFolder and create the entries in the transcription table.
+     * If a transcription is there already the new one will overwrite. Each processed transcription file will be
+     * moved to the defined completion folder and the suffix .failed or .complete will be added to the filename.  
+        * 
+     * @return Number of successful transcriptions loaded
+     */        
+    public static Integer transcriptionsLoad() throws Exception {
+   
+     return TranscriptionJob.processTranscriptions(null, null);
+    }
+
+    
     /**
      * Starts a full OAI harvest job for the target.
      * The job will harvest records from the OAI server and ingest them into DS-storage  

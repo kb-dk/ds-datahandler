@@ -160,7 +160,7 @@
       <dependency>
         <groupId>dk.kb.present</groupId>
         <artifactId>ds-present</artifactId>
-          <version>3.0.4-SNAPSHOT</version>
+          <version>3.0.3-SNAPSHOT</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>

@@ -67,6 +67,8 @@ public class ServiceConfig {
     private static String streamPathPreservicaTv=null;
     private static String streamPathPreservicaRadio=null;
     
+    private static String transcriptionsDropFolder;
+    private static String transcriptionsCompletedFolder;
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -123,9 +125,13 @@ public class ServiceConfig {
         oaiRetryTimes = serviceConfig.getInteger("oaiSettings.retryTimes", 5); // Defaulting to 5 retries
         oaiRetrySeconds = serviceConfig.getInteger("oaiSettings.retrySeconds", 600); // Defaulting to 10 minuts
 
+        transcriptionsDropFolder=ServiceConfig.getConfig().getString("transcriptions.dropFolder");   
+        transcriptionsCompletedFolder=ServiceConfig.getConfig().getString("transcriptions.completedFolder");
+        
         log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
-                "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}', oaiRetryTimes: '{}', oaiRetrySeconds: '{}'.",
-                configFiles, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl, oaiRetryTimes, oaiRetrySeconds);
+                "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}', oaiRetryTimes: '{}', oaiRetrySeconds: '{}', transcriptionDropFolder: '{}', transcriptionCompletedFolder: '{}'",
+               configFiles, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl, oaiRetryTimes, oaiRetrySeconds, transcriptionsDropFolder
+               ,transcriptionsCompletedFolder);
 
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
@@ -291,6 +297,24 @@ public class ServiceConfig {
         return kalturaAdminSecret;
     }
     
+    
+    public static Logger getLog() {
+        return log;
+    }
+
+    public static HashMap<String, OaiTargetDto> getOaitargets() {
+        return oaiTargets;
+    }
+
+    public static String getTranscriptionsDropFolder() {
+        return transcriptionsDropFolder;
+    }
+
+    public static String getTranscriptionsCompletedFolder() {
+        return transcriptionsCompletedFolder;
+    }
+    
+
     private static void loadOaiTargets() {
         List<YAML> targets = serviceConfig.getYAMLList("oaiTargets");
         for (YAML target: targets) {
