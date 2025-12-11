@@ -19,7 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed mTimeFrom from service method /kaltura/deltaupload. Method will automatic only load records that are missing kaltura-id.
 - Use CustomJacksonJsonProvider.class from `ds-shared`
 
-## [3.0.5] (https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.5) - 2025-12-03
+## [3.0.6](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.6) - 2025-12-08
+### Changed
+- Changed upload to align with new upload method in ds-kaltura where fileExtension is required.
+
+## [3.0.5](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-3.0.5) - 2025-12-03
 ### Fixed
 - Fixed delta upload for records with no title(s). New DR-DAT data does not have title always.
 
