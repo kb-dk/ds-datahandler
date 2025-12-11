@@ -57,10 +57,12 @@ public class KalturaDeltaUploadIntegrationTest {
             MediaType mediaType = MediaType.AUDIO;
             int flavourParamId = KalturaUtil.getFlavourParamId(mediaType);
             String kalturaEntryId;
-            kalturaEntryId=KalturaDeltaUploadJob.uploadStream(title, referenceId,description, filePath, tag, mediaType, flavourParamId);
+            String fileExtension = ".mp3";
+            kalturaEntryId=KalturaDeltaUploadJob.uploadStream(title, referenceId,description, filePath, tag,
+                    mediaType, flavourParamId, fileExtension);
             assertNotNull(kalturaEntryId); // validate we have a kaltura entryID
             Thread.sleep(5000L); //sleep 5 seconds before deleting
-            KalturaDeltaUploadJob.deleteStream(kalturaEntryId); //If it fails we can not do anything. Delete it manuel in the KMC.                       
+            KalturaDeltaUploadJob.deleteStream(kalturaEntryId); //If it fails we can not do anything. Delete it manuel in the KMC.
         } catch (Exception e) {
             e.printStackTrace();
             fail("Upload failed");
