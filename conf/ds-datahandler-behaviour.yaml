@@ -227,8 +227,8 @@ streams:
 # The files will be moved to the completedFolder and addition extension .completed or .failed will be added to the filename.
 
 transcriptions:
-  dropFolder: '/tmp' 
-  completedFolder: '/tmp'
+  dropFolder: '/home/xxx/transcriptions/completed' 
+  completedFolder: '/home/xxx/transcriptions/completed'
 
 security:
   # The security mode. Valid values are
