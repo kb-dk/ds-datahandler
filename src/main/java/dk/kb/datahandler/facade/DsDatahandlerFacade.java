@@ -343,9 +343,12 @@ public class DsDatahandlerFacade {
         * 
      * @return Number of successful transcriptions loaded
      */        
-    public static Integer transcriptionsLoad() throws Exception {
-   
-     return TranscriptionJob.processTranscriptions(null, null);
+    public static Integer transcriptionsLoad() throws Exception { 
+        String dropFolder=ServiceConfig.getTranscriptionsDropFolder();
+        String completedFolder=ServiceConfig.getTranscriptionsCompletedFolder();
+        int success= TranscriptionJob.processTranscriptions(dropFolder,completedFolder);
+        log.info("Successful load #transcriptions="+success);
+        return success;
     }
 
     

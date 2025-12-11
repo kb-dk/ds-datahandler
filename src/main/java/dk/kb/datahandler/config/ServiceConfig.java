@@ -124,7 +124,7 @@ public class ServiceConfig {
                  
         oaiRetryTimes = serviceConfig.getInteger("oaiSettings.retryTimes", 5); // Defaulting to 5 retries
         oaiRetrySeconds = serviceConfig.getInteger("oaiSettings.retrySeconds", 600); // Defaulting to 10 minuts
-
+                                                                      
         transcriptionsDropFolder=ServiceConfig.getConfig().getString("transcriptions.dropFolder");   
         transcriptionsCompletedFolder=ServiceConfig.getConfig().getString("transcriptions.completedFolder");
         
