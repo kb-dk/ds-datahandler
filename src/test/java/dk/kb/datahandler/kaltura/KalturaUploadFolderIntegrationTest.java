@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.kaltura.client.enums.MediaType;
 
+import dk.kb.kaltura.enums.FileExtension;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.impl.Http2SolrClient;
@@ -47,6 +48,7 @@ public class KalturaUploadFolderIntegrationTest {
 
             String uploadFolder = "/home/teg/kaltura_files/audio/";
             MediaType mediaType = MediaType.AUDIO;
+            FileExtension fileExtension = FileExtension.MP3;
 
             List<String> fileNameList = getFilesInDirectory(uploadFolder);
 
@@ -60,7 +62,7 @@ public class KalturaUploadFolderIntegrationTest {
                 String filePath = uploadFolder + file;
                 String tag = "ds-kaltura";
                 String referenceId = null;
-                referenceId = client.uploadMedia(filePath, refId, mediaType, title, description, tag);
+                referenceId = client.uploadMedia(filePath, refId, mediaType, title, description, tag, FileExtension.MP3);
                 
                 System.out.println("Uploaded file: " + file + " got kaltura referenceId: " + referenceId);
             }
