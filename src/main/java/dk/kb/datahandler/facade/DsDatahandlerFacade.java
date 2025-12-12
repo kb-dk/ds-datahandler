@@ -343,12 +343,21 @@ public class DsDatahandlerFacade {
         * 
      * @return Number of successful transcriptions loaded
      */        
-    public static Integer transcriptionsLoad() throws Exception { 
-        String dropFolder=ServiceConfig.getTranscriptionsDropFolder();
-        String completedFolder=ServiceConfig.getTranscriptionsCompletedFolder();
-        int success= TranscriptionJob.processTranscriptions(dropFolder,completedFolder);
-        log.info("Successful load #transcriptions="+success);
-        return success;
+    public static Integer transcriptionsLoad(String user) throws Exception { 
+        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.TRANSCRIPTIONS, null, null, user);        
+        try {
+          String dropFolder=ServiceConfig.getTranscriptionsDropFolder();
+          String completedFolder=ServiceConfig.getTranscriptionsCompletedFolder();
+          int success= TranscriptionJob.processTranscriptions(dropFolder,completedFolder);
+          updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), success, null);
+          log.info("Successful load #transcriptions="+success);
+          return success;
+        
+        }
+        catch(Exception e) {
+           updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), null, null);
+           throw e;
+        }        
     }
 
     

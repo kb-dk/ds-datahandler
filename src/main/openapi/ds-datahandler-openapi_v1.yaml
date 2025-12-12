@@ -529,14 +529,17 @@ components:
         - oai harvest
         - solr index
         - kaltura upload
+        - transcriptions
       x-enum-varnames:
         - OAI_HARVEST
         - SOLR_INDEX
         - KALTURA_UPLOAD
+        - TRANSCRIPTIONS
       x-enum-descriptions:
         - oai harvest
         - solr index
         - kaltura upload
+        - transcriptions
 
     JobStatus:
       type: string

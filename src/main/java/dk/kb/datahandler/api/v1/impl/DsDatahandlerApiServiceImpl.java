@@ -172,7 +172,7 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     public void transcriptionsLoad() {
 
         try {
-            DsDatahandlerFacade.transcriptionsLoad();
+            DsDatahandlerFacade.transcriptionsLoad(getCurrentUsername());
          }
          catch(Exception e) {
              throw handleException(e);
