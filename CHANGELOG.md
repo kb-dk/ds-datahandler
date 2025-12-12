@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Added
+- New job to load transcriptions into storage. Two new yaml-properties added: transcriptions.dropFolder and transcriptions.completedFolder
 
 ### Changed
 

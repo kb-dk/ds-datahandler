@@ -1,0 +1,24 @@
+{
+    "filename": "0405154f-5543-4907-bf26-996d471596cb.mp3",
+    "timestamp": "2025-10-28T09:11:08",
+    "content": {
+        "info": {
+            "duration": 14.72,
+            "language": "da"
+        },
+        "text": "for nyt personale. Og efter en tur i stormagasinet er der mere at glæde sig til.",
+        "segments": [
+            {
+                "text": " for nyt personale.",
+                "start": 0.19,
+                "end": 1.53
+            },
+            {
+                "text": " Og efter en tur i stormagasinet er der mere at glæde sig til.",
+                "start": 5.73,
+                "end": 12.87
+            }
+            
+        ]
+    }
+}            

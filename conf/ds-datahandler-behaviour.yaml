@@ -222,6 +222,13 @@ streams:
   preservicaTvPath: '/kuana-store/bart-access-copies-tv/'
   preservicaRadioPath: '/kuana-store/bart-access-copies-radio/'
 
+# Transcription files (json) dropped the dropFolder will be processed by ds-datahandler when the transcription job is started
+# When processing the transcriptions job will call ds-storage that will save the transcriptions. So they can be used when indexing etc.
+# The files will be moved to the completedFolder and addition extension .completed or .failed will be added to the filename.
+
+transcriptions:
+  dropFolder: '/home/xxx/transcriptions/completed' 
+  completedFolder: '/home/xxx/transcriptions/completed'
 
 security:
   # The security mode. Valid values are
