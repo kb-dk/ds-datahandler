@@ -159,7 +159,7 @@
      <!-- Client for ds-storage This will also require the org.openapitools dependency-->
       <dependency>
         <groupId>dk.kb.present</groupId>
-        <artifactId>ds-present</artifactId>
+        <artifactId>ds-present</artifactId>        
           <version>3.0.6-SNAPSHOT</version>
           <type>jar</type>
           <classifier>classes</classifier>
