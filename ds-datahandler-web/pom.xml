@@ -6,7 +6,7 @@
     <parent>
         <groupId>dk.kb.datahandler</groupId>
         <artifactId>ds-datahandler-parent</artifactId>
-        <version>3.0.3-SNAPSHOT</version>
+        <version>3.0.7-SNAPSHOT</version>
     </parent>
 
     <artifactId>ds-datahandler-web</artifactId>
@@ -24,20 +24,20 @@
         <dependency>
             <groupId>dk.kb.storage</groupId>
             <artifactId>ds-storage-api</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
+            <version>3.0.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>dk.kb.present</groupId>
             <artifactId>ds-present-api</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
+            <version>3.0.6-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
 
         <dependency>
             <groupId>dk.kb.kaltura</groupId>
             <artifactId>ds-kaltura</artifactId>
-            <version>3.0.2-SNAPSHOT</version>
+            <version>3.0.4-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
     </dependencies>

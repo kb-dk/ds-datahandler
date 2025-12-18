@@ -1,6 +1,6 @@
 package dk.kb.datahandler.api.v1.impl;
 
-import dk.kb.datahandler.api.v1.DsDatahandlerApi;
+import dk.kb.datahandler.api.v1.DsDatahandlerApiApi;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
 import dk.kb.datahandler.model.v1.TypeDto;
@@ -40,7 +40,7 @@ import java.util.List;
  *
  */
 @InInterceptors(interceptors = "dk.kb.datahandler.webservice.KBAuthorizationInterceptor")
-public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApi {
+public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApiApi {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerApiServiceImpl.class);
 
 

@@ -6,7 +6,7 @@
     <parent>
         <groupId>dk.kb.datahandler</groupId>
         <artifactId>ds-datahandler-parent</artifactId>
-        <version>3.0.3-SNAPSHOT</version>
+        <version>3.0.7-SNAPSHOT</version>
     </parent>
 
     <artifactId>ds-datahandler-api</artifactId>
@@ -64,6 +64,7 @@
                         <modelPackage>${project.package}.model</modelPackage>
                         <!--<dateLibrary>threetenbp</dateLibrary>-->
                         <!--<dateLibrary>Java11</dateLibrary>-->
+                        <dateLibrary>Java8</dateLibrary>
                         <implFolder>src/main/java</implFolder>
                         <invokerPackage>${project.package}</invokerPackage>
                     </configOptions>
