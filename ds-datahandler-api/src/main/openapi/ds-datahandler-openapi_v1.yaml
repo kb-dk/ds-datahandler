@@ -8,7 +8,6 @@ info:
     email: '${user.name}@kb.dk'
   license:
     name: '${license.name}'
-    url: '${license.url}'
 servers:
   #  /api must match servlet-mapping in web.xml
   - url: '${config:openapi.serverurl}'
@@ -140,8 +139,9 @@ paths:
                         The type of index. If value is "FULL" then all records from storage will be transformed to solr 
                         documents and indexed. If value is "DELTA" then only records from ds-storage with an mTime newer
                         than the last date_modified in the solr index will be fetched, transformed and indexed.
+          required: true
           schema:
-            $ref: '#/components/schemas/IndexType'
+            $ref: '#/components/schemas/Type'
 
 
       responses:
@@ -207,18 +207,25 @@ paths:
         - KBOAuth:
           - any   
       operationId: kalturaDeltaUpload
-      parameters:    
-        - name: mTimeFrom
-          in: query
-          description: 'Start from records with this mTimeFrom or later. Default will be 0 and will index all records from that origin. Format is milliseconds since Epoch with 3 added digits'
-          required: false
-          schema:
-            type: integer
-            format: int64
-            default: 0
       responses:
         '204':
           description: No Content - The job finished and the server did not deliver any content.
+
+
+  /transcriptions/load:
+    post:
+      tags:
+        - '${project.name}'
+      summary: 'Will process transcription json-files in the configured Drop-folder. Each transcription will be create or updated in the database
+      The transcription files will be moved to the configured Completed-folder. Each will be have appended .fail or .complete as last extension'
+      security: 
+        - KBOAuth:
+          - any   
+      operationId: transcriptionsLoad
+      responses:
+        '204':
+          description: No Content - The job finished and the server did not deliver any content.
+                
                 
 
   # The ping service should be in all projects, should not do any advanced processing
@@ -250,11 +257,11 @@ paths:
     get:
       tags:
         - Service
-      summary: 'Health check + list of running and past jobs'
+      summary: 'Health check'
       operationId: status
       responses:
         '200':
-          description: 'Health check + List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first'
+          description: 'Health check'
           content:
             application/json:
               schema:
@@ -273,13 +280,26 @@ paths:
         - Service
       summary: 'List of running and past jobs'
       operationId: jobs
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Category'
+        - name: jobStatus
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/JobStatus'
       responses:
         '200':
           description: 'List of jobs both running and completed since server start. Sorted by most recent jobs first. Still running jobs first'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DsDathandlerJobList'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
         '500':
           description: 'Internal Error'
           content:
@@ -437,51 +457,107 @@ components:
           description: BaseURL for the enrichment fragment service
           example: 'http://example.com/'
 
-    DsDatahandlerJob:
+    Job:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          description: 'System time in millis when job was started'     
-        name:
           type: string
-          description: 'Name of the job'
+          format: uuid
+          description: 'Job ID (uuid)'
         type:
-          type: string
+          $ref: '#/components/schemas/Type'
           description: 'Type of job. Can be OAI or different enrichment jobs'
-        from:
-          type: string          
-          description: 'Some jobs can be started from a given mTime or date.'
-        status:
+        category:
+          $ref: '#/components/schemas/Category'
+          description: 'job category (OAI_HARVEST, SOLR_INDEX or KALTURA_UPLOAD)'
+        source:
           type: string
-          description: 'RUNNING or COMPLETED. Status COMPLETED can have failed and will be marked with error.'              
-        startedTime:
+          description: 'Dataset to harvest/index/upload'
+        createdBy:
           type: string
-          description: 'Format YYYY-MM-DD HH:MM:SS'                   
-        completedTime:
+          description: 'Who started the job'
+        jobStatus:
+          $ref: '#/components/schemas/JobStatus'
+          description: 'The status of the job'
+        errorCorrelationId:
           type: string
-          description: 'Format YYYY-MM-DD HH:MM:SS'
+          format: uuid
+          description: 'Error correlation ID for error tracking'
+        message:
+          type: string
+          description: 'Job stopped messages'
+        modifiedTimeFrom:
+          type: string
+          format: date-time
+          description: 'Some jobs can be started from a given modifiedTimeFrom or date (datetime or unix timestamp).'
+          example: '2021-01-30T08:30:00Z'
+        startTime:
+          type: string
+          format: date-time
+          description: 'Format YYYY-MM-DDTHH:MM:SSZ'
+          example: '2021-01-30T08:30:00Z'
+        endTime:
+          type: string
+          format: date-time
+          description: 'Format YYYY-MM-DDTHH:MM:SSZ'
+          example: '2021-01-30T08:30:00Z'
         numberOfRecords:
           type: integer
           format: int32
-          description: 'Number of processed records. This may not be available for all jobs.'
-        error:
-          type: boolean
-          description: 'If true the job did not complete and not all record was harvested'
-                       
-    DsDathandlerJobList:
-      type: array
-      items: 
-        $ref: '#/components/schemas/DsDatahandlerJob'
+          description: 'Number of processed records. (if available).'
+        restartValue:
+          type: string
+          format: date-time
+          description: 'Format YYYY-MM-DDTHH:MM:SSZ'
+          example: '2021-01-30T08:30:00Z'
 
-    IndexType:
+    Type:
       type: string
       enum:
+        - full
+        - delta
+      x-enum-varnames:
         - FULL
         - DELTA
-      example: 'FULL'
-      default: 'FULL'
+      x-enum-descriptions:
+        - full
+        - delta
+
+    Category:
+      type: string
+      enum:
+        - oai harvest
+        - solr index
+        - kaltura upload
+        - transcriptions
+      x-enum-varnames:
+        - OAI_HARVEST
+        - SOLR_INDEX
+        - KALTURA_UPLOAD
+        - TRANSCRIPTIONS
+      x-enum-descriptions:
+        - oai harvest
+        - solr index
+        - kaltura upload
+        - transcriptions
+
+    JobStatus:
+      type: string
+      enum:
+        - running
+        - completed
+        - stopped
+        - failed
+      x-enum-varnames:
+        - RUNNING
+        - COMPLETED
+        - STOPPED
+        - FAILED
+      x-enum-descriptions:
+        - running
+        - completed
+        - stopped
+        - failed
 
     Whoami:
       type: object

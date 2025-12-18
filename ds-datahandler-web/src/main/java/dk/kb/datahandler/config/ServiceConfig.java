@@ -67,6 +67,8 @@ public class ServiceConfig {
     private static String streamPathPreservicaTv=null;
     private static String streamPathPreservicaRadio=null;
     
+    private static String transcriptionsDropFolder;
+    private static String transcriptionsCompletedFolder;
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -107,7 +109,8 @@ public class ServiceConfig {
         kalturaToken = ServiceConfig.getConfig().getString("kaltura.token");
         kalturaTokenId = ServiceConfig.getConfig().getString("kaltura.tokenId");
         //Do not use kaltura adminsecret, use token and tokenId instead.
-        kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret"); //Must not be shared or exposed. Use token,tokenId.
+        //Must not be shared or exposed. Use token,tokenId.
+        kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret", "");
       
         
         kalturaSessionDurationSeconds = ServiceConfig.getConfig().getInteger("kaltura.sessionDurationSeconds", 86400);
@@ -121,10 +124,14 @@ public class ServiceConfig {
                  
         oaiRetryTimes = serviceConfig.getInteger("oaiSettings.retryTimes", 5); // Defaulting to 5 retries
         oaiRetrySeconds = serviceConfig.getInteger("oaiSettings.retrySeconds", 600); // Defaulting to 10 minuts
-
+                                                                      
+        transcriptionsDropFolder=ServiceConfig.getConfig().getString("transcriptions.dropFolder");   
+        transcriptionsCompletedFolder=ServiceConfig.getConfig().getString("transcriptions.completedFolder");
+        
         log.info("Initialised from config: '{}' with the following values: solrUpdateUrl: '{}', solrQueryUrl: '{}', " +
-                "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}', oaiRetryTimes: '{}', oaiRetrySeconds: '{}'.",
-                configFiles, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl, oaiRetryTimes, oaiRetrySeconds);
+                "solrBatchSize: '{}', dsStorageUrl: '{}', dsPresentUrl: '{}', oaiRetryTimes: '{}', oaiRetrySeconds: '{}', transcriptionDropFolder: '{}', transcriptionCompletedFolder: '{}'",
+               configFiles, solrUpdateUrl, solrQueryUrl, solrBatchSize, dsStorageUrl, dsPresentUrl, oaiRetryTimes, oaiRetrySeconds, transcriptionsDropFolder
+               ,transcriptionsCompletedFolder);
 
         Path folderPath = Paths.get(oaiTimestampFolder);
         if (Files.exists(folderPath)) {            
@@ -290,6 +297,24 @@ public class ServiceConfig {
         return kalturaAdminSecret;
     }
     
+    
+    public static Logger getLog() {
+        return log;
+    }
+
+    public static HashMap<String, OaiTargetDto> getOaitargets() {
+        return oaiTargets;
+    }
+
+    public static String getTranscriptionsDropFolder() {
+        return transcriptionsDropFolder;
+    }
+
+    public static String getTranscriptionsCompletedFolder() {
+        return transcriptionsCompletedFolder;
+    }
+    
+
     private static void loadOaiTargets() {
         List<YAML> targets = serviceConfig.getYAMLList("oaiTargets");
         for (YAML target: targets) {
@@ -352,5 +377,29 @@ public class ServiceConfig {
         return streamPathPreservicaRadio;
     }
 
+    public static  String getDBDriver() {
+        String dbDriver= serviceConfig.getString("db.driver");
+        return dbDriver;
+    }
+
+    public static  String getDBUrl() {
+        String dbUrl= serviceConfig.getString("db.url");
+        return dbUrl;
+    }
+
+    public static  String getDBUserName() {
+        String dbUserName= serviceConfig.getString("db.username");
+        return dbUserName;
+    }
+
+    public static  String getDBPassword() {
+        String dbPassword= serviceConfig.getString("db.password");
+        return dbPassword;
+    }
+
+    public static int getConnectionPoolSize() {
+        int connectionPoolSize= serviceConfig.getInteger("db.connectionPoolSize",10); //Default 10
+        return connectionPoolSize;
+    }
     
 }

@@ -1,5 +1,6 @@
 package dk.kb.datahandler.kaltura;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +11,8 @@ import java.util.Date;
 import java.util.Locale;
 
 import com.kaltura.client.types.APIException;
+import dk.kb.kaltura.enums.FileExtension;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpJdkSolrClient;
@@ -67,10 +70,10 @@ public class KalturaDeltaUploadJob {
      * @param mTimeFrom Upload all streams for records in solr with mTimeFrom higher than this value. 
      * @throws InternalServiceException If any Solr or Kaltura call fails. Stop uploading more. Maybe allow single kaltura upload jobs to fail later.  
      */
-    public static int uploadStreamsToKaltura(long mTimeFrom) throws InternalServiceException{
+    public static int uploadStreamsToKaltura() throws InternalServiceException{
 
         boolean moreSolrRecords = true;
-        long mTimeFromCurrent = mTimeFrom;
+        long mTimeFromCurrent = 0; //Use this for batching. It will still only extract records without kaltura_id
         Integer numberStreamsUploaded = 0;
         String uploadTagForKaltura=getUploadTagForKaltura();  
         //The minimumFileSizeInBytesvalue has been defined by Asger+Petur. It has been burned into the kaltura bulk upload and must not be changed, unless we start with a new empty kaltura partnerid.
@@ -91,7 +94,7 @@ public class KalturaDeltaUploadJob {
 
                     String title = "";//Default
                     ArrayList<String> titles = (ArrayList<String>) doc.getFieldValue("title"); //multivalue
-                    if (titles.size() > 0) {
+                    if (titles != null && titles.size() > 0) {
                         title = titles.get(0);// take first
                     }                   
                     String description = (String) doc.getFieldValue("description");
@@ -100,6 +103,7 @@ public class KalturaDeltaUploadJob {
                     String originatesFrom = (String) doc.getFieldValue("originates_from");
                     String id = (String) doc.getFieldValue("id");
                     long recordMtime = (Long) doc.getFieldValue("internal_storage_mTime");
+                    String fileExtension = (String) doc.getFieldValue("file_extension");
 
                     String filePath = KalturaUtil.generateStreamPath(filePathSolr, originatesFrom, resourceDescription);
                     mTimeFromCurrent = recordMtime + 1L; //update mTime for next call
@@ -108,7 +112,8 @@ public class KalturaDeltaUploadJob {
                       continue;    
                     }
                     
-                    processUpload(numberStreamsUploaded, uploadTagForKaltura, minimumFileSizeInBytes, storageClient, resourceDescription, title, description, fileId, id, filePath);                                      
+                    processUpload(numberStreamsUploaded, uploadTagForKaltura, minimumFileSizeInBytes, storageClient,
+                            resourceDescription, title, description, fileId, id, filePath, fileExtension);
                 }            
 
             } catch (SolrServerException | IOException e) {
@@ -127,7 +132,8 @@ public class KalturaDeltaUploadJob {
      * 
      */
     private static void processUpload(Integer numberStreamsUploaded, String uploadTagForKaltura, long minimumFileSizeInBytes, DsStorageClient storageClient,
-            String resourceDescription, String title, String description, String fileId, String id, String path) {
+            String resourceDescription, String title, String description, String fileId, String id, String path,
+                                      String fileExtension) {
         try {                                    
             //upload stream
             MediaType mediaType = KalturaUtil.getMediaType(resourceDescription);
@@ -149,7 +155,8 @@ public class KalturaDeltaUploadJob {
             }
 
             try {
-                String kalturaId=uploadStream(title, fileId, description, path, uploadTagForKaltura,mediaType,flavourParamId);
+                String kalturaId=uploadStream(title, fileId, description, path, uploadTagForKaltura,mediaType,
+                        flavourParamId, fileExtension);
                 log.info("Uploaded stream='{}' and got kalturaId='{}'", path, kalturaId);
                 numberStreamsUploaded++; //Success count
                 //update storage record with kalturaId                     
@@ -206,7 +213,8 @@ public class KalturaDeltaUploadJob {
         HttpJdkSolrClient client = new HttpJdkSolrClient.Builder(solrUrl).build();
 
         String query = "internal_storage_mTime:[" + mTimeFrom + " TO *]"; // mTimeFrom must start with this value or higher.
-        String fieldList = "title,description,file_id,id,resource_description,originates_from,internal_storage_mTime,file_path"; // only extract fields we need
+        String fieldList = "title,description,file_id,id,resource_description,originates_from,internal_storage_mTime," +
+                "file_path, file_extension"; // only extract fields we need
 
         try (client) { // autoclosable
             SolrQuery solrQuery = new SolrQuery();
@@ -238,23 +246,43 @@ public class KalturaDeltaUploadJob {
      * @return The Kaltura entry id if upload is successful
      * @throws IOException If upload fails
      */
-    public static String uploadStream(String title, String referenceId, String description, String filePath, String tag, MediaType mediaType, int flavourParamId) throws IOException, APIException {
+    public static String uploadStream(String title, String referenceId, String description, String filePath,
+                                      String tag, MediaType mediaType, int flavourParamId, String fileExtension) throws IOException,
+            APIException {
 
-        initKalturaClient();
-        log.info("Starting upload stream. FilePath='{}' with flavorParamId='{}'", filePath,flavourParamId);
-        String entryId = kalturaClient.uploadMedia(filePath, referenceId, mediaType, title, description, tag, flavourParamId);
-        log.info("Upload completed. FilePath='{}' with filerefence='{}' and got kaltura entryid='{}'" + filePath,referenceId,entryId);
-        return entryId;
+        FileExtension fileExtensionEnum;
+            if (StringUtils.isBlank(fileExtension)) {
+                switch (mediaType) {
+                    case AUDIO:
+                        fileExtensionEnum = FileExtension.MP3;
+                        break;
+                    case VIDEO:
+                        fileExtensionEnum = FileExtension.MP4;
+                        break;
+                    default:
+                        throw new IllegalArgumentException("FileExtension is blank and is not a supported mediaType");
+                }
+            } else {
+                fileExtensionEnum = FileExtension.fromString(fileExtension);
+            }
 
+            initKalturaClient();
+            log.info("Starting upload stream. FilePath='{}' with flavorParamId='{}'", filePath, flavourParamId);
+
+            String entryId = kalturaClient.uploadMedia(filePath, referenceId, mediaType, title, description, tag,
+                    flavourParamId, fileExtensionEnum);
+            log.info("Upload completed. FilePath='{}' with fileReference='{}' and got kaltura entryId='{}'", filePath,
+                    referenceId, entryId);
+            return entryId;
     }
     
     /**
      * This method is not called by the upload flow, but from the integration unittest. 
      * 
      * @param  kalturaEntryId  The internal kaltura entryId
-     * @throws IOException If API error
+     * @throws APIException If API error
      */
-    public static void deleteStream(String kalturaEntryId) throws IOException {
+    public static void deleteStream(String kalturaEntryId) throws APIException {
         initKalturaClient();            
         boolean deleteStreamByEntryId = kalturaClient.deleteStreamByEntryId( kalturaEntryId);
         if (deleteStreamByEntryId) {
@@ -272,9 +300,10 @@ public class KalturaDeltaUploadJob {
      * @param file_id Our reference to the stream.
      * @return kalturaId or null if does not exist.
      * @throws IOException
-     * 
+     * @throws APIException If API error
+     *
      */
-    private static String getInternalIdKaltura(String file_id) throws IOException {
+    private static String getInternalIdKaltura(String file_id) throws IOException, APIException {
 
         initKalturaClient();
 

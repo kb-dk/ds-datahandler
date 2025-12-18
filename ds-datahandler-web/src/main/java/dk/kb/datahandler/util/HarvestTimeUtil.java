@@ -10,17 +10,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
@@ -38,37 +32,32 @@ import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
  *  HarvestTimeUtil methods are protected and called from unittest
  * 
  */
-
 public class HarvestTimeUtil {
 
-    public static final String DEFAULT_START_DATE="1900-01-01T00:00:00Z"; //Used as start if no file has been written yet for that target
+    public static final String DEFAULT_START_DATE = "1900-01-01T00:00:00Z"; //Used as start if no file has been written yet for that target
     private static final Logger log = LoggerFactory.getLogger(HarvestTimeUtil.class);
-    private static final Charset UTF8= StandardCharsets.UTF_8;         
+    private static final Charset UTF8 = StandardCharsets.UTF_8;
     private static final String DAY_PATTERN = "yyyy-MM-dd";
 
-
-    public static synchronized String loadLastHarvestTime(OaiTargetDto oaiTarget) throws Exception{            
+    public static synchronized String loadLastHarvestTime(OaiTargetDto oaiTarget) throws Exception {
         String oaiTargetNameFile = getFileNameFromOaiTarget(oaiTarget);        
         return loadLastHarvestTime(oaiTargetNameFile);        
     }
 
-
     public static synchronized void updateDatestampForOaiTarget(OaiTargetDto oaiTarget, String datestamp) {
-
         //Hack to fix datestamp returned from Preservica. Format returned are not in OAI standard and is parsed wrong (downgrade to seconds) when given to preservica.
         //Only preservica 6 does not, preservica 5 gives correct format.
-        if (datestamp.length() >20) { // 2021-03-24T19:57:34.123Z -> 2021-03-24T19:57:34Z 
-            datestamp=datestamp.substring(0,19)+"Z";
+        if (datestamp.length() > 20) { // 2021-03-24T19:57:34.123Z -> 2021-03-24T19:57:34Z
+            datestamp=datestamp.substring(0,19) + "Z";
         }
-        else if(datestamp.length()==10) {             
-            datestamp=datestamp+"T00:00:00Z";
+        else if(datestamp.length() == 10) {
+            datestamp = datestamp + "T00:00:00Z";
         }
 
         if (!validateOaiDateFormat(datestamp)) {
-            log.error("Datestamp not valid format:"+datestamp +" for Oai target:"+oaiTarget.getName());
+            log.error("Datestamp not valid format: " + datestamp + " for Oai target: " + oaiTarget.getName());
             throw new InvalidArgumentServiceException("Datastamp not valid format:" + datestamp);
         }
-
 
         String oaiTargetNameFile = getFileNameFromOaiTarget(oaiTarget);
         updateDatestampForOaiTarget(oaiTargetNameFile, datestamp);        
@@ -94,24 +83,21 @@ public class HarvestTimeUtil {
 
     }
 
-
-     
-
-    protected static String loadLastHarvestTime(String oaiTargetNameFile ) throws Exception{                        
+    protected static String loadLastHarvestTime(String oaiTargetNameFile) throws Exception {
         Path oaiTargetFilePath = Paths.get( oaiTargetNameFile);
         if (!Files.exists(oaiTargetFilePath)) {            
-            log.info("OAI target: "+oaiTargetNameFile +" does not have a last harvest time. Using default:"+DEFAULT_START_DATE);
+            log.info("OAI target: " + oaiTargetNameFile + " does not have a last harvest time. Using default: " + DEFAULT_START_DATE);
             return DEFAULT_START_DATE;
         }
         else {                        
             String lastHarvestDate= getFirstLineFromFile(oaiTargetNameFile);
             if (!validateOaiDateFormat(lastHarvestDate)) {
-                String errorMsg="Invalid saved last harvest dateformat:+"+lastHarvestDate +" for file:"+oaiTargetNameFile;
+                String errorMsg="Invalid saved last harvest dateformat: " + lastHarvestDate + " for file: " + oaiTargetNameFile;
                 log.error(errorMsg);
                 throw new InvalidArgumentServiceException(errorMsg);
             }
 
-            log.info("OAI target: "+oaiTargetNameFile +" has last harvestDate:"+lastHarvestDate);
+            log.info("OAI target: " + oaiTargetNameFile + " has last harvestDate: " + lastHarvestDate);
             return lastHarvestDate;
         }               
     }
@@ -128,9 +114,8 @@ public class HarvestTimeUtil {
     }
 
     protected static String getFileNameFromOaiTarget(OaiTargetDto oaiTarget) {        
-        return ServiceConfig.getOaiTimestampFolder() +"/"+oaiTarget.getName()+".txt";        
+        return ServiceConfig.getOaiTimestampFolder() + "/" + oaiTarget.getName() + ".txt";
     }
-
 
     protected static String getFirstLineFromFile(String fileName) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(fileName, UTF8)); 
@@ -138,7 +123,6 @@ public class HarvestTimeUtil {
         br.close();
         return line;
     }
-
 
     protected static void deleteFileAndWriteToFile(String fileName, String lastHarvestDate) throws IOException {        
         Files.deleteIfExists(Paths.get(fileName));                
@@ -154,7 +138,6 @@ public class HarvestTimeUtil {
      * <p/>
      * example: 2021-03-24T19:57:34Z
      */
-
     public static boolean validateOaiDateFormat(String datestamp) {            
 
         try {
@@ -174,8 +157,8 @@ public class HarvestTimeUtil {
      */
     private static String formatDateForOaiTarget(String date, OaiTargetDto oaiTarget) {
         if (oaiTarget.getDateStampFormat().equals(DateStampFormatEnum.DATETIME)) {
-            if(date.length()==10) {
-                date=date+"T00:00:00Z";// expand if not already date
+            if(date.length() == 10) {
+                date = date + "T00:00:00Z"; // expand if not already date
             }
             return date;
         }
@@ -192,26 +175,50 @@ public class HarvestTimeUtil {
      * @param from  Generate day intervals starting from this day (included). If null it will start from the start_day attribute defined for the oai target.
      * 
      */
-    public static String generateFrom( OaiTargetDto oaiTarget , String from){
+    public static String generateFrom(OaiTargetDto oaiTarget, String from){
 
         if(from != null) {
             if (!HarvestTimeUtil.validateOaiDateFormat(from)) {
-                log.warn("From datestamp not in UTC format:"+from); //Should not happen as this is called internally only
-                throw new InvalidArgumentServiceException("From datestamp not in UTC format:"+from);
+                log.warn("From datestamp not in UTC format:" + from); //Should not happen as this is called internally only
+                throw new InvalidArgumentServiceException("From datestamp not in UTC format:" + from);
             }
         }        
         else { //From is null and set default        
             //From date          
-           from=HarvestTimeUtil.DEFAULT_START_DATE; //year 1900. 
+           from = HarvestTimeUtil.DEFAULT_START_DATE; //year 1900.
                   
         }
 
         String fromFormatted = formatDateForOaiTarget(from, oaiTarget);                         
         return fromFormatted;
-
     }
 
+    /**
+     * Parsing modifiedTimeFrom to an OffsetDateTime so it can be saved in the Job table.
+     * If parsing fails we try adding `T00:00:00Z` to the date
+     *
+     * @param modifiedTimeFrom
+     * @return modifiedTimeFrom parsed to an Instant
+     */
+    public static OffsetDateTime parseModifiedTimeFromToOffsetDatetime(String modifiedTimeFrom) {
+        String modifiedTimeFromWithHours;
+        OffsetDateTime offsetDateTimeModifiedTimeFrom;
 
-    
+        try {
+            offsetDateTimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.parse(modifiedTimeFrom), ZoneOffset.UTC);
+        } catch (DateTimeParseException dateTimeParseException) {
+            if(modifiedTimeFrom.length() == 10) {
+                log.info("modifiedTimeFrom was probably only a date: {}, so adding hours to a new String modifiedTimeFromWithHours", modifiedTimeFrom);
 
+                modifiedTimeFromWithHours = modifiedTimeFrom + "T00:00:00Z";// expand modifiedTimeFrom if it's only a date
+
+                offsetDateTimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.parse(modifiedTimeFromWithHours), ZoneOffset.UTC);
+            } else {
+                log.error("Failed to parse: {}, DateTimeParseException was cast: {}", modifiedTimeFrom, dateTimeParseException.getMessage(), dateTimeParseException);
+
+                throw new InvalidArgumentServiceException("Invalid from query parameter: ", dateTimeParseException.getMessage());
+            }
+        }
+        return offsetDateTimeModifiedTimeFrom;
+    }
 }

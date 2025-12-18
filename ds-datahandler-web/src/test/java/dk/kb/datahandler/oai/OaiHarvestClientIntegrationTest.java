@@ -10,8 +10,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import dk.kb.datahandler.job.JobCache;
-import dk.kb.datahandler.model.v1.DsDatahandlerJobDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +49,7 @@ public class OaiHarvestClientIntegrationTest {
         //String set="oai:kb.dk:images:billed:2014:jun:hca";
         
         OaiTargetDto oaiTarget = new OaiTargetDto();       
-        oaiTarget.setUrl("http://www5.kb.dk/cop/oai/"); //Public KB service
+        oaiTarget.setUrl("https://www.kb.dk/cop/oai/"); //Public KB service
         oaiTarget.setMetadataprefix("mods");               
         oaiTarget.setSet(set);
         oaiTarget.setUsername(null);
@@ -69,9 +67,7 @@ public class OaiHarvestClientIntegrationTest {
         String from ="2021-01-01";
          */
 
-        DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTarget,from);        
-
-        OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,from);
+        OaiHarvestClient client = new OaiHarvestClient(oaiTarget, from);
         OaiResponse r1 = client.next();
         assertEquals(1000, r1.getRecords().size());
         assertNotNull(r1.getResumptionToken());
@@ -79,8 +75,6 @@ public class OaiHarvestClientIntegrationTest {
         //Fetch next 1000        
         OaiResponse r2= client.next();
         assertEquals(1000, r2.getRecords().size());
-    
-        JobCache.finishJob(job, 0, false);
     }
 
 
@@ -90,20 +84,19 @@ public class OaiHarvestClientIntegrationTest {
 
         YAML conf = ServiceConfig.getConfig();
 
-        // name: pvica6.devel
+        //pvica.devel2
         OaiTargetDto oaiTarget = new OaiTargetDto();
-        oaiTarget.setUrl(conf.getString("integration.oaiTargets[1].url")); //Public KB service
+        oaiTarget.setUrl(conf.getString("oaiTargets[0].url")); 
         oaiTarget.setName("Unitest2");
-        oaiTarget.setMetadataprefix(conf.getString("integration.oaiTargets[1].metadataPrefix"));
-        oaiTarget.setUsername(conf.getString("integration.oaiTargets[1].user"));
-        oaiTarget.setPassword(conf.getString("integration.oaiTargets[1].password"));;
-        oaiTarget.setDatasource(conf.getString("integration.oaiTargets[1].datasource"));
+        oaiTarget.setMetadataprefix(conf.getString("oaiTargets[0].metadataPrefix"));
+        oaiTarget.setUsername(conf.getString("oaiTargets[0].user"));
+        oaiTarget.setPassword(conf.getString("oaiTargets[0].password"));;
+        oaiTarget.setDatasource(conf.getString("oaiTargets[0].datasource"));
         oaiTarget.setFilter(OaiTargetDto.FilterEnum.PRESERVICA);
         oaiTarget.setDateStampFormat(OaiTargetDto.DateStampFormatEnum.DATETIME);
-        DsDatahandlerJobDto job = JobCache.createNewOaiJob(oaiTarget,null);
 
 
-        OaiHarvestClient client = new OaiHarvestClient(job,oaiTarget,null);
+        OaiHarvestClient client = new OaiHarvestClient(oaiTarget, null);
         OaiResponse r1 = client.next();
         assertEquals(200, r1.getRecords().size()); //there is over 200 now. 200 is batch size.
         assertNotNull(r1.getResumptionToken());
@@ -118,7 +111,6 @@ public class OaiHarvestClientIntegrationTest {
         OaiResponse r3= client.next();
         assertEquals(200, r3.getRecords().size());
         
-        JobCache.finishJob(job, 0, false);
     }
 
 }

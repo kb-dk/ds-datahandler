@@ -1,14 +1,19 @@
 package dk.kb.datahandler.api.v1.impl;
 
-import dk.kb.datahandler.api.v1.DsDatahandlerApiApi;
+import dk.kb.datahandler.api.v1.DsDatahandlerApi;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
-import dk.kb.datahandler.model.v1.IndexTypeDto;
+import dk.kb.datahandler.model.v1.TypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.webservice.KBAuthorizationInterceptor;
 import dk.kb.util.webservice.ImplBase;
+
 import org.apache.cxf.interceptor.InInterceptors;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.utils.JAXRSUtils;
+import org.apache.cxf.message.Message;
+import org.keycloak.representations.AccessToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +22,11 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Request;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.Providers;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -31,7 +40,7 @@ import java.util.List;
  *
  */
 @InInterceptors(interceptors = "dk.kb.datahandler.webservice.KBAuthorizationInterceptor")
-public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApiApi {
+public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandlerApi {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerApiServiceImpl.class);
 
 
@@ -73,32 +82,26 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
 
 
     @Override
-    public Integer oaiIngestFull(String oaiTarget){
+    public Integer oaiIngestFull(String oaiTarget) {
         log.debug("oaiIngestFull(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested= DsDatahandlerFacade.oaiIngestFull(oaiTarget);
+            int numberIngested = DsDatahandlerFacade.oaiIngestFull(oaiTarget, getCurrentUsername());
             return numberIngested;
-
         } catch (Exception e){
             throw handleException(e);
         }
-
     }
     
     @Override
-    public Integer oaiIngestDelta(String oaiTarget){
+    public Integer oaiIngestDelta(String oaiTarget) {
         log.debug("oaiIngestDelta(oaiTarget='{}') called with call details: {}", oaiTarget, getCallDetails());
         try {
-            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget);
+            int numberIngested = DsDatahandlerFacade.oaiIngestDelta(oaiTarget, getCurrentUsername());
             return numberIngested;
-
         } catch (Exception e){
             throw handleException(e);
         }
-
-
     }
-
 
     @Override
     public List<OaiTargetDto> getOaiTargetsConfiguration() {
@@ -110,9 +113,8 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
             for (String target : oaiTargets.keySet()) {
                 targets.add(oaiTargets.get(target));                               
             }
-
-            return  targets;
-        } catch (Exception e){
+            return targets;
+        } catch (Exception e) {
             throw handleException(e);
         }
     }
@@ -129,19 +131,18 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     }
 
     @Override
-    public String indexSolr(@NotNull String origin,IndexTypeDto type) {
+    public String indexSolr(@NotNull String origin, TypeDto typeDto) {
         log.debug("indexSolr(origin='{}', ...) called with call details: {}", origin, getCallDetails());
         try {
-            switch (type){
+            switch (typeDto){
                 case FULL:                                      
-                    return DsDatahandlerFacade.indexSolrFull(origin);
+                    return DsDatahandlerFacade.indexSolrFull(origin, getCurrentUsername());
                 case DELTA:
-                    return DsDatahandlerFacade.indexSolrDelta(origin);
+                    return DsDatahandlerFacade.indexSolrDelta(origin, getCurrentUsername());
                 default:
                     log.error("No indexing type has been selected. Indexing cannot continue without knowing which records to index.");
                     return "No indexing type has been selected. Indexing cannot continue without knowing which records to index.";
             }
-
         }  catch (Exception e){
             throw handleException(e);
         }
@@ -150,23 +151,51 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
     @Override
     public Long updateKalturaIds(String origin, Long mTimeFrom) {        
         try {
-         
-            return DsDatahandlerFacade.fetchKalturaIdsAndUpdateRecords(origin, mTimeFrom);
-        
+            return DsDatahandlerFacade.fetchKalturaIdsAndUpdateRecords(origin, mTimeFrom, getCurrentUsername());
         } catch (Exception e) {
             throw handleException(e);
         }
     }
 
     @Override
-    public void kalturaDeltaUpload(Long mTimeFrom) {    
+    public void kalturaDeltaUpload() {    
         try {
-           DsDatahandlerFacade.kalturaDeltaUpload(mTimeFrom);
+           DsDatahandlerFacade.kalturaDeltaUpload(getCurrentUsername());
         }
         catch(Exception e) {
             throw handleException(e);
         }                       
     }
 
+    
+    @Override
+    public void transcriptionsLoad() {
 
+        try {
+            DsDatahandlerFacade.transcriptionsLoad(getCurrentUsername());
+         }
+         catch(Exception e) {
+             throw handleException(e);
+         }                       
+     }
+    
+    /**
+     * Gets the name of the current user from the OAuth token.
+     * @return
+     */
+    private static String getCurrentUsername() {
+        final String UNKNOWN = "Unknown";
+
+        Message message = JAXRSUtils.getCurrentMessage();
+        if (message == null) {
+            return UNKNOWN;
+        }
+        AccessToken token = (AccessToken) message.get(KBAuthorizationInterceptor.ACCESS_TOKEN);
+        if (token != null && token.getName() != null) {
+            return token.getName();
+        }
+        return UNKNOWN;
+    }
+
+  
 }

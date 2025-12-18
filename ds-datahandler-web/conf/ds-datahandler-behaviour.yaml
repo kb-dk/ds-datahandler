@@ -206,9 +206,9 @@ present:
 # The two flavour params depend on the kaltura partnerId. The values 3 and 359 match stage and prod kaltura.
 kaltura:
   url:  'XX'
-  partnerId:  xxx
+  partnerId:  399
   userId:  'xxx@kb.dk'
-  adminSecret: 'xxxxxxx'
+  adminSecret: ''
   token: 'XXXX'
   tokenId: 'XXX'
   sessionDurationSeconds: 86400
@@ -222,6 +222,13 @@ streams:
   preservicaTvPath: '/kuana-store/bart-access-copies-tv/'
   preservicaRadioPath: '/kuana-store/bart-access-copies-radio/'
 
+# Transcription files (json) dropped the dropFolder will be processed by ds-datahandler when the transcription job is started
+# When processing the transcriptions job will call ds-storage that will save the transcriptions. So they can be used when indexing etc.
+# The files will be moved to the completedFolder and addition extension .completed or .failed will be added to the filename.
+
+transcriptions:
+  dropFolder: '/home/xxx/transcriptions/completed' 
+  completedFolder: '/home/xxx/transcriptions/completed'
 
 security:
   # The security mode. Valid values are
@@ -251,5 +258,13 @@ security:
     # This typically used for calls between services, where there is a need for elevated access.
     secret: '01234567-89ab-cdef-0123-456789abcdef'
 
-
+db:
+  # In production this will always be PostgreSQL
+  # Only use H2 for smaller-scale (a million records max) test setups
+  url: jdbc:h2:${env:TMPDIR:-/tmp}/h2_ds_storage;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+  # url: jdbc:h2:/home/XXX/workspace/ds-storage/target/h2/ds_storage;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+  driver: org.h2.Driver
+  username: ''
+  password: ''
+  connectionPoolSize: 10
       

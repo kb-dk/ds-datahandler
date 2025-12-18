@@ -2,6 +2,7 @@
 # These config files should NEVER be in git, as they can contain passwords
 *-environment.yaml
 *-local.yaml
+*-unittest.yaml
 
 # Ignore everything relating to gradle, we use maven
 ds-datahandler-web/gradle/
