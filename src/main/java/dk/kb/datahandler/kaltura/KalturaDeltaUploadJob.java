@@ -317,7 +317,8 @@ public class KalturaDeltaUploadJob {
     private static String getUploadTagForKaltura() {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd",Locale.getDefault());
         String yyyyMMdd = formatter.format(new Date());
-        return "delta-"+yyyyMMdd;
+        String transcoded = "transcoded";
+        return "delta-"+yyyyMMdd + "," + transcoded;
     }
 
     /**
