@@ -1,5 +1,12 @@
 package dk.kb.datahandler.config;
 
+import dk.kb.datahandler.model.v1.OaiTargetDto;
+import dk.kb.datahandler.model.v1.OaiTargetDto.DateStampFormatEnum;
+import dk.kb.util.yaml.YAML;
+import org.apache.http.client.utils.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -52,21 +59,24 @@ public class ServiceConfig {
     private static int oaiRetryTimes = 5;
     private static int oaiRetrySeconds = 600;
 
-    private static String kalturaUrl=null;
-    private static Integer kalturaPartnerId =null;
+    private static String kalturaUrl = null;
+    private static Integer kalturaPartnerId = null;
     private static String kalturaUserId = null;
     private static String kalturaToken = null;
     private static String kalturaTokenId = null;
     private static String kalturaAdminSecret = null;
-    private static int kalturaFlavourParamIdVideo=0;
-    private static int kalturaFlavourParamIdAudio=0;
-    private static int kalturaSessionDurationSeconds=0;
-    private static int kalturaSessionRefreshThreshold=0;
-    
-    private static String streamPathDomsRadioTv=null;
-    private static String streamPathPreservicaTv=null;
-    private static String streamPathPreservicaRadio=null;
-    
+    private static int kalturaSessionDurationSeconds = 0;
+    private static int kalturaSessionRefreshThreshold = 0;
+    private static int conversionProfileIdVideo = 0;
+    private static int conversionProfileIdAudio = 0;
+    private static int conversionQueueThreshold = 0;
+    private static int conversionQueueDelaySeconds = 0;
+
+
+    private static String streamPathDomsRadioTv = null;
+    private static String streamPathPreservicaTv = null;
+    private static String streamPathPreservicaRadio = null;
+
     private static String transcriptionsDropFolder;
     private static String transcriptionsCompletedFolder;
     
@@ -110,18 +120,20 @@ public class ServiceConfig {
         kalturaTokenId = ServiceConfig.getConfig().getString("kaltura.tokenId");
         //Do not use kaltura adminsecret, use token and tokenId instead.
         //Must not be shared or exposed. Use token,tokenId.
-        kalturaAdminSecret= ServiceConfig.getConfig().getString("kaltura.adminSecret", "");
-      
-        
+        kalturaAdminSecret = ServiceConfig.getConfig().getString("kaltura.adminSecret", "");
+
+
         kalturaSessionDurationSeconds = ServiceConfig.getConfig().getInteger("kaltura.sessionDurationSeconds", 86400);
-        kalturaSessionRefreshThreshold = ServiceConfig.getConfig().getInteger("kaltura.sessionRefreshThreshold", 3600);        
-        kalturaFlavourParamIdVideo = ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdVideo");
-        kalturaFlavourParamIdAudio = ServiceConfig.getConfig().getInteger("kaltura.flavourParamIdAudio");
-        
-        streamPathDomsRadioTv=ServiceConfig.getConfig().getString("streams.domsRadioTvPath");   
-        streamPathPreservicaTv=ServiceConfig.getConfig().getString("streams.preservicaTvPath");
-        streamPathPreservicaRadio=ServiceConfig.getConfig().getString("streams.preservicaRadioPath");   
-                 
+        kalturaSessionRefreshThreshold = ServiceConfig.getConfig().getInteger("kaltura.sessionRefreshThreshold", 3600);
+        conversionProfileIdVideo = ServiceConfig.getConfig().getInteger("kaltura.conversionProfileIdVideo");
+        conversionProfileIdAudio = ServiceConfig.getConfig().getInteger("kaltura.conversionProfileIdAudio");
+        conversionQueueThreshold = ServiceConfig.getConfig().getInteger("kaltura.conversionQueueThreshold");
+        conversionQueueDelaySeconds = ServiceConfig.getConfig().getInteger("kaltura.conversionQueueDelaySeconds");
+
+        streamPathDomsRadioTv = ServiceConfig.getConfig().getString("streams.domsRadioTvPath");
+        streamPathPreservicaTv = ServiceConfig.getConfig().getString("streams.preservicaTvPath");
+        streamPathPreservicaRadio = ServiceConfig.getConfig().getString("streams.preservicaRadioPath");
+
         oaiRetryTimes = serviceConfig.getInteger("oaiSettings.retryTimes", 5); // Defaulting to 5 retries
         oaiRetrySeconds = serviceConfig.getInteger("oaiSettings.retrySeconds", 600); // Defaulting to 10 minuts
                                                                       
@@ -272,7 +284,7 @@ public class ServiceConfig {
     public static String getKalturaTokenId() {
         return kalturaTokenId;
     }
-    
+
     public static int getKalturaSessionDurationSeconds() {
         return kalturaSessionDurationSeconds;
     }
@@ -280,13 +292,21 @@ public class ServiceConfig {
     public static int getKalturaSessionRefreshThreshold() {
         return kalturaSessionRefreshThreshold;
     }
-    
-    public static int getKalturaFlavourParamIdVideo() {
-        return kalturaFlavourParamIdVideo;
+
+    public static int getConversionProfileIdVideo() {
+        return conversionProfileIdVideo;
     }
-  
-    public static int getKalturaFlavourParamIdAudio() {
-        return kalturaFlavourParamIdAudio;
+
+    public static int getConversionProfileIdAudio() {
+        return conversionProfileIdAudio;
+    }
+
+    public static int getConversionQueueThreshold() {
+        return conversionQueueThreshold;
+    }
+
+    public static int getConversionQueueDelaySeconds() {
+        return conversionQueueDelaySeconds;
     }
 
     public static YAML getServiceConfig() {

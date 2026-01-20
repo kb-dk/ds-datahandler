@@ -47,17 +47,18 @@ public class KalturaUtil {
     }
     
     /**
-     * Map Kaltura MediaType  to correct flavourParamId
+     * Map Kaltura MediaType to correct conversionProfileId
      * 
      * @param mediaType Video or Audio
-     * @return flavourParamId  FlavourId for video or Audio. Depend on the KMC partner ID. Not the same across kaltura environments
+     * @return conversionProfileId corrosponds to a Id on kaltura, that specifies what flavors should be created from
+     * source file. Dependent on the KMC partner ID. Not the same across kaltura environments
      */
-    public static int getFlavourParamId(MediaType mediaType) {
+    public static int getGetConversionProfileId(MediaType mediaType) {
         if (MediaType.VIDEO.equals(mediaType)){
-            return ServiceConfig.getKalturaFlavourParamIdVideo();
+            return ServiceConfig.getConversionProfileIdVideo();
         }
         else {
-            return ServiceConfig.getKalturaFlavourParamIdAudio();
+            return ServiceConfig.getConversionProfileIdAudio();
         }                         
     }
     

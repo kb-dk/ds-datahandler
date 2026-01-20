@@ -55,11 +55,11 @@ public class KalturaDeltaUploadIntegrationTest {
             String description = "Small MP3 music file for integration unit test.";
             String tag = "delta-INTEGRATION-test"; //Do not use date, this way they will be easy to find
             MediaType mediaType = MediaType.AUDIO;
-            int flavourParamId = KalturaUtil.getFlavourParamId(mediaType);
+            int conversionProfileId = KalturaUtil.getGetConversionProfileId(mediaType);
             String kalturaEntryId;
             String fileExtension = ".mp3";
             kalturaEntryId=KalturaDeltaUploadJob.uploadStream(title, referenceId,description, filePath, tag,
-                    mediaType, flavourParamId, fileExtension);
+                    mediaType, fileExtension, conversionProfileId);
             assertNotNull(kalturaEntryId); // validate we have a kaltura entryID
             Thread.sleep(5000L); //sleep 5 seconds before deleting
             KalturaDeltaUploadJob.deleteStream(kalturaEntryId); //If it fails we can not do anything. Delete it manuel in the KMC.
