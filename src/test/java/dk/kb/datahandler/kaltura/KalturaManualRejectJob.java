@@ -35,14 +35,17 @@ public class KalturaManualRejectJob {
         Integer partnerId = 397; // 398=stage, 397=prod. 
         String userId = "xxx@kb.dk"; //User must exist in kaltura.                 
         String token="abc"; // <- replace with correct token matching tokenId
-        String tokenId="0_f2qyxk5i";
+        String tokenId="xxxxx";
+        int conversionQueueThreshold = 50;
+        int conversionQueueDelaySeconds = 30;
 
         String input_entry_ids = "/home/teg/reject_kaltura/kaltura_reject_kaltura_id_only.csv"; // File with entryIds to reject. One entryId on each line
         String output_entry_ids = "/home/teg/reject_kaltura/kaltura_reject_kaltura_id_only_failed.csv"; // EntryIds that failed reject will be added in this file.
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, 86400, 3600);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret,
+                    86400, 3600, conversionQueueThreshold, conversionQueueDelaySeconds);
             int numberRejectFailed = 0;
             int numberRejectSuccess = 0;
             List<String> entryIds = readAllLines(input_entry_ids);

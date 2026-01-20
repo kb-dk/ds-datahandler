@@ -521,18 +521,20 @@ public class DsDatahandlerFacade {
     }
 
     private static DsKalturaClient getKalturaClient() throws APIException {
-        String kalturaUrl= ServiceConfig.getKalturaUrl();
+        String kalturaUrl = ServiceConfig.getKalturaUrl();
         String adminSecret = ServiceConfig.getKalturaAdminSecret();
-        Integer partnerId = ServiceConfig.getKalturaPartnerId();  
-        String userId = ServiceConfig.getKalturaUserId();                               
-        String token= ServiceConfig.getKalturaToken();
-        String tokenId= ServiceConfig.getKalturaTokenId();
-        int sessionDurationSeconds=ServiceConfig.getKalturaSessionDurationSeconds();
-        int sessionRefreshThreshold=ServiceConfig.getKalturaSessionRefreshThreshold();
+        Integer partnerId = ServiceConfig.getKalturaPartnerId();
+        String userId = ServiceConfig.getKalturaUserId();
+        String token = ServiceConfig.getKalturaToken();
+        String tokenId = ServiceConfig.getKalturaTokenId();
+        int sessionDurationSeconds = ServiceConfig.getKalturaSessionDurationSeconds();
+        int sessionRefreshThreshold = ServiceConfig.getKalturaSessionRefreshThreshold();
+        int conversionQueueThreshold = ServiceConfig.getConversionQueueThreshold();
+        int conversionQueueDelaySeconds = ServiceConfig.getConversionQueueDelaySeconds();
 
-        log.info("creating kaltura client for partnerID:"+partnerId);     
-        DsKalturaClient kalturaClient = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, sessionDurationSeconds, sessionRefreshThreshold);
-        return kalturaClient;
+        log.info("creating kaltura client for partnerID:" + partnerId);
+        return new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret,
+                sessionDurationSeconds, sessionRefreshThreshold, conversionQueueThreshold, conversionQueueDelaySeconds);
     }
 
     private static DsStorageClient getDsStorageApiClient() {

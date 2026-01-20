@@ -370,7 +370,7 @@ public class KalturaDeltaUploadJob {
         int sessionDurationSeconds=ServiceConfig.getKalturaSessionDurationSeconds();
         int sessionRefreshThreshold=ServiceConfig.getKalturaSessionRefreshThreshold();
         int conversionQueueThreshold = ServiceConfig.getConversionQueueThreshold();
-        int conversionQueueRetryDelaySeconds = ServiceConfig.getConversionQueueRetryDelaySeconds();
+        int conversionQueueDelaySeconds = ServiceConfig.getConversionQueueDelaySeconds();
 
         try {
             kalturaClient = new DsKalturaClient(
@@ -383,7 +383,7 @@ public class KalturaDeltaUploadJob {
                     sessionDurationSeconds,
                     sessionRefreshThreshold,
                     conversionQueueThreshold,
-                    conversionQueueRetryDelaySeconds
+                    conversionQueueDelaySeconds
             );
         } catch (Exception e) {
             log.error("Could not instantiate DsKaltura client.", e);

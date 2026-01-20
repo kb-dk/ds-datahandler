@@ -33,14 +33,17 @@ public class KalturaManualDeleteJob {
         Integer partnerId = 397; // 398=stage, 397=prod. 
         String userId = "teg@kb.dk"; //User must exist in kaltura.                 
         String token = "abc"; // <- replace with correct token matching tokenId
-        String tokenId = "0_f2qyxk5i";
+        String tokenId = "xxxxx";
+        int conversionQueueThreshold = 50;
+        int conversionQueueDelaySeconds = 30;
 
         String input_entry_ids = "/home/teg/delete_kaltura/delete_kaltura_entry_id.csv"; // File with entryIds til be delete. One oneeach line
         String output_entry_ids = "/home/teg/delete_kaltura/delete_kaltura_entry_id_failed.csv"; // EntryIds that failed during deletion will be added in this file.
         try {
             createNewFileIfNotExists(output_entry_ids); // Will create new if not exists;
 
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, 86400, 3600);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret,
+                    86400, 3600, conversionQueueThreshold, conversionQueueDelaySeconds);
             int numberDeleteFailed = 0;
             int numberDeleteSuccess = 0;
             List<String> entryIds = readAllLines(input_entry_ids);
