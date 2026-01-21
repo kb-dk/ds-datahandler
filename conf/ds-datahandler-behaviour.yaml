@@ -213,9 +213,10 @@ kaltura:
   tokenId: 'XXX'
   sessionDurationSeconds: 86400
   sessionRefreshThreshold: 3600
-  flavourParamIdVideo: 3
-  flavourParamIdAudio: 359
-
+  conversionProfileIdAudio: 'XXXXX'
+  conversionProfileIdVideo: 'XXXXX'
+  conversionQueueThreshold: 50
+  conversionQueueDelaySeconds: 30
 
 streams:
   domsRadioTvPath: '/radio-tv/'

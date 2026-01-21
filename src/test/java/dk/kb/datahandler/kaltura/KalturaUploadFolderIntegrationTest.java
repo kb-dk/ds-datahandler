@@ -38,10 +38,13 @@ public class KalturaUploadFolderIntegrationTest {
         Integer partnerId = 398; // 398=stage, 397=prod. 
         String userId = "XXX@kb.dk"; //User must exist in kaltura.                 
         String token = "abc"; // <- replace with correct token matching tokenId
-        String tokenId = "0_f2qyxk5i";
+        String tokenId = "xxxxx";
+        int conversionQueueThreshold = 50;
+        int conversionQueueDelaySeconds = 30;
         
         try {
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, 86400, 3600);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret,
+                    86400, 3600, conversionQueueThreshold, conversionQueueDelaySeconds);
 
            // String uploadFolder = "/home/teg/kaltura_files/video/";
             //KalturaMediaType mediaType = KalturaMediaType.VIDEO;
@@ -62,7 +65,9 @@ public class KalturaUploadFolderIntegrationTest {
                 String filePath = uploadFolder + file;
                 String tag = "ds-kaltura";
                 String referenceId = null;
-                referenceId = client.uploadMedia(filePath, refId, mediaType, title, description, tag, FileExtension.MP3);
+                int conversionProfileID = 0;
+                referenceId = client.uploadMedia(filePath, refId, mediaType, title, description, tag,
+                        FileExtension.MP3, conversionProfileID);
                 
                 System.out.println("Uploaded file: " + file + " got kaltura referenceId: " + referenceId);
             }

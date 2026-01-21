@@ -1,6 +1,7 @@
 package dk.kb.datahandler.kaltura;
 
 import com.kaltura.client.enums.MediaType;
+import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.kaltura.client.DsKalturaClient;
 import dk.kb.kaltura.enums.FileExtension;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -28,13 +29,15 @@ public class UploadPreservicaStreamsFromFileIds {
         Integer partnerId = 397; // 398=stage, 397=prod. 
         String userId = "teg@kb.dk"; //User must exist in kaltura.                 
         String token = "abc"; // <- replace with correct token matching tokenId
-        String tokenId = "0_f2qyxk5i";
-
+        String tokenId = "0_xxxxx";
+        int conversionQueueThreshold = 50;
+        int conversionQueueDelaySeconds = 30;
         //These must be originates_from:Preservica since filepath depends on this
         String fileWithFileIds = "/home/teg/eclipse-workspace/ds-datahandler/preservica_missing_streams_file_id.txt";
 
         try {
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, 86400, 3600);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret,
+                    86400, 3600, conversionQueueThreshold, conversionQueueDelaySeconds);
 
             List<String> ids = loadLines(fileWithFileIds);
             for (String fileId : ids) {
@@ -53,17 +56,21 @@ public class UploadPreservicaStreamsFromFileIds {
 
                 MediaType media = null;
                 FileExtension fileExtension = null;
+                int conversionProfileId = 0;
 
                 if (type.equals("VideoObject")) {
                     media = MediaType.VIDEO;
                     fileExtension = FileExtension.MP4;
+                    conversionProfileId = ServiceConfig.getConversionProfileIdVideo();
                 } else {
                     media = MediaType.AUDIO;
                     fileExtension = FileExtension.MP3;
+                    conversionProfileId = ServiceConfig.getConversionProfileIdAudio();
+
                 }
 
                 String tags = "DS-KALTURA,manual-2024-11-14"; //tags are comma seperated
-                String entryId = client.uploadMedia(path, fileId, media, title, description, tags, fileExtension);
+                String entryId = client.uploadMedia(path, fileId, media, title, description, tags, fileExtension, conversionProfileId);
                 System.out.println("Uploaded: " + fileId + " and got entryId: " + entryId);
             }
         } catch (Exception e) {

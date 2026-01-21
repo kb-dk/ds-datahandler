@@ -11,8 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - New job to load transcriptions into storage. Two new yaml-properties added: transcriptions.dropFolder and transcriptions.completedFolder
+- Added conversionProfileIdAudio and conversionProfileIdVideo Kaltura upload, serviceConfig and conf.
+- Added conversionQueueThreshold and conversionQueueDelaySeconds to KalturaClient, serviceConfig and conf.
 
 ### Changed
+- Removed flavorParamId from KalturaClient.
 
 - Moved JobCache from memory to database (*Remember: OPS need to create jobs table in database, the ddl is found in
   /src/test/resources/ddl/create_ds_datahandler_db.ddl*)

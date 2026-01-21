@@ -50,7 +50,9 @@ public class KalturaManualRejectListe2Job {
         Integer partnerId = 397; // 398=stage, 397=prod. 
         String userId = "teg@kb.dk"; //User must exist in kaltura.                 
         String token = "abc"; // <- replace with correct token matching tokenId
-        String tokenId = "0_xxx";
+        String tokenId = "xxxxx";
+        int conversionQueueThreshold = 50;
+        int conversionQueueDelaySeconds = 30;
 
         String input_record_ids = "/home/teg/reject_liste2/reject_liste2.txt"; // File with entryIds to reject. One entryId on each line
         String output_record_ids = "/home/teg/reject_liste2/reject_liste2_failed.txt"; // EntryIds that failed reject will be added in this file.
@@ -61,7 +63,8 @@ public class KalturaManualRejectListe2Job {
             System.out.println("Loaded file with recordIds. Number of entries:" + recordIds.size());
            
             
-            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret, 86400, 3600);
+            DsKalturaClient client = new DsKalturaClient(kalturaUrl, userId, partnerId, token, tokenId, adminSecret,
+                    86400, 3600, conversionQueueThreshold, conversionQueueDelaySeconds);
             int numberRejectFailed = 0;
             int numberRejectSuccess = 0;
             
