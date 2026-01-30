@@ -4,12 +4,12 @@
     <parent>
         <groupId>dk.kb.dsparent</groupId>
         <artifactId>ds-parent</artifactId>
-        <version>4.0.0-SNAPSHOT</version>
+        <version>100.0.0-SNAPSHOT</version>
     </parent>
 
     <groupId>dk.kb.datahandler</groupId>
     <artifactId>ds-datahandler</artifactId>
-    <version>4.0.0-SNAPSHOT</version>
+    <version>100.0.0-SNAPSHOT</version>
     <packaging>war</packaging>
     <description>
     # Ds-datahandler(Digitale Samlinger) by the Royal Danish Library.
@@ -134,7 +134,7 @@
         <dependency>
             <groupId>dk.kb.dsshared</groupId>
             <artifactId>ds-shared</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>100.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>dk.kb.util</groupId>
@@ -145,7 +145,7 @@
         <dependency>
             <groupId>dk.kb.storage</groupId>
             <artifactId>ds-storage</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>100.0.0-SNAPSHOT</version>
             <type>jar</type>
             <classifier>classes</classifier>
             <exclusions>
@@ -160,7 +160,7 @@
       <dependency>
         <groupId>dk.kb.present</groupId>
         <artifactId>ds-present</artifactId>        
-          <version>4.0.0-SNAPSHOT</version>
+          <version>100.0.0-SNAPSHOT</version>
           <type>jar</type>
           <classifier>classes</classifier>
           <exclusions>
@@ -175,7 +175,7 @@
       <dependency>
           <groupId>dk.kb.kaltura</groupId>
           <artifactId>ds-kaltura</artifactId>
-          <version>4.0.0-SNAPSHOT</version>
+          <version>100.0.0-SNAPSHOT</version>
           <type>jar</type>
       </dependency>
         
