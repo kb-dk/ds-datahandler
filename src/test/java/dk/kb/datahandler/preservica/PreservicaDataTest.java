@@ -6,6 +6,8 @@ import dk.kb.datahandler.util.PreservicaOaiRecordHandler;
 import dk.kb.storage.model.v1.DsRecordDto;
 import dk.kb.storage.model.v1.RecordTypeDto;
 import dk.kb.util.Resolver;
+
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -22,6 +24,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Tag("integration")
 public class PreservicaDataTest {
     static final SAXParserFactory factory = SAXParserFactory.newInstance();
 
@@ -110,56 +113,5 @@ public class PreservicaDataTest {
         assertEquals("ds.test", dsRecord.getOrigin());
     }
 
-    /**
-     * Create an OAI test response containing two InformationObjects.
-     * @return OAI Response with two fake IO records.
-     */
-    private static OaiResponse createTestOaiResponseWithIOs() {
-        // Create OAI-PMH test records.
-        OaiRecord informationObject1 = new OaiRecord();
-        informationObject1.setId("oai:io:12345678-test-test-test-testtest1111");
-        informationObject1.setMetadata("<Metadata schemaUri=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
-                "<formatMediaType>Sound</formatMediaType>");
-        OaiRecord informationObject22 = new OaiRecord();
-        informationObject22.setId("oai:io:12345678-test-test-test-testtest2222");
-        informationObject22.setMetadata("<Metadata schemaUri=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
-                "<formatMediaType>Sound</formatMediaType>");
-
-        ArrayList<OaiRecord> oaiRecords = new ArrayList<>();
-        oaiRecords.add(informationObject1);
-        oaiRecords.add(informationObject22);
-        // Create test OaiResponse.
-        OaiResponse testResponse = new OaiResponse();
-        testResponse.setRecords(oaiRecords);
-        return testResponse;
-    }
-
-    private static OaiResponse createPreserviceFiveOaiResponse() {
-        // Create OAI-PMH test records.
-        OaiRecord deliverableUnit1 = new OaiRecord();
-
-        deliverableUnit1.setId("oai:du:12345678-test-test-test-testtest1111");
-        deliverableUnit1.setMetadata("<Metadata schemaURI=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
-                "<formatMediaType>Sound</formatMediaType>");
-        OaiRecord deliverableUnit2 = new OaiRecord();
-        deliverableUnit2.setId("oai:du:12345678-test-test-test-testtest2222");
-        deliverableUnit2.setMetadata("<Metadata schemaURI=\"http://www.pbcore.org/PBCore/PBCoreNamespace.html\">"+
-                "<formatMediaType>Sound</formatMediaType>");
-        OaiRecord preservationManifestation = new OaiRecord();
-        preservationManifestation.setId("oai:man:12345678-test-test-test-testtest2222");
-        preservationManifestation.setMetadata("<ManifestationRelRef>1</ManifestationRelRef>");
-        OaiRecord collection = new OaiRecord();
-        collection.setId("oai:col:123456-test-1234");
-        // Create ArrayList of OAI records.
-        ArrayList<OaiRecord> oaiRecords = new ArrayList<>();
-        oaiRecords.add(collection);
-        oaiRecords.add(deliverableUnit1);
-        oaiRecords.add(deliverableUnit2);
-        oaiRecords.add(preservationManifestation);
-        // Create test OaiResponse.
-        OaiResponse testResponse = new OaiResponse();
-        testResponse.setRecords(oaiRecords);
-        return testResponse;
-    }
 
 }

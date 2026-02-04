@@ -143,7 +143,15 @@ oaiTargets:
     metadataPrefix: XIP_full_schema
     description: Radio- og TV-udsendelser
     filter: dr
-    fragmentServiceUrl: https://nifi-server.kb.dk
+
+  - name: 'test.target'
+    datasource: ds.radiotv
+    url: https://pvica-devel2.statsbiblioteket.dk/OAI-PMH/
+    user: ''
+    password: ''
+    metadataPrefix: XIP_full_schema
+    description: Radio- of TV-udsendelser
+
 
 # Settings for OAI-PMH harvest
 oaiSettings:
@@ -204,6 +212,7 @@ present:
 
 # Kaltura properties. Use token+tokenId as credentials instead of admin-secret. 
 # The two flavour params depend on the kaltura partnerId. The values 3 and 359 match stage and prod kaltura.
+# If called by integration test, the integration next needs to load the integration unittest property file (from aegis) and also mark test as integrationtesdt
 kaltura:
   url:  'XX'
   partnerId:  399
@@ -213,8 +222,8 @@ kaltura:
   tokenId: 'XXX'
   sessionDurationSeconds: 86400
   sessionRefreshThreshold: 3600
-  conversionProfileIdAudio: 'XXXXX'
-  conversionProfileIdVideo: 'XXXXX'
+  conversionProfileIdAudio: '1234'
+  conversionProfileIdVideo: '1234'
   conversionQueueThreshold: 50
   conversionQueueDelaySeconds: 30
 
