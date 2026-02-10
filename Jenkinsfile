@@ -38,23 +38,6 @@ pipeline {
             }
         }
 
-        stage('Checkout aegis and copy files') {
-            steps {
-                dir('aegis') {
-                    checkout scmGit(
-                        branches: [[name: 'refs/heads/master']],
-                        userRemoteConfigs: [[
-                            credentialsId: 'kb-dk-jenkins-github-app',
-                            url: 'https://github.com/kb-dk/aegis.git'
-                        ]]
-                    )
-                }
-
-                sh "cp --recursive aegis/ds-datahandler/local/src/test/resources/. src/test/resources/."
-                sh "rm --recursive aegis"
-            }
-        }
-
         stage('Change version if part of PR') {
             when {
                 expression {

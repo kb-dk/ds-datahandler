@@ -30,8 +30,7 @@ public class DsDatahandlerFacadeTest {
 
     @BeforeAll
     public static void beforeClass() throws Exception {
-        ServiceConfig.initialize("ds-datahandler-unittest.yaml");
-
+        ServiceConfig.initialize("conf/ds-datahandler-behaviour.yaml");
         H2DbUtil.createEmptyH2DBFromDDL(DB_URL, DRIVER, USERNAME, PASSWORD);
         JobStorage.initialize(DRIVER, DB_URL, USERNAME, PASSWORD);
 
