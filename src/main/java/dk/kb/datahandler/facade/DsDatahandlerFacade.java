@@ -40,7 +40,6 @@ import dk.kb.datahandler.util.HarvestTimeUtil;
 import dk.kb.datahandler.util.SolrUtils;
 import dk.kb.kaltura.client.DsKalturaClient;
 import dk.kb.storage.model.v1.DsRecordDto;
-import dk.kb.storage.model.v1.MappingDto;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
 import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
@@ -50,118 +49,6 @@ public class DsDatahandlerFacade {
     private static final Logger log = LoggerFactory.getLogger(DsDatahandlerFacade.class);
 
     private static DsStorageClient storageClient;
-
-    /**
-     * Deprecated. The use of the mapping table was a temporary solution for "skygge prod"
-     *
-     * <p>
-     * Will load all referenceId defined in storage and call Kaltura to map them to KalturaId.
-     * The results will be saved in ds-storage in the mapping table.
-     * When all mappings has been updated, the records will be enriched with the kalturaId.
-     * If the job fails before all mappingss are loaded, the records will not be enriched from the mapping table.
-     * </p>
-     * @param origin Only update mappings from this origin
-     * @param modifiedTimeFrom Only update mappings for records with modifiedTime after modifiedTimeFrom
-     * @return Number of mappings updated.
-     * @throws IOException
-     * @throws ServiceException
-     */
-    @Deprecated
-    public static long fetchKalturaIdsAndUpdateRecords(String origin, Long modifiedTimeFrom, String user) throws IOException, ServiceException, APIException {
-
-        long start = System.currentTimeMillis();
-        long timer = start;
-        int batchSize = 100; //No need to take this as input parameter and make method more complicated.
-        //This is a good value and can also be used as batchSize against Kaltura.
-
-        log.info("Starting resolving of Kaltura entry ID's for origin: '{}'. Resolving in batches of '{}' records.",
-                 origin, batchSize);
-
-        DsStorageClient dsAPI = getDsStorageApiClient();
-        DsKalturaClient kalturaClient = getKalturaClient();
-
-        long processed = 0;
-        int updated = 0;
-        long recordsWithoutReferenceId = 0;
-        List<DsRecordMinimalDto> records;
-
-        // modifiedTimeFrom is in microseconds
-        OffsetDateTime offsetDatetimeModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.EPOCH.plus(modifiedTimeFrom, ChronoUnit.MICROS), ZoneOffset.UTC);
-
-        JobDto jobDto = startJob(TypeDto.FULL, CategoryDto.KALTURA_UPLOAD, origin, offsetDatetimeModifiedTimeFrom, user);
-
-        if (modifiedTimeFrom == null) {
-            modifiedTimeFrom = 0L;
-        }
-
-        try {
-            while(true) {
-                if (processed % 500 == 0) {
-                    log.info("Processed '{}' records in total. Updated '{}' mappings in total. Processing the last 500 records took '{}' milliseconds.",
-                            processed, processed, System.currentTimeMillis() - timer);
-                    timer = System.currentTimeMillis();
-                }
-
-                records = dsAPI.getMinimalRecords(origin, batchSize, modifiedTimeFrom);
-                if (records.isEmpty()) { //no more records
-                    break;
-                }
-
-                modifiedTimeFrom = records.get(records.size()-1).getmTime(); //update mTime to mTime from last record.
-                log.debug("Getting DsRecordMinimal from storage for origin={}, batchSize={}, modifiedTimeFrom={}", origin, batchSize, modifiedTimeFrom);
-
-                ArrayList<String> referenceIdsList= new ArrayList<String>();
-                for (DsRecordMinimalDto record: records) {
-                    if (record.getReferenceId() != null) { //This should not be null in production after preservica enrichment. But for stage/prod most will be null
-                        referenceIdsList.add(record.getReferenceId());
-                    } else {
-                        // Updating variable for logging.
-                        recordsWithoutReferenceId ++;
-                    }
-                    // Counting all processed records.
-                    processed ++;
-                }
-
-                // If none of the records currently in hand have a reference ID then continue to next iteration of loop.
-                if (referenceIdsList.isEmpty()) { // Should not happen in production.
-                    continue;
-                }
-
-                log.debug("Calling Kaltura to resolve kalturaId for referenceIds. Calling with a batch of '{}' records.", referenceIdsList.size());
-                Map<String, String> kalturaIds = kalturaClient.getKalturaIds(referenceIdsList);
-
-                if (kalturaIds.size() != referenceIdsList.size()) {
-                    log.warn("Not all referenceIds were found at Kaltura"); //Should not happen
-                }
-                updated += kalturaIds.size();
-
-                log.debug("Updating '{}' mappings in the DS-Storage mapping table, which handles relations between referenceIds and kalturaIds.", kalturaIds.size());
-                for (String referenceId: kalturaIds.keySet()) {                            
-                    //Can be optimized with method that takes multiple. But this workflow is called rarely.             
-                    MappingDto mappingDto= new MappingDto();
-                    mappingDto.setReferenceId(referenceId);
-                    mappingDto.setKalturaId(kalturaIds.get(referenceId));
-                    dsAPI.mappingPost(mappingDto);
-                }
-            }        
-
-            //Mapping table is now updated. Enrich all records that does not have KalturaId
-            log.debug("Updating kaltura ID for ALL records from mapping table.");
-            dsAPI.updateKalturaIdForRecords(); //Will update all records with kalturaid using the mapping tab
-            log.info("Updated kalturaId mapping table and enriched records. Number of records updated is: '{}'. Number of processed records is: '{}'. Number of records without " +
-                    "reference ID processed: '{}' The full request lasted '{}' milliseconds.",
-                    updated, processed, recordsWithoutReferenceId, (System.currentTimeMillis() - start));
-
-            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), updated, null);
-
-            return updated;
-        }
-        catch (Exception e) {
-            updateJob(jobDto, JobStatusDto.FAILED, e.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), updated, null);
-
-            throw new InternalServiceException("Error updating kalturaIds", e);
-        }
-    }
 
     /**
      * Ingest records directly into ds-storage from a zip-file containing multiple files that each is a xml-file with a single record
