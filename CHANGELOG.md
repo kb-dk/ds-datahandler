@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- NULL is a special value in SQL, so `GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS()` now handle case when source is NULL.
+- NULL is a special value in SQL, so `GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS` SQL now handle case when source is NULL.
 
 ## [4.0.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-4.0.0) - 2026-01-29
 
