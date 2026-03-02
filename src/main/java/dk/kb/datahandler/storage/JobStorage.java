@@ -41,6 +41,9 @@ public class JobStorage extends BasicStorage {
             id = ?
     """;
 
+    /**
+     * Kaltura upload and transcription don't have a source, so the OR clause handles the cases when source is null
+     */
     private static final String GET_JOBS_BY_CATEGORY_AND_SOURCE_AND_STATUS = """
         SELECT
             id
@@ -49,7 +52,10 @@ public class JobStorage extends BasicStorage {
         WHERE
             category = ?
           AND
-            source = ?
+            (
+                source IS NULL
+                OR source = ?
+            )
           AND
             status = ?
     """;
