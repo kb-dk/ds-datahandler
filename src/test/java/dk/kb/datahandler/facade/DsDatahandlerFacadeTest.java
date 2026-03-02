@@ -1,6 +1,7 @@
 package dk.kb.datahandler.facade;
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.enums.Source;
 import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.storage.BasicStorage;
 import dk.kb.datahandler.storage.JobStorage;
@@ -90,28 +91,57 @@ public class DsDatahandlerFacadeTest {
      * Can only have one job with the same name running at the same time even if one is a delta job and the other is a full job
      */
     @Test
-    void testOnly1JobWithSameName() {
-        OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("test.target");
-        
-        // OK
+    void startJob_whenThereIsAlreadyARunningKalturaUploadJob_thenThrowInvalidArgumentServiceException() {
+        // Arrange
+        String user = "Unit test user";
         JobDto jobDto = new JobDto();
+
         jobDto.setType(TypeDto.DELTA);
-        jobDto.category(CategoryDto.OAI_HARVEST);
-        jobDto.setSource(oaiTarget.getName());
-        jobDto.setCreatedBy("Unit test");
+        jobDto.category(CategoryDto.KALTURA_UPLOAD);
+        jobDto.setSource(Source.DR_ARCHIVE.getValue());
+        jobDto.setCreatedBy(user);
         jobDto.setJobStatus(JobStatusDto.RUNNING);
         jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
 
-        BasicStorage.performStorageAction("Create job for OAITest", JobStorage::new, (JobStorage storage) -> {
+        BasicStorage.performStorageAction("Create job for kaltura upload test", JobStorage::new, (JobStorage storage) -> {
             storage.createJob(jobDto);
             return null;
         });
 
-        // Try add another
+        // Act/Assert
         InvalidArgumentServiceException exception = Assertions.assertThrows(InvalidArgumentServiceException.class,
-                () -> DsDatahandlerFacade.oaiIngestFull(oaiTarget.getName(), "Unit test")
+                () -> DsDatahandlerFacade.kalturaDeltaUpload(user)
         );
 
-        Assertions.assertEquals("There is already an OAI Harvest job running", exception.getMessage());
+        Assertions.assertEquals("There is already a/an kaltura upload job running", exception.getMessage());
+    }
+
+    /**
+     * Can only have one job with the same name running at the same time even if one is a delta job and the other is a full job
+     */
+    @Test
+    void startJob_whenThereIsAlreadyRunningTranscriptionsJob_thenThrowInvalidArgumentServiceException() {
+        // Arrange
+        String user = "Unit test user";
+        JobDto jobDto = new JobDto();
+
+        jobDto.setType(TypeDto.DELTA);
+        jobDto.category(CategoryDto.TRANSCRIPTIONS);
+        jobDto.setSource(Source.DR_ARCHIVE.getValue());
+        jobDto.setCreatedBy(user);
+        jobDto.setJobStatus(JobStatusDto.RUNNING);
+        jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+
+        BasicStorage.performStorageAction("Create job for transcriptions test", JobStorage::new, (JobStorage storage) -> {
+            storage.createJob(jobDto);
+            return null;
+        });
+
+        // Act/Assert
+        InvalidArgumentServiceException exception = Assertions.assertThrows(InvalidArgumentServiceException.class,
+                () -> DsDatahandlerFacade.transcriptionsLoad(user)
+        );
+
+        Assertions.assertEquals("There is already a/an transcriptions job running", exception.getMessage());
     }
 }

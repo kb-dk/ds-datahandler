@@ -5,6 +5,13 @@ All notable changes to ds-datahandler will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.1](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-4.0.1) - 2026-03-02
+
+### Fixed
+
+- Add enum `Source` that is used by kaltura upload job and transcriptions job when it is saved in the `job` table 
+  instead of having null in source column. Fixes a bug with SQL that can not handle `source = ?`, when source is NULL.
+
 ## [4.0.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-4.0.0) - 2026-01-29
 
 ### Added

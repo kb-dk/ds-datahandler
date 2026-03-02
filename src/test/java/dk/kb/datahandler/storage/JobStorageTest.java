@@ -1,6 +1,7 @@
 package dk.kb.datahandler.storage;
 
 import dk.kb.datahandler.config.ServiceConfig;
+import dk.kb.datahandler.enums.Source;
 import dk.kb.datahandler.model.v1.CategoryDto;
 import dk.kb.datahandler.model.v1.JobDto;
 import dk.kb.datahandler.model.v1.JobStatusDto;
@@ -139,19 +140,25 @@ public class JobStorageTest {
     }
 
     @Test
-    public void testHasJobRunning() throws SQLException {
-        JobDto jobDto = genetrateJobDto();
+    public void hasRunningJob_whenSourceHasValue_thenReturnTrue() throws SQLException {
+        // Arrange
+        JobDto jobDto = new JobDto();
 
-        // No OAI_HARVEST job should be running
-        assertFalse(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
-
-        jobDto.setCategory(CategoryDto.OAI_HARVEST);
-        jobDto.setSource("test.source");
+        jobDto.setType(TypeDto.DELTA);
+        jobDto.category(CategoryDto.KALTURA_UPLOAD);
+        jobDto.setSource(Source.DR_ARCHIVE.getValue());
+        jobDto.setCreatedBy("Unit test user");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
+        jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+
+        // Verify that no job of the same type is running
+        assertFalse(storage.hasRunningJob(CategoryDto.KALTURA_UPLOAD, Source.DR_ARCHIVE.getValue()));
+
+        // Act
         storage.createJob(jobDto);
 
-        // Now there should be a OIA_HARVEST job running
-        assertTrue(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
+        // Assert
+        assertTrue(storage.hasRunningJob(CategoryDto.KALTURA_UPLOAD, Source.DR_ARCHIVE.getValue()));
     }
 
     @Test

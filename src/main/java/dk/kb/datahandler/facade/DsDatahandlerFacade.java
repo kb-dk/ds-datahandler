@@ -13,6 +13,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import com.kaltura.client.types.APIException;
+import dk.kb.datahandler.enums.Source;
 import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
@@ -307,7 +308,7 @@ public class DsDatahandlerFacade {
         // mTimeFrom is in microseconds
         OffsetDateTime offsetDateModifiedTimeFrom = OffsetDateTime.ofInstant(Instant.EPOCH.plus(0, ChronoUnit.MICROS), ZoneOffset.UTC);
 
-        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.KALTURA_UPLOAD, null, offsetDateModifiedTimeFrom, user);
+        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.KALTURA_UPLOAD, Source.DR_ARCHIVE.getValue(), offsetDateModifiedTimeFrom, user);
 
         log.info("Starting kaltura delta upload");
         try {
@@ -344,7 +345,7 @@ public class DsDatahandlerFacade {
      * @return Number of successful transcriptions loaded
      */        
     public static Integer transcriptionsLoad(String user) throws Exception { 
-        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.TRANSCRIPTIONS, null, null, user);        
+        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.TRANSCRIPTIONS, Source.DR_ARCHIVE.getValue(), null, user);
         try {
           String dropFolder=ServiceConfig.getTranscriptionsDropFolder();
           String completedFolder=ServiceConfig.getTranscriptionsCompletedFolder();
@@ -572,7 +573,7 @@ public class DsDatahandlerFacade {
 
         UUID jobId = BasicStorage.performStorageAction(databaseMessage, JobStorage::new, (JobStorage storage) -> {
             if (storage.hasRunningJob(categoryDto, source)) {
-                throw new InvalidArgumentServiceException("There is already an OAI Harvest job running");
+                throw new InvalidArgumentServiceException("There is already a/an " + categoryDto + " job running");
             }
             return storage.createJob(jobDto);
         });
