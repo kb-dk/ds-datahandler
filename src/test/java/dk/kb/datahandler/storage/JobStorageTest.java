@@ -139,19 +139,49 @@ public class JobStorageTest {
     }
 
     @Test
-    public void testHasJobRunning() throws SQLException {
-        JobDto jobDto = genetrateJobDto();
+    public void hasRunningJob_whenSourceHasValue_thenReturnTrue() throws SQLException {
+        // Arrange
+        String source = "ds.tv";
 
-        // No OAI_HARVEST job should be running
-        assertFalse(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
+        JobDto jobDto = new JobDto();
 
-        jobDto.setCategory(CategoryDto.OAI_HARVEST);
-        jobDto.setSource("test.source");
+        jobDto.setType(TypeDto.DELTA);
+        jobDto.category(CategoryDto.SOLR_INDEX);
+        jobDto.setSource(source);
+        jobDto.setCreatedBy("Unit test user");
         jobDto.setJobStatus(JobStatusDto.RUNNING);
+        jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+
+        // Verify that no job of the same type is running
+        assertFalse(storage.hasRunningJob(CategoryDto.SOLR_INDEX, source));
+
+        // Act
         storage.createJob(jobDto);
 
-        // Now there should be a OIA_HARVEST job running
-        assertTrue(storage.hasRunningJob(CategoryDto.OAI_HARVEST, "test.source"));
+        // Assert
+        assertTrue(storage.hasRunningJob(CategoryDto.SOLR_INDEX, source));
+    }
+
+    @Test
+    public void hasRunningJob_whenSourceIsNull_thenReturnTrue() throws SQLException {
+        // Arrange
+        JobDto jobDto = new JobDto();
+
+        jobDto.setType(TypeDto.DELTA);
+        jobDto.category(CategoryDto.KALTURA_UPLOAD);
+        jobDto.setSource(null);
+        jobDto.setCreatedBy("Unit test user");
+        jobDto.setJobStatus(JobStatusDto.RUNNING);
+        jobDto.setStartTime(OffsetDateTime.now(ZoneOffset.UTC));
+
+        // Verify that no job of the same type is running
+        assertFalse(storage.hasRunningJob(CategoryDto.KALTURA_UPLOAD, null));
+
+        // Act
+        storage.createJob(jobDto);
+
+        // Assert
+        assertTrue(storage.hasRunningJob(CategoryDto.KALTURA_UPLOAD, null));
     }
 
     @Test
