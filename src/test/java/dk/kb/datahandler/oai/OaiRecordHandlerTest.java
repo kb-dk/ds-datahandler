@@ -86,4 +86,21 @@ public class OaiRecordHandlerTest {
         saxParser.parse(Resolver.resolveStream("xml/updatedprofileswithrecord.xml"), handler);
         assertEquals("ed685674-cc4e-44e3-8556-8d83010482aa", handler.fileId);
     }
+
+    @Test
+    public void testValidFormatMediaType() throws ParserConfigurationException, SAXException, IOException {
+        SAXParser saxParser = factory.newSAXParser();
+        PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+        saxParser.parse(Resolver.resolveStream("xml/054c55b3-ed3a-442c-99dd-1b80c0218114.xml"),handler);
+        assertEquals(PreservicaOaiRecordHandler.RecordType.TV, handler.getRecordType());
+    }
+
+    @Test
+    public void testInvalidFormatMediaType() throws ParserConfigurationException, SAXException, IOException {
+        SAXParser saxParser = factory.newSAXParser();
+        PreservicaOaiRecordHandler handler = new PreservicaOaiRecordHandler();
+        saxParser.parse(Resolver.resolveStream("xml/dc885d8e-2d11-4067-a2d6-d7df9add8331.xml"),handler);
+        assertEquals(PreservicaOaiRecordHandler.RecordType.UNKNOWN, handler.getRecordType());
+    }
+
 }
