@@ -459,7 +459,7 @@ public class DsDatahandlerFacade {
 
         UUID jobId = BasicStorage.performStorageAction(databaseMessage, JobStorage::new, (JobStorage storage) -> {
             if (storage.hasRunningJob(categoryDto, source)) {
-                throw new InvalidArgumentServiceException("There is already an OAI Harvest job running");
+                throw new InvalidArgumentServiceException("There is already a/an " + categoryDto + " job running");
             }
             return storage.createJob(jobDto);
         });

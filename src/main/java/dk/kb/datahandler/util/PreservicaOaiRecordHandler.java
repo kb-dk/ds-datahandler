@@ -158,16 +158,16 @@ public class PreservicaOaiRecordHandler extends DefaultHandler {
 
         if (cleanQName.equalsIgnoreCase("formatMediaType")) {
             // Check what type of record we have in hand
-            switch (formatMediaTypeContent.toString().toLowerCase(Locale.ROOT)) {
-                case "moving image":
+            switch (formatMediaTypeContent.toString()) {
+                case "Moving Image":
                     recordType = RecordType.TV;
                     break;
-                case "sound":
+                case "Sound":
                     recordType = RecordType.RADIO;
                     break;
                 default:
                     recordType = RecordType.UNKNOWN;
-                    log.error("No recordType could be found for the record. Record cannot be sorted into a DS origin.");
+                    log.error("No recordType could be found for record with and formatMediaType:'{}'. Record type set to UNKNOWN", formatMediaTypeContent.toString());
             }
 
             isFormatMediaType = false; // reset flag

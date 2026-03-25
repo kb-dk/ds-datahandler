@@ -122,6 +122,7 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             case RADIO:
                 return "ds.radio";
             case UNKNOWN:
+                log.warn("Record type is UNKNOWN, setting origin to empty string for record: {} ", oaiRecord.getId());
                 return "";
             default:
                 throw new InternalServiceException("Unknown record type: " + preservicaRecordHandler.getRecordType());
