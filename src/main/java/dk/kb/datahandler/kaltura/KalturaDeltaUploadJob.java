@@ -51,30 +51,30 @@ public class KalturaDeltaUploadJob {
      *
      * <p>
      * 2) Calculate full path to the stream. Calculation depend on if record is DOMS or Preservica.
-     *    Validate file exists and not too short bytesize. If this happens mark the record with error and skip.
+     * Validate file exists and not too short bytesize. If this happens mark the record with error and skip.
      * <p>
-     *  3) Check that the file_id has not been uploaded to kaltura before. If it has use the kaltura internal id for this record.
+     * 3) Check that the file_id has not been uploaded to kaltura before. If it has use the kaltura internal id for this record.
      * <p>
      * 4) For each new stream:
      * <p>
-     *  4.1) Upload the stream to kaltura. (Notice some streams do not have extension, but this seems not to be an issue with kaltura). The kaltura 'tag'
-     *  for upload is 'delta-2025-05-01' where last part is current day. The kaltura tag-field is an internal kaltura field that we can use to see in which batch
-     *  the file was uploaded, and can also be used to search and delete all streams with this tag if something goes wrong.
+     * 4.1) Upload the stream to kaltura. (Notice some streams do not have extension, but this seems not to be an issue with kaltura). The kaltura 'tag'
+     * for upload is 'delta-2025-05-01' where last part is current day. The kaltura tag-field is an internal kaltura field that we can use to see in which batch
+     * the file was uploaded, and can also be used to search and delete all streams with this tag if something goes wrong.
      * <p>
-     *  4.2) Update the record's kalturaid in ds-storage
+     * 4.2) Update the record's kalturaid in ds-storage
      * <p>
      * All records that has been updated with error or kalturaId will have mTime updated to new value.
      * After completion the facade method will start a solr delta-index job.
      *
-     * @param mTimeFrom Upload all streams for records in solr with mTimeFrom higher than this value.
+     * @return number of streams uploaded
      * @throws InternalServiceException If any Solr or Kaltura call fails. Stop uploading more. Maybe allow single kaltura upload jobs to fail later.
      */
-    public static int uploadStreamsToKaltura() throws InternalServiceException{
+    public static int uploadStreamsToKaltura() throws InternalServiceException {
 
         boolean moreSolrRecords = true;
         long mTimeFromCurrent = 0; //Use this for batching. It will still only extract records without kaltura_id
-        Integer numberStreamsUploaded = 0;
-        String uploadTagForKaltura=getUploadTagForKaltura();
+        int numberStreamsUploaded = 0;
+        String uploadTagForKaltura = getUploadTagForKaltura();
         //The minimumFileSizeInBytesvalue has been defined by Asger+Petur. It has been burned into the kaltura bulk upload and must not be changed, unless we start with a new empty kaltura partnerid.
         //Next time I recommend a much higher value such as 4096 etc, this is a few seconds of audio.
         long minimumFileSizeInBytes = 700;
@@ -85,11 +85,11 @@ public class KalturaDeltaUploadJob {
             try {
                 SolrDocumentList docs = fetchSolrRecords(mTimeFromCurrent, 500);
                 if (docs.getNumFound() == 0) {
-                   return numberStreamsUploaded;
+                    return numberStreamsUploaded;
                 }
 
                 for (SolrDocument doc : docs) {
-                    String resourceDescription=(String) doc.getFieldValue("resource_description");
+                    String resourceDescription = (String) doc.getFieldValue("resource_description");
 
                     String title = "";//Default
                     ArrayList<String> titles = (ArrayList<String>) doc.getFieldValue("title"); //multivalue
@@ -98,7 +98,7 @@ public class KalturaDeltaUploadJob {
                     }
                     String description = (String) doc.getFieldValue("description");
                     String fileId = (String) doc.getFieldValue("file_id");
-                    String filePathSolr =(String) doc.getFieldValue("file_path");
+                    String filePathSolr = (String) doc.getFieldValue("file_path");
                     String originatesFrom = (String) doc.getFieldValue("originates_from");
                     String id = (String) doc.getFieldValue("id");
                     long recordMtime = (Long) doc.getFieldValue("internal_storage_mTime");
@@ -107,17 +107,17 @@ public class KalturaDeltaUploadJob {
                     String filePath = KalturaUtil.generateStreamPath(filePathSolr, originatesFrom, resourceDescription);
                     mTimeFromCurrent = recordMtime + 1L; //update mTime for next call
 
-                    if (recordAlreadyHasKalturaId(storageClient, id)){ // No need to ask kaltura for kalturaId.
-                      continue;
+                    if (recordAlreadyHasKalturaId(storageClient, id)) { // No need to ask kaltura for kalturaId.
+                        continue;
                     }
 
-                    processUpload(numberStreamsUploaded, uploadTagForKaltura, minimumFileSizeInBytes, storageClient,
+                    numberStreamsUploaded += processUpload(uploadTagForKaltura, minimumFileSizeInBytes, storageClient,
                             resourceDescription, title, description, fileId, id, filePath, fileExtension);
                 }
 
             } catch (SolrServerException | IOException e) {
                 // Can not fetch more records. Stop delta upload
-                moreSolrRecords=false;
+                moreSolrRecords = false;
                 log.error("Could not fetch more solr records from mTime={}", mTimeFromCurrent);
                 throw new InternalServiceException("Could not fetch more solr records from mTime: " + mTimeFromCurrent);
             }
@@ -125,51 +125,49 @@ public class KalturaDeltaUploadJob {
         return numberStreamsUploaded;
     }
 
-    /*
+    /**
      * Upload stream to kaltura. Will update storage record with error message or kaltura_id if success.
      * If uploaded succes will increase the numberOfStreamsUploaded variable
      *
-     */
-    private static void processUpload(Integer numberStreamsUploaded, String uploadTagForKaltura, long minimumFileSizeInBytes, DsStorageClient storageClient,
-            String resourceDescription, String title, String description, String fileId, String id, String path,
-                                      String fileExtension) {
+     * @return Number of streams uploaded (either 1 if stream uploaded or 0 if skipped)
+     **/
+    private static int processUpload(String uploadTagForKaltura, long minimumFileSizeInBytes, DsStorageClient storageClient,
+                                     String resourceDescription, String title, String description, String fileId, String id, String path,
+                                     String fileExtension) {
         try {
             //upload stream
             MediaType mediaType = KalturaUtil.getMediaType(resourceDescription);
             int conversionProfileId = KalturaUtil.getGetConversionProfileId(mediaType);
-            log.info("validating stream='{}' with title='{}'",path,title);
-            String fileError= hasStreamFileError(path, minimumFileSizeInBytes);
+            log.info("validating stream='{}' with title='{}'", path, title);
+            String fileError = hasStreamFileError(path, minimumFileSizeInBytes);
             if (fileError != null) {
                 log.warn("File does not exist='{}' or size in bytes less than '{}'. Error='{}'. Id='{}'. Skipping upload", path, minimumFileSizeInBytes, fileError, id);
                 updateKalturaIdForRecord(storageClient, fileId, fileError);
-                return;
+                return 0;
             }
 
             // Check file not already in kaltura. 
-            String kalturaInternalId=getInternalIdKaltura(fileId);
+            String kalturaInternalId = getInternalIdKaltura(fileId);
             if (kalturaInternalId != null) {
-                log.warn("Stream allready found in kaltura. FileId='{}' and has kalturaId='{}'. Setting this kalturaId for recordId='{}'", fileId, kalturaInternalId, id);
+                log.warn("Stream already found in Kaltura. FileId='{}' and has kalturaId='{}'. Setting this kalturaId for recordId='{}'", fileId, kalturaInternalId, id);
                 updateKalturaIdForRecord(storageClient, fileId, kalturaInternalId);
-                return;
+                return 0;
             }
 
             try {
-                String kalturaId=uploadStream(title, fileId, description, path, uploadTagForKaltura,
+                String kalturaId = uploadStream(title, fileId, description, path, uploadTagForKaltura,
                         mediaType, fileExtension, conversionProfileId);
                 log.info("Uploaded stream='{}' and got kalturaId='{}'", path, kalturaId);
-                numberStreamsUploaded++; //Success count
-                //update storage record with kalturaId                     
+                //update storage record with kalturaId
                 updateKalturaIdForRecord(storageClient, fileId, kalturaId);
-                log.info("Updated kaltura mapping in storage for fileId='{}'", fileId);
-                return;
-            }
-            catch(Exception e) {  //Stop delta job
+                log.info("Updated Kaltura mapping in storage for fileId='{}'", fileId);
+                return 1;
+            } catch (Exception e) {  //Stop delta job
                 log.error("Failed uploading stream to kaltura with fileId='{}', path='{}', title='{}', error='{}'", fileId, path, title, e.getMessage());
                 updateKalturaIdForRecord(storageClient, fileId, StreamErrorTypeDto.API.getValue()); //Mark as API error
                 throw new InternalServiceException("Failed uploading stream to kaltura with fileId: " + fileId);
             }
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             //Totally stop all uploads if a single call fails. Change strategy if this does seem to happen sporadic
             //Delta upload can be started again. We want to detect this error and not ignore it.
             log.error("Error kaltura lookup for fileId='{}'" + fileId, e);
