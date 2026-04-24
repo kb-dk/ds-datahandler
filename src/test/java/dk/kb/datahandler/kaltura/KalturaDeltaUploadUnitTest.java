@@ -14,7 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -41,7 +42,7 @@ class KalturaDeltaUploadUnitTest {
 
     @BeforeEach
     void setUp() {
-        service.when(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(),any(), anyInt()))
+        service.when(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(), anyInt()))
                 .thenReturn("0_test");
         service.when(() -> KalturaDeltaUploadJob.updateKalturaIdForRecord(any(), any(), any())).thenAnswer(inv -> null);
     }
@@ -49,7 +50,7 @@ class KalturaDeltaUploadUnitTest {
     // ─── uploadStreamsToKaltura ───────────────────────────────────────────────
 
     @Test
-    void uploadStreamsToKaltura_returnsZero_whenSolrHasNoDocuments(){
+    void uploadStreamsToKaltura_returnsZero_whenSolrHasNoDocuments() {
 
         SolrDocumentList emptyList = new SolrDocumentList(); // numFound = 0
 
@@ -62,7 +63,7 @@ class KalturaDeltaUploadUnitTest {
     }
 
     @Test
-    void uploadStreamsToKaltura_skipsRecord_whenAlreadyHasKalturaId(){
+    void uploadStreamsToKaltura_skipsRecord_whenAlreadyHasKalturaId() {
         SolrDocumentList docs = buildSolrDocumentList(buildSolrDocument(), buildSolrDocument());
         SolrDocumentList empty = new SolrDocumentList();
 
