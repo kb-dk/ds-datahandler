@@ -35,7 +35,7 @@ import dk.kb.util.webservice.exception.InternalServiceException;
  */
 public class KalturaDeltaUploadJob {
 
-    private static DsKalturaClient kalturaClient = null;
+    static DsKalturaClient kalturaClient = null;
     private static final Logger log = LoggerFactory.getLogger(KalturaDeltaUploadJob.class);
 
     /**
@@ -131,7 +131,7 @@ public class KalturaDeltaUploadJob {
      *
      * @return Number of streams uploaded (either 1 if stream uploaded or 0 if skipped)
      **/
-    private static int processUpload(String uploadTagForKaltura, long minimumFileSizeInBytes, DsStorageClient storageClient,
+    static int processUpload(String uploadTagForKaltura, long minimumFileSizeInBytes, DsStorageClient storageClient,
                                      String resourceDescription, String title, String description, String fileId, String id, String path,
                                      String fileExtension) {
         try {
@@ -139,10 +139,10 @@ public class KalturaDeltaUploadJob {
             MediaType mediaType = KalturaUtil.getMediaType(resourceDescription);
             int conversionProfileId = KalturaUtil.getGetConversionProfileId(mediaType);
             log.info("validating stream='{}' with title='{}'", path, title);
-            String fileError = hasStreamFileError(path, minimumFileSizeInBytes);
+            StreamErrorTypeDto fileError = hasStreamFileError(path, minimumFileSizeInBytes);
             if (fileError != null) {
-                log.warn("File does not exist='{}' or size in bytes less than '{}'. Error='{}'. Id='{}'. Skipping upload", path, minimumFileSizeInBytes, fileError, id);
-                updateKalturaIdForRecord(storageClient, fileId, fileError);
+                log.warn("File does not exist='{}' or size in bytes less than '{}'. Error='{}'. Id='{}'. Skipping upload", path, minimumFileSizeInBytes, fileError.getValue(), id);
+                updateKalturaIdForRecord(storageClient, fileId, fileError.getValue());
                 return 0;
             }
 
@@ -180,7 +180,7 @@ public class KalturaDeltaUploadJob {
      * Bcause there is a delay in Kaltura when a record is upload and before it is indexed
      * and searchable, check if record directly on the record.
      */
-    private static boolean recordAlreadyHasKalturaId(DsStorageClient storageClient, String recordId) {
+    static boolean recordAlreadyHasKalturaId(DsStorageClient storageClient, String recordId) {
         DsRecordDto record = storageClient.getRecord(recordId,false);
         if (record.getKalturaId() != null) {
             log.info("Record already has kaltura id and no need to search in kaltura. Id='{}'", recordId);
@@ -189,7 +189,7 @@ public class KalturaDeltaUploadJob {
         return false;
     }
 
-    private static void updateKalturaIdForRecord(DsStorageClient storageClient, String fileId, String kalturaInternalId) {
+    static void updateKalturaIdForRecord(DsStorageClient storageClient, String fileId, String kalturaInternalId) {
         storageClient.updateKalturaIdForRecord(fileId, kalturaInternalId);
     }
 
@@ -297,7 +297,7 @@ public class KalturaDeltaUploadJob {
      * @throws APIException If API error
      *
      */
-    private static String getInternalIdKaltura(String file_id) throws IOException, APIException {
+    static String getInternalIdKaltura(String file_id) throws IOException, APIException {
 
         initKalturaClient();
 
@@ -335,27 +335,27 @@ public class KalturaDeltaUploadJob {
      * @return  StreamErrorTypeDto error or null if file exists has large enough.
      *
      */
-    private static String hasStreamFileError(String filePath,long minimumSizeInBytes) {
+    static StreamErrorTypeDto hasStreamFileError(String filePath, long minimumSizeInBytes) {
         Path path = Paths.get(filePath);
         if  (!Files.exists(path)){
-            return StreamErrorTypeDto.FILE_MISSING.getValue();
+            return StreamErrorTypeDto.FILE_MISSING;
         }
         long size = 0;
         try {
             size= Files.size(path);
             if (size < minimumSizeInBytes) {
                 log.warn("File '{}' exists but below minimum bytesize, size='{}'", filePath, size);
-                return StreamErrorTypeDto.FILE_TOO_SHORT.getValue();
+                return StreamErrorTypeDto.FILE_TOO_SHORT;
             }
         }
         catch(Exception e) {
-            return StreamErrorTypeDto.FILE_MISSING.getValue(); //Can not happen, but need to return value.
+            return StreamErrorTypeDto.FILE_MISSING; //Can not happen, but need to return value.
         }
         log.debug("File '{}' exists and has size='{}'", filePath, size);
         return null;
     }
 
-    private static void initKalturaClient() {
+    static void initKalturaClient() {
         if (kalturaClient != null) {
             return; // already inititalised
         }
