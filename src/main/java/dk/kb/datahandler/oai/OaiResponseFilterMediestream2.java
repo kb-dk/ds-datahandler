@@ -1,5 +1,6 @@
 package dk.kb.datahandler.oai;
 
+import dk.kb.datahandler.enrichment.DataEnricher;
 import dk.kb.datahandler.util.PreservicaOaiRecordHandler;
 import dk.kb.storage.util.DsStorageClient;
 import dk.kb.util.webservice.exception.InternalServiceException;
@@ -14,18 +15,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Pattern;
 
-public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven{
+public class OaiResponseFilterMediestream2 extends OaiResponseFilterPreservicaSeven{
     private static final Logger log = LoggerFactory.getLogger(OaiResponseFilterDrArchive.class);
-    public static int nonDrRecords = 0;
-
 
     /**
      * @param datasource source for records. Default implementation uses this for {@code origin}.
      * @param storage    destination for records.
      */
-    public OaiResponseFilterDrArchive(String datasource, DsStorageClient storage) {
+    public  OaiResponseFilterMediestream2(String datasource, DsStorageClient storage) {
         super(datasource, storage);
     }
 
@@ -52,8 +50,8 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
             //deleted has no metadata. We do not know if it is radio or tv. So delete both options.            
             if(oaiRecord.isDeleted()) { 
                 log.info("Deleting record with id:"+oaiRecord.getId());
-                addToStorage(oaiRecord, "ds.tv", null); //Why are these not enums? 
-                addToStorage(oaiRecord, "ds.radio", null); //Why are these not enums?               
+                addToStorage(oaiRecord, "ds.mediestream.tv", null); //Why are these not enums? 
+                addToStorage(oaiRecord, "ds.mediestream.radio", null); //Why are these not enums?               
                 return;
             }
 
@@ -65,18 +63,8 @@ public class OaiResponseFilterDrArchive extends OaiResponseFilterPreservicaSeven
                 throw new InternalServiceException(e);
             }
             
-            // Filter out material that are not send on DR channels
-            if (!handler.recordIsDr){
-                processed++;
-                nonDrRecords++;
-                // Periodically logging of how many records have been filtered out.
-                if (nonDrRecords % 1000 == 0) {
-                    log.info("The DR filter has filtered '{}' records away. '{}' records have been processed.",
-                            nonDrRecords, processed);
-                }
-                continue;
-            }
-
+            //Not filtering any records
+            
             // InformationObjects from preservica 7 need to have the PBCore metadata tag.
             if (!informationObjectContainsPbcoreBoolean(handler, recordId)){
                 continue;

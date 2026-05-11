@@ -15,6 +15,7 @@ import java.util.zip.ZipInputStream;
 import com.kaltura.client.types.APIException;
 import dk.kb.datahandler.model.v1.*;
 import dk.kb.datahandler.oai.OaiResponseFilterDrArchive;
+import dk.kb.datahandler.oai.OaiResponseFilterMediestream2;
 import dk.kb.datahandler.oai.OaiResponseFilterPreservicaSeven;
 import dk.kb.datahandler.solr.SolrIndexResponse;
 import dk.kb.datahandler.storage.BasicStorage;
@@ -376,6 +377,9 @@ public class DsDatahandlerFacade {
             case DR:
                 oaiFilter = new OaiResponseFilterDrArchive(origin, dsAPI);
                 break;
+            case MEDIESTREAM2:
+                oaiFilter = new OaiResponseFilterMediestream2(origin, dsAPI);
+                break;                        
             case PRESERVICA:
                 oaiFilter = new OaiResponseFilterPreservicaSeven(origin, dsAPI);
                 break;

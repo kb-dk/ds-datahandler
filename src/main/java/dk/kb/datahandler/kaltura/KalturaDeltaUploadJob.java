@@ -83,7 +83,7 @@ public class KalturaDeltaUploadJob {
 
         while (moreSolrRecords) {
             try {
-                SolrDocumentList docs = fetchSolrRecords(mTimeFromCurrent, 500);
+                SolrDocumentList docs = fetchDrSolrRecords(mTimeFromCurrent, 500);
                 if (docs.getNumFound() == 0) {
                    return numberStreamsUploaded;
                 }
@@ -204,10 +204,10 @@ public class KalturaDeltaUploadJob {
      * @throws SolrServerException
      * @throws IOException
      */
-    public static SolrDocumentList fetchSolrRecords(long mTimeFrom, int batchSize) throws SolrServerException, IOException {
+    public static SolrDocumentList fetchDrSolrRecords(long mTimeFrom, int batchSize) throws SolrServerException, IOException {
         String solrUrl = ServiceConfig.getSolrQueryUrl();
         //The reason for missing file_id on some records are preservica metadata error. Should have been marked as access_malfunction
-        String filterQuery = "access_malfunction:false AND production_code_allowed:true AND file_id:* AND NOT kaltura_id:*";  // only valid streams that does not have kaltura id already
+        String filterQuery = "access_malfunction:false AND production_code_allowed:true AND (origin:ds.radio OR origin:ds.tv) AND file_id:* AND NOT kaltura_id:*";  // only valid streams that does not have kaltura id already
 
         HttpJdkSolrClient client = new HttpJdkSolrClient.Builder(solrUrl).build();
 

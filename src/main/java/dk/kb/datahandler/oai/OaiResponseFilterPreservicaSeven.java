@@ -116,11 +116,22 @@ public class OaiResponseFilterPreservicaSeven extends OaiResponseFilter{
             throw new InternalServiceException("recordHandler is not an instance of PreservicaOaiRecordHandler");
         }
 
+        String originPrefix="";
+        if (datasource.equals("ds.radiotv")) {
+            originPrefix="ds"; // <- Should have been 'ds.dr' 
+        }
+        else if (datasource.equals("ds.mediestream2")) {
+            originPrefix="ds.mediestream2";
+        }
+        else {
+            throw new InternalServiceException("Unknown datasource for preservicaRecordHandler:" +datasource);
+        }
+                
         switch (preservicaRecordHandler.getRecordType()) {
             case TV:
-                return "ds.tv";
+                return originPrefix + ".tv";
             case RADIO:
-                return "ds.radio";
+                return originPrefix + ".radio";
             case UNKNOWN:
                 log.warn("Record type is UNKNOWN, setting origin to empty string for record: {} ", oaiRecord.getId());
                 return "";

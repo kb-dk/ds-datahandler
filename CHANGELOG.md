@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### added
+- cleanup unused OAI targets
+- new datasource (mediestream2) and OAI filter OaiResponseFilterMediestream2
+- kaltura deltaupload will only uploaded DR-archive records (ds.tv or ds.radio)
+
 ### Changed
 - Clear up unittest so it can build without aegis. Added properties to default-behaviour and marked one unittest as integration since it require aegis.
 - Removed API method that called ds-storage to enrich kaltura id from mapping table. (Mappe table has been deleted)
