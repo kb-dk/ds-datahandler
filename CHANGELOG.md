@@ -10,7 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Clear up unittest so it can build without aegis. Added properties to default-behaviour and marked one unittest as integration since it require aegis.
 - Removed API method that called ds-storage to enrich kaltura id from mapping table. (Mappe table has been deleted)
-
+- Create minimum client jar. Cross module dependencies uses this new jar instead of the full classes jar.
+ 
+ 
 ## [4.0.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-4.0.2) - 2026-25-03
 
 ### Changed

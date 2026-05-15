@@ -141,13 +141,12 @@
             <artifactId>kb-util</artifactId>
         </dependency>
 
-        <!-- Client for ds-storage This will also require the org.openapitools dependency-->
         <dependency>
             <groupId>dk.kb.storage</groupId>
             <artifactId>ds-storage</artifactId>
             <version>100.0.0-SNAPSHOT</version>
             <type>jar</type>
-            <classifier>classes</classifier>
+            <classifier>api</classifier>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -156,21 +155,19 @@
             </exclusions>
         </dependency>
 
-     <!-- Client for ds-storage This will also require the org.openapitools dependency-->
       <dependency>
-        <groupId>dk.kb.present</groupId>
-        <artifactId>ds-present</artifactId>        
-          <version>100.0.0-SNAPSHOT</version>
-          <type>jar</type>
-          <classifier>classes</classifier>
-          <exclusions>
-            <exclusion>
-              <groupId>*</groupId>
-              <artifactId>*</artifactId>
-            </exclusion>
-        </exclusions>
-      </dependency>
-
+            <groupId>dk.kb.present</groupId>
+            <artifactId>ds-present</artifactId>
+            <version>100.0.0-SNAPSHOT</version>
+            <type>jar</type>
+            <classifier>api</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
       <dependency>
           <groupId>dk.kb.kaltura</groupId>
