@@ -44,7 +44,7 @@ public class DsDatahandlerFacadeTest {
 
     @Test
     void testGetJobs() {
-        OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("test.target");
+        OaiTargetDto oaiTarget = ServiceConfig.getOaiTargets().get("ds.radiotv");
 
         JobDto jobDto = new JobDto();
         jobDto.setType(TypeDto.DELTA);
