@@ -5,7 +5,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -37,11 +36,7 @@ class KalturaDeltaUploadUnitTest {
     @BeforeAll
     static void initSetup() {
         service = mockStatic(KalturaDeltaUploadJob.class, CALLS_REAL_METHODS);
-//        service.when(KalturaDeltaUploadJob::initKalturaClient).then((Answer<?>) (KalturaDeltaUploadJob.kalturaClient = mock(DsKalturaClient.class)));
-    }
-
-    @BeforeEach
-    void setUp() {
+        service.when(() -> KalturaDeltaUploadJob.initKalturaClient()).then(inv -> null);
         service.when(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(), anyInt()))
                 .thenReturn("0_test");
         service.when(() -> KalturaDeltaUploadJob.updateKalturaIdForRecord(any(), any(), any())).thenAnswer(inv -> null);
@@ -123,17 +118,10 @@ class KalturaDeltaUploadUnitTest {
         SolrDocumentList empty = new SolrDocumentList();
 
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenReturn(docs)
-                .thenReturn(empty);
+                .thenReturn(docs, empty);
+        service.when(() -> KalturaDeltaUploadJob.hasStreamFileError(anyString(), anyLong())).thenReturn(null);
         service.when(() -> KalturaDeltaUploadJob.recordAlreadyHasKalturaId(any(), anyString())).thenReturn(false);
-        service.when(() -> KalturaDeltaUploadJob.processUpload(anyString(), anyLong(), any(), anyString(), anyString(),
-                anyString(), anyString(), anyString(), anyString(), anyString())).thenReturn(1);
         service.when(() -> KalturaDeltaUploadJob.getInternalIdKaltura(anyString())).thenReturn(null);
-        service.when(() -> KalturaDeltaUploadJob.uploadStream(anyString(), anyString(), anyString(), anyString(), anyString(), any(), anyString(), anyInt()))
-                .thenReturn("0_testiness0");
-
-        service.when(() -> KalturaDeltaUploadJob.updateKalturaIdForRecord(any(), any(), any()))
-                .thenAnswer(inv -> null);
 
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 

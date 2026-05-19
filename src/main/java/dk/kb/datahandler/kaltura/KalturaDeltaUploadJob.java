@@ -168,7 +168,7 @@ public class KalturaDeltaUploadJob {
         } catch (Exception e) {
             //Totally stop all uploads if a single call fails. Change strategy if this does seem to happen sporadic
             //Delta upload can be started again. We want to detect this error and not ignore it.
-            log.error("Error kaltura lookup for fileId='{}'" + fileId, e);
+            log.error("Error kaltura lookup for fileId='{}'", fileId, e);
             //Do not mark record with error. We need to know why this happens.
             throw new InternalServiceException("Error kaltura lookup for fileId: " + fileId);
         }
