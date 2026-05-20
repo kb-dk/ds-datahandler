@@ -39,13 +39,14 @@ class KalturaDeltaUploadUnitTest {
         service.when(() -> KalturaDeltaUploadJob.initKalturaClient()).then(inv -> null);
         service.when(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(), anyInt()))
                 .thenReturn("0_test");
-        service.when(() -> KalturaDeltaUploadJob.updateKalturaIdForRecord(any(), any(), any())).thenAnswer(inv -> null);
+        service.when(() -> KalturaDeltaUploadJob.updateKalturaIdForRecord(any(), any(), any()))
+                .thenAnswer(inv -> null);
     }
 
     // ─── uploadStreamsToKaltura ───────────────────────────────────────────────
 
     @Test
-    void uploadStreamsToKaltura_returnsZero_whenSolrHasNoDocuments() {
+    void testUploadStreamsToKaltura_whenSolrHasNoDocuments_thenReturnsZero_() {
 
         SolrDocumentList emptyList = new SolrDocumentList(); // numFound = 0
 
@@ -58,7 +59,7 @@ class KalturaDeltaUploadUnitTest {
     }
 
     @Test
-    void uploadStreamsToKaltura_skipsRecord_whenAlreadyHasKalturaId() {
+    void testUploadStreamsToKaltura_whenAlreadyHasKalturaId_thenSkipsRecord_() {
         SolrDocumentList docs = buildSolrDocumentList(buildSolrDocument(), buildSolrDocument());
         SolrDocumentList empty = new SolrDocumentList();
 
@@ -70,12 +71,13 @@ class KalturaDeltaUploadUnitTest {
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
         assertEquals(0, result);
-        service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(), any(), any(), any(), any()), never());
+        service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(),
+                any(), any(), any(), any()), never());
 
     }
 
     @Test
-    void uploadStreamsToKaltura_countsUploadedStreams_whenProcessUploadSucceeds() {
+    void testUploadStreamsToKaltura_whenProcessUploadSucceeds_thenCountsUploadedStreams() {
         SolrDocumentList docs = buildSolrDocumentList(buildSolrDocument());
         SolrDocumentList empty = new SolrDocumentList();
 
@@ -95,7 +97,7 @@ class KalturaDeltaUploadUnitTest {
     }
 
     @Test
-    void uploadStreamsToKaltura_throwsInternalServiceException_onSolrServerException() {
+    void testUploadStreamsToKaltura_onSolrServerException_thenThrowsInternalServiceException() {
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
                 .thenThrow(new SolrServerException("Solr is down"));
 
@@ -104,7 +106,7 @@ class KalturaDeltaUploadUnitTest {
     }
 
     @Test
-    void uploadStreamsToKaltura_throwsInternalServiceException_onIOException() {
+    void testUploadStreamsToKaltura_onIOException_thenThrowsInternalServiceException() {
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
                 .thenThrow(new IOException("Network failure"));
 
@@ -113,7 +115,7 @@ class KalturaDeltaUploadUnitTest {
     }
 
     @Test
-    void uploadStreamsToKaltura_accumulatesCount_acrossMultipleDocuments() {
+    void testUploadStreamsToKaltura_whenMultipleDocuments_thenAccumulatesCount() {
         SolrDocumentList docs = buildSolrDocumentList(buildSolrDocument("id-1"), buildSolrDocument("id-2"));
         SolrDocumentList empty = new SolrDocumentList();
 
