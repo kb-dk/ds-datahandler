@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -159,30 +160,28 @@ class KalturaDeltaUploadUnitTest {
     }
 
     private SolrDocument buildSolrDocument(String id) {
-        SolrDocument doc = new SolrDocument();
-        doc.setField("id", id);
-        doc.setField("file_id", FILE_ID);
-        doc.setField("file_path", FILE_PATH);
-        doc.setField("file_extension", FILE_EXTENSION);
-        doc.setField("resource_description", RESOURCE_DESCRIPTION);
-        doc.setField("description", DESCRIPTION);
-        doc.setField("originates_from", KalturaUtil.ORGINATES_FROM.Preservica.name());
-        doc.setField("internal_storage_mTime", 1_700_000_000L);
+        SolrDocument solrDocument = new SolrDocument();
+        solrDocument.setField("id", id);
+        solrDocument.setField("file_id", FILE_ID);
+        solrDocument.setField("file_path", FILE_PATH);
+        solrDocument.setField("file_extension", FILE_EXTENSION);
+        solrDocument.setField("resource_description", RESOURCE_DESCRIPTION);
+        solrDocument.setField("description", DESCRIPTION);
+        solrDocument.setField("originates_from", KalturaUtil.ORGINATES_FROM.Preservica.name());
+        solrDocument.setField("internal_storage_mTime", 1_700_000_000L);
 
         ArrayList<String> titles = new ArrayList<>();
         titles.add(TITLE);
         titles.add("Secondary Title");
-        doc.setField("title", titles);
+        solrDocument.setField("title", titles);
 
-        return doc;
+        return solrDocument;
     }
 
     private SolrDocumentList buildSolrDocumentList(SolrDocument... documents) {
-        SolrDocumentList list = new SolrDocumentList();
-        for (SolrDocument doc : documents) {
-            list.add(doc);
-        }
-        list.setNumFound(documents.length);
-        return list;
+        SolrDocumentList solrDocumentList = new SolrDocumentList();
+        solrDocumentList.addAll(Arrays.asList(documents));
+        solrDocumentList.setNumFound(documents.length);
+        return solrDocumentList;
     }
 }
