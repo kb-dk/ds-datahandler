@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.verification.VerificationMode;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -46,25 +47,27 @@ class KalturaDeltaUploadUnitTest {
     // ─── uploadStreamsToKaltura ───────────────────────────────────────────────
 
     @Test
-    void testUploadStreamsToKaltura_whenSolrHasNoDocuments_thenReturnsZero_() {
+    void testUploadStreamsToKaltura_whenSolrHasNoDocuments_thenNoRecordIsUploadedToKaltura() {
 
-        SolrDocumentList emptyList = new SolrDocumentList(); // numFound = 0
+        SolrDocumentList emptySolrDocumentList = new SolrDocumentList(); // numFound = 0
 
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenReturn(emptyList);
+                .thenReturn(emptySolrDocumentList);
 
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
+        service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(),
+                any(), any(), any(), any()), never());
         assertEquals(0, result);
     }
 
     @Test
-    void testUploadStreamsToKaltura_whenAlreadyHasKalturaId_thenSkipsRecord_() {
-        SolrDocumentList docs = buildSolrDocumentList(buildSolrDocument(), buildSolrDocument());
+    void testUploadStreamsToKaltura_whenRecordAlreadyHasKalturaId_thenSkipsRecord() {
+        SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
         SolrDocumentList empty = new SolrDocumentList();
 
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenReturn(docs, empty);
+                .thenReturn(solrDocumentList, empty);
         service.when(() -> KalturaDeltaUploadJob.recordAlreadyHasKalturaId(any(), eq(RECORD_ID)))
                 .thenReturn(true);
 
@@ -73,26 +76,25 @@ class KalturaDeltaUploadUnitTest {
         assertEquals(0, result);
         service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(),
                 any(), any(), any(), any()), never());
-
     }
 
     @Test
-    void testUploadStreamsToKaltura_whenProcessUploadSucceeds_thenCountsUploadedStreams() {
-        SolrDocumentList docs = buildSolrDocumentList(buildSolrDocument());
+    void testUploadStreamsToKaltura_whenProcessUploadSucceeds_thenCountUploadedStreams() {
+        SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
         SolrDocumentList empty = new SolrDocumentList();
 
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenReturn(docs, empty);
+                .thenReturn(solrDocumentList, empty);
         service.when(() -> KalturaDeltaUploadJob.recordAlreadyHasKalturaId(any(), eq(RECORD_ID)))
                 .thenReturn(false);
         service.when(() -> KalturaDeltaUploadJob.getInternalIdKaltura(anyString())).thenReturn(null);
         service.when(() -> KalturaDeltaUploadJob.hasStreamFileError(anyString(), anyLong())).thenReturn(null);
-        service.when(() -> KalturaDeltaUploadJob.updateKalturaIdForRecord(any(), any(), any()))
-                .thenAnswer(inv -> null);
 
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
         assertEquals(1, result);
+        service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(), any(),
+                any(), any(), any()), atLeastOnce());
 
     }
 
