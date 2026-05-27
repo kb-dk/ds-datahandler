@@ -23,8 +23,6 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class KalturaDeltaUploadUnitTest {
     static MockedStatic<KalturaDeltaUploadJob> service;
-    private static final String UPLOAD_TAG = "test-upload-tag";
-    private static final long MIN_FILE_SIZE = 700L;
     private static final String FILE_ID = "file-123";
     private static final String RECORD_ID = "record-456";
     private static final String TITLE = "Test Stream Title";
@@ -32,8 +30,6 @@ class KalturaDeltaUploadUnitTest {
     private static final String FILE_PATH = "/streams/test/file.mp4";
     private static final String FILE_EXTENSION = "mp4";
     private static final String RESOURCE_DESCRIPTION = "video";
-    private static final String KALTURA_ID = "kaltura-789";
-
 
     @BeforeEach
     void initSetup() {
@@ -70,7 +66,7 @@ class KalturaDeltaUploadUnitTest {
     }
 
     @Test
-    void testUploadStreamsToKaltura_whenRecordAlreadyHasKalturaId_thenSkipsRecord() {
+    void testUploadStreamsToKaltura_whenRecordAlreadyHasKalturaId_thenSkipRecord() {
         // Arrange
         SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
         SolrDocumentList emptySolrDocumentList = new SolrDocumentList();
@@ -106,8 +102,7 @@ class KalturaDeltaUploadUnitTest {
 
         // Assert
         assertEquals(1, result);
-        service.verify(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(), anyInt()), atMostOnce());
-
+        service.verify(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(), anyInt()), times(1));
     }
 
     @Test
@@ -150,7 +145,8 @@ class KalturaDeltaUploadUnitTest {
 
         // Assert
         assertEquals(2, result);
-
+        service.verify(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(),
+                anyInt()), times(2));
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
