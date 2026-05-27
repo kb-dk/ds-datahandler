@@ -72,9 +72,9 @@ class KalturaDeltaUploadUnitTest {
     void testUploadStreamsToKaltura_whenRecordAlreadyHasKalturaId_thenSkipsRecord() {
         // Arrange
         SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
-        SolrDocumentList empty = new SolrDocumentList();
+        SolrDocumentList emptySolrDocumentList = new SolrDocumentList();
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenReturn(solrDocumentList, empty);
+                .thenReturn(solrDocumentList, emptySolrDocumentList);
         service.when(() -> KalturaDeltaUploadJob.recordAlreadyHasKalturaId(any(), eq(RECORD_ID)))
                 .thenReturn(true);
 
@@ -91,10 +91,10 @@ class KalturaDeltaUploadUnitTest {
     void testUploadStreamsToKaltura_whenProcessUploadSucceeds_thenCountUploadedStreams() {
         // Arrange
         SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
-        SolrDocumentList empty = new SolrDocumentList();
+        SolrDocumentList emptySolrDocumentList = new SolrDocumentList();
 
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenReturn(solrDocumentList, empty);
+                .thenReturn(solrDocumentList, emptySolrDocumentList);
         service.when(() -> KalturaDeltaUploadJob.recordAlreadyHasKalturaId(any(), eq(RECORD_ID)))
                 .thenReturn(false);
         service.when(() -> KalturaDeltaUploadJob.getInternalIdKaltura(anyString())).thenReturn(null);
@@ -135,11 +135,11 @@ class KalturaDeltaUploadUnitTest {
     void testUploadStreamsToKaltura_whenMultipleDocuments_thenAccumulatesCount() {
 
         // Arrange
-        SolrDocumentList docs = buildSolrDocumentList(buildSolrDocument("id-1"), buildSolrDocument("id-2"));
-        SolrDocumentList empty = new SolrDocumentList();
+        SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument("id-1"), buildSolrDocument("id-2"));
+        SolrDocumentList emptySolrDocumentList = new SolrDocumentList();
 
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenReturn(docs, empty);
+                .thenReturn(solrDocumentList, emptySolrDocumentList);
         service.when(() -> KalturaDeltaUploadJob.hasStreamFileError(anyString(), anyLong())).thenReturn(null);
         service.when(() -> KalturaDeltaUploadJob.recordAlreadyHasKalturaId(any(), anyString())).thenReturn(false);
         service.when(() -> KalturaDeltaUploadJob.getInternalIdKaltura(anyString())).thenReturn(null);
