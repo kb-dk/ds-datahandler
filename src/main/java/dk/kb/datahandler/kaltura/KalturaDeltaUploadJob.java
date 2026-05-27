@@ -80,44 +80,50 @@ public class KalturaDeltaUploadJob {
         DsStorageClient storageClient = new DsStorageClient(dsStorageUrl);
 
         while (moreSolrRecords) {
+            SolrDocumentList docs;
             try {
-                SolrDocumentList docs = fetchSolrRecords(mTimeFromCurrent, 500);
-                if (docs.getNumFound() == 0) {
-                    return numberStreamsUploaded;
-                }
-
-                for (SolrDocument doc : docs) {
-                    String resourceDescription = (String) doc.getFieldValue("resource_description");
-
-                    String title = "";//Default
-                    ArrayList<String> titles = (ArrayList<String>) doc.getFieldValue("title"); //multivalue
-                    if (titles != null && titles.size() > 0) {
-                        title = titles.get(0);// take first
-                    }
-                    String description = (String) doc.getFieldValue("description");
-                    String fileId = (String) doc.getFieldValue("file_id");
-                    String filePathSolr = (String) doc.getFieldValue("file_path");
-                    String originatesFrom = (String) doc.getFieldValue("originates_from");
-                    String id = (String) doc.getFieldValue("id");
-                    long recordMtime = (Long) doc.getFieldValue("internal_storage_mTime");
-                    String fileExtension = (String) doc.getFieldValue("file_extension");
-
-                    String filePath = KalturaUtil.generateStreamPath(filePathSolr, originatesFrom, resourceDescription);
-                    mTimeFromCurrent = recordMtime + 1L; //update mTime for next call
-
-                    if (recordAlreadyHasKalturaId(storageClient, id)) { // No need to ask kaltura for kalturaId.
-                        continue;
-                    }
-
-                    numberStreamsUploaded += processUpload(uploadTagForKaltura, minimumFileSizeInBytes, storageClient,
-                            resourceDescription, title, description, fileId, id, filePath, fileExtension);
-                }
-
+                docs = fetchSolrRecords(mTimeFromCurrent, 500);
             } catch (SolrServerException | IOException e) {
                 // Can not fetch more records. Stop delta upload
                 moreSolrRecords = false;
                 log.error("Could not fetch more solr records from mTime={}", mTimeFromCurrent);
-                throw new InternalServiceException("Could not fetch more solr records from mTime: " + mTimeFromCurrent);
+                throw new InternalServiceException(e.getMessage());
+            }
+            if (docs.getNumFound() == 0) {
+                return numberStreamsUploaded;
+            }
+
+            for (SolrDocument doc : docs) {
+                String resourceDescription = (String) doc.getFieldValue("resource_description");
+
+                String title = "";//Default
+                ArrayList<String> titles = (ArrayList<String>) doc.getFieldValue("title"); //multivalue
+                if (titles != null && titles.size() > 0) {
+                    title = titles.get(0);// take first
+                }
+                String description = (String) doc.getFieldValue("description");
+                String fileId = (String) doc.getFieldValue("file_id");
+                String filePathSolr = (String) doc.getFieldValue("file_path");
+                String originatesFrom = (String) doc.getFieldValue("originates_from");
+                String id = (String) doc.getFieldValue("id");
+                long recordMtime = (Long) doc.getFieldValue("internal_storage_mTime");
+                String fileExtension = (String) doc.getFieldValue("file_extension");
+                String filePath;
+                try{
+                    filePath = KalturaUtil.generateStreamPath(filePathSolr, originatesFrom, resourceDescription);
+                }catch (IOException e){
+                    log.error("Could not generate stream path");
+                    throw new InternalServiceException(e.getMessage());
+                }
+
+                mTimeFromCurrent = recordMtime + 1L; //update mTime for next call
+
+                if (recordAlreadyHasKalturaId(storageClient, id)) { // No need to ask kaltura for kalturaId.
+                    continue;
+                }
+
+                numberStreamsUploaded += processUpload(uploadTagForKaltura, minimumFileSizeInBytes, storageClient,
+                        resourceDescription, title, description, fileId, id, filePath, fileExtension);
             }
         }
         return numberStreamsUploaded;

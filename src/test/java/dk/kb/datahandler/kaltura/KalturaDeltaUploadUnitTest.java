@@ -108,23 +108,25 @@ class KalturaDeltaUploadUnitTest {
     @Test
     void testUploadStreamsToKaltura_onSolrServerException_thenThrowsInternalServiceException() {
         // Arrange
+        String expectedMessage = "Solr is down";
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenThrow(new SolrServerException("Solr is down"));
+                .thenThrow(new SolrServerException(expectedMessage));
 
         // Act and Assert
-        assertThrows(InternalServiceException.class, KalturaDeltaUploadJob::uploadStreamsToKaltura);
-
+        Exception exception = assertThrows(InternalServiceException.class, KalturaDeltaUploadJob::uploadStreamsToKaltura);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     @Test
     void testUploadStreamsToKaltura_onIOException_thenThrowsInternalServiceException() {
         // Arrange
+        String expectedMessage = "Network failure";
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
-                .thenThrow(new IOException("Network failure"));
+                .thenThrow(new IOException(expectedMessage));
 
         // Act and Assert
-        assertThrows(InternalServiceException.class, KalturaDeltaUploadJob::uploadStreamsToKaltura);
-
+        Exception exception = assertThrows(InternalServiceException.class, KalturaDeltaUploadJob::uploadStreamsToKaltura);
+        assertEquals(expectedMessage, exception.getMessage());
     }
 
     @Test
