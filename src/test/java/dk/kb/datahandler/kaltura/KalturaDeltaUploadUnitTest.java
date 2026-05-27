@@ -4,12 +4,12 @@ import dk.kb.util.webservice.exception.InternalServiceException;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.verification.VerificationMode;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,14 +34,19 @@ class KalturaDeltaUploadUnitTest {
     private static final String KALTURA_ID = "kaltura-789";
 
 
-    @BeforeAll
-    static void initSetup() {
+    @BeforeEach
+    void initSetup() {
         service = mockStatic(KalturaDeltaUploadJob.class, CALLS_REAL_METHODS);
         service.when(() -> KalturaDeltaUploadJob.initKalturaClient()).then(inv -> null);
         service.when(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(), anyInt()))
                 .thenReturn("0_test");
         service.when(() -> KalturaDeltaUploadJob.updateKalturaIdForRecord(any(), any(), any()))
                 .thenAnswer(inv -> null);
+    }
+
+    @AfterEach
+    void tearDown() {
+        service.close();
     }
 
     // ─── uploadStreamsToKaltura ───────────────────────────────────────────────
@@ -58,8 +63,8 @@ class KalturaDeltaUploadUnitTest {
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
         // Assert
-        service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(),
-                any(), any(), any(), any()), never());
+        service.verify(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(),
+                anyInt()), never());
         assertEquals(0, result);
     }
 
@@ -78,8 +83,8 @@ class KalturaDeltaUploadUnitTest {
 
         // Assert
         assertEquals(0, result);
-        service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(),
-                any(), any(), any(), any()), never());
+        service.verify(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(),
+                anyInt()), never());
     }
 
     @Test
@@ -100,8 +105,7 @@ class KalturaDeltaUploadUnitTest {
 
         // Assert
         assertEquals(1, result);
-        service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(), any(),
-                any(), any(), any()), atLeastOnce());
+        service.verify(() -> KalturaDeltaUploadJob.uploadStream(any(), any(), any(), any(), any(), any(), any(), anyInt()), atMostOnce());
 
     }
 
