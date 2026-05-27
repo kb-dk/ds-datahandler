@@ -48,14 +48,16 @@ class KalturaDeltaUploadUnitTest {
 
     @Test
     void testUploadStreamsToKaltura_whenSolrHasNoDocuments_thenNoRecordIsUploadedToKaltura() {
-
+        // Arrange
         SolrDocumentList emptySolrDocumentList = new SolrDocumentList(); // numFound = 0
 
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
                 .thenReturn(emptySolrDocumentList);
 
+        // Act
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
+        // Assert
         service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(),
                 any(), any(), any(), any()), never());
         assertEquals(0, result);
@@ -63,16 +65,18 @@ class KalturaDeltaUploadUnitTest {
 
     @Test
     void testUploadStreamsToKaltura_whenRecordAlreadyHasKalturaId_thenSkipsRecord() {
+        // Arrange
         SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
         SolrDocumentList empty = new SolrDocumentList();
-
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
                 .thenReturn(solrDocumentList, empty);
         service.when(() -> KalturaDeltaUploadJob.recordAlreadyHasKalturaId(any(), eq(RECORD_ID)))
                 .thenReturn(true);
 
+        // Act
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
+        // Assert
         assertEquals(0, result);
         service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(),
                 any(), any(), any(), any()), never());
@@ -80,6 +84,7 @@ class KalturaDeltaUploadUnitTest {
 
     @Test
     void testUploadStreamsToKaltura_whenProcessUploadSucceeds_thenCountUploadedStreams() {
+        // Arrange
         SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
         SolrDocumentList empty = new SolrDocumentList();
 
@@ -90,8 +95,10 @@ class KalturaDeltaUploadUnitTest {
         service.when(() -> KalturaDeltaUploadJob.getInternalIdKaltura(anyString())).thenReturn(null);
         service.when(() -> KalturaDeltaUploadJob.hasStreamFileError(anyString(), anyLong())).thenReturn(null);
 
+        // Act
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
+        // Assert
         assertEquals(1, result);
         service.verify(() -> KalturaDeltaUploadJob.processUpload(any(), anyLong(), any(), any(), any(), any(), any(),
                 any(), any(), any()), atLeastOnce());
@@ -100,24 +107,30 @@ class KalturaDeltaUploadUnitTest {
 
     @Test
     void testUploadStreamsToKaltura_onSolrServerException_thenThrowsInternalServiceException() {
+        // Arrange
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
                 .thenThrow(new SolrServerException("Solr is down"));
 
+        // Act and Assert
         assertThrows(InternalServiceException.class, KalturaDeltaUploadJob::uploadStreamsToKaltura);
 
     }
 
     @Test
     void testUploadStreamsToKaltura_onIOException_thenThrowsInternalServiceException() {
+        // Arrange
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
                 .thenThrow(new IOException("Network failure"));
 
+        // Act and Assert
         assertThrows(InternalServiceException.class, KalturaDeltaUploadJob::uploadStreamsToKaltura);
 
     }
 
     @Test
     void testUploadStreamsToKaltura_whenMultipleDocuments_thenAccumulatesCount() {
+
+        // Arrange
         SolrDocumentList docs = buildSolrDocumentList(buildSolrDocument("id-1"), buildSolrDocument("id-2"));
         SolrDocumentList empty = new SolrDocumentList();
 
@@ -127,8 +140,10 @@ class KalturaDeltaUploadUnitTest {
         service.when(() -> KalturaDeltaUploadJob.recordAlreadyHasKalturaId(any(), anyString())).thenReturn(false);
         service.when(() -> KalturaDeltaUploadJob.getInternalIdKaltura(anyString())).thenReturn(null);
 
+        // Act
         int result = KalturaDeltaUploadJob.uploadStreamsToKaltura();
 
+        // Assert
         assertEquals(2, result);
 
     }
