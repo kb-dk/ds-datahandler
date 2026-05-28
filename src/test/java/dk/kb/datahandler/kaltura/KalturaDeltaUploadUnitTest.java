@@ -139,7 +139,6 @@ class KalturaDeltaUploadUnitTest {
                 .thenReturn(solrDocumentList, emptySolrDocumentList);
 
         try (MockedStatic<KalturaUtil> kalturaUtilMock = mockStatic(KalturaUtil.class)) {
-            // Arrange
             kalturaUtilMock.when(() -> KalturaUtil.generateStreamPath(any(), any(), any()))
                     .thenThrow(new IOException(expectedMessage));
 
