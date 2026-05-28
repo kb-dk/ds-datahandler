@@ -114,7 +114,7 @@ public class KalturaDeltaUploadJob {
                     filePath = KalturaUtil.generateStreamPath(filePathSolr, originatesFrom, resourceDescription);
                 } catch (IOException e) {
                     String errorMessage = "Could not generate stream path";
-                    log.error(errorMessage, e);
+                    log.error(errorMessage);
                     throw new InternalServiceException(errorMessage, e);
                 }
 
