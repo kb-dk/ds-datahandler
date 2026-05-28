@@ -106,7 +106,7 @@ class KalturaDeltaUploadUnitTest {
     }
 
     @Test
-    void testUploadStreamsToKaltura_onSolrServerException_thenThrowsInternalServiceException() {
+    void testUploadStreamsToKaltura_whenFetchSolrRecordsThrowsSolrServerException_thenThrowsInternalServiceException() {
         // Arrange
         String expectedMessage = "Solr is down";
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
@@ -114,11 +114,11 @@ class KalturaDeltaUploadUnitTest {
 
         // Act and Assert
         Exception exception = assertThrows(InternalServiceException.class, KalturaDeltaUploadJob::uploadStreamsToKaltura);
-        assertEquals(expectedMessage, exception.getMessage());
+        assertEquals(expectedMessage, exception.getCause().getMessage());
     }
 
     @Test
-    void testUploadStreamsToKaltura_onIOException_thenThrowsInternalServiceException() {
+    void testUploadStreamsToKaltura_whenFetchSolrRecordsThrowsIOException_thenThrowsInternalServiceException() {
         // Arrange
         String expectedMessage = "Network failure";
         service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
@@ -126,8 +126,28 @@ class KalturaDeltaUploadUnitTest {
 
         // Act and Assert
         Exception exception = assertThrows(InternalServiceException.class, KalturaDeltaUploadJob::uploadStreamsToKaltura);
-        assertEquals(expectedMessage, exception.getMessage());
+        assertEquals(expectedMessage, exception.getCause().getMessage());
     }
+
+    @Test
+    void testUploadStreamsToKaltura_CreateStreamPathonIOException_thenThrowsInternalServiceException() {
+        String expectedMessage = "Could not find a valid streamPath for that input";
+        SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
+        SolrDocumentList emptySolrDocumentList = new SolrDocumentList();
+        service.when(() -> KalturaDeltaUploadJob.fetchSolrRecords(anyLong(), anyInt()))
+                .thenReturn(solrDocumentList, emptySolrDocumentList);
+
+        try (MockedStatic<KalturaUtil> kalturaUtilMock = mockStatic(KalturaUtil.class)) {
+            // Arrange
+            kalturaUtilMock.when(() -> KalturaUtil.generateStreamPath(any(), any(), any()))
+                    .thenThrow(new IOException(expectedMessage));
+
+            // Act and Assert
+            Exception exception = assertThrows(InternalServiceException.class, () -> KalturaDeltaUploadJob.uploadStreamsToKaltura());
+            assertEquals(expectedMessage, exception.getCause().getMessage());
+        }
+    }
+
 
     @Test
     void testUploadStreamsToKaltura_whenMultipleDocuments_thenAccumulatesCount() {
