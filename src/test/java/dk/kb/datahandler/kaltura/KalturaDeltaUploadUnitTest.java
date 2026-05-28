@@ -131,6 +131,7 @@ class KalturaDeltaUploadUnitTest {
 
     @Test
     void testUploadStreamsToKaltura_CreateStreamPathonIOException_thenThrowsInternalServiceException() {
+        // Arrange
         String expectedMessage = "Could not find a valid streamPath for that input";
         SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
         SolrDocumentList emptySolrDocumentList = new SolrDocumentList();
