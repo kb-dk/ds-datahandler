@@ -130,7 +130,7 @@ class KalturaDeltaUploadUnitTest {
     }
 
     @Test
-    void testUploadStreamsToKaltura_CreateStreamPathonIOException_thenThrowsInternalServiceException() {
+    void testUploadStreamsToKaltura_whenGenerateStreamPathThrowsIOException_thenThrowsInternalServiceException() {
         // Arrange
         String expectedMessage = "Could not find a valid streamPath for that input";
         SolrDocumentList solrDocumentList = buildSolrDocumentList(buildSolrDocument());
@@ -147,7 +147,6 @@ class KalturaDeltaUploadUnitTest {
             assertEquals(expectedMessage, exception.getCause().getMessage());
         }
     }
-
 
     @Test
     void testUploadStreamsToKaltura_whenMultipleDocuments_thenAccumulatesCount() {

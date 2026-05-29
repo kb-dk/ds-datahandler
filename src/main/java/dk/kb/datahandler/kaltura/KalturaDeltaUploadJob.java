@@ -138,16 +138,16 @@ public class KalturaDeltaUploadJob {
      * @return Number of streams uploaded (either 1 if stream uploaded or 0 if skipped)
      **/
     static int processUpload(String uploadTagForKaltura, long minimumFileSizeInBytes, DsStorageClient storageClient,
-                             String resourceDescription, String title, String description, String fileId, String id, String path,
+                             String resourceDescription, String title, String description, String fileId, String id, String filePath,
                              String fileExtension) {
         try {
             //upload stream
             MediaType mediaType = KalturaUtil.getMediaType(resourceDescription);
             int conversionProfileId = KalturaUtil.getGetConversionProfileId(mediaType);
-            log.info("validating stream='{}' with title='{}'", path, title);
-            StreamErrorTypeDto fileError = hasStreamFileError(path, minimumFileSizeInBytes);
+            log.info("validating stream='{}' with title='{}'", filePath, title);
+            StreamErrorTypeDto fileError = hasStreamFileError(filePath, minimumFileSizeInBytes);
             if (fileError != null) {
-                log.warn("File does not exist='{}' or size in bytes less than '{}'. Error='{}'. Id='{}'. Skipping upload", path, minimumFileSizeInBytes, fileError.getValue(), id);
+                log.warn("File does not exist='{}' or size in bytes less than '{}'. Error='{}'. Id='{}'. Skipping upload", filePath, minimumFileSizeInBytes, fileError.getValue(), id);
                 updateKalturaIdForRecord(storageClient, fileId, fileError.getValue());
                 return 0;
             }
@@ -161,15 +161,15 @@ public class KalturaDeltaUploadJob {
             }
 
             try {
-                String kalturaId = uploadStream(title, fileId, description, path, uploadTagForKaltura,
+                String kalturaId = uploadStream(title, fileId, description, filePath, uploadTagForKaltura,
                         mediaType, fileExtension, conversionProfileId);
-                log.info("Uploaded stream='{}' and got kalturaId='{}'", path, kalturaId);
+                log.info("Uploaded stream='{}' and got kalturaId='{}'", filePath, kalturaId);
                 //update storage record with kalturaId
                 updateKalturaIdForRecord(storageClient, fileId, kalturaId);
                 log.info("Updated Kaltura mapping in storage for fileId='{}'", fileId);
                 return 1;
             } catch (Exception e) {  //Stop delta job
-                log.error("Failed uploading stream to kaltura with fileId='{}', path='{}', title='{}', error='{}'", fileId, path, title, e.getMessage());
+                log.error("Failed uploading stream to kaltura with fileId='{}', path='{}', title='{}', error='{}'", fileId, filePath, title, e.getMessage());
                 updateKalturaIdForRecord(storageClient, fileId, StreamErrorTypeDto.API.getValue()); //Mark as API error
                 throw new InternalServiceException("Failed uploading stream to kaltura with fileId: " + fileId);
             }
