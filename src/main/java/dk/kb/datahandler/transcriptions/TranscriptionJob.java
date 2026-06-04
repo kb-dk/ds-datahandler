@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +17,16 @@ import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 public class TranscriptionJob {
     private static final Logger log = LoggerFactory.getLogger(TranscriptionJob.class);
        
+    public static  void main(String[] args) throws Exception {
+        String dropFolder="/home/teg/transcriptions_release_v2/";
+        String completedFolder="/home/teg/transcriptions_release_v2/";
+        int success= TranscriptionJob.processTranscriptions(dropFolder,completedFolder);
+        
+        
+        
+    }
+    
+    
     public synchronized static int processTranscriptions(String dropFolderFilePath,String completedFolderFilePath) throws Exception{     
         validateFoldersExist(dropFolderFilePath, completedFolderFilePath);
         log.debug("Starting transcriptionjob with dropFolder='{}' and completedFolder='{}'",dropFolderFilePath,completedFolderFilePath);                        
@@ -26,21 +35,32 @@ public class TranscriptionJob {
         File dropFolderDir = new File(dropFolderFilePath);       
         File completedFolderDir = new File(completedFolderFilePath);
         
-        File[] files = dropFolderDir.listFiles();
+        //only list those ending with '.ner.json'
+        //for also load the file matching with suffix  '.segments.fw.json' 
+       
+        File[] files = dropFolderDir.listFiles((d, name) -> name.endsWith(".ner.json"));
+        
         log.info("Transcription job started, #files in dropFolder:"+files.length);
         
-        for (File file : files) {
-            boolean validExtension=validateFileJson(file);                        
-            if (!validExtension) {
-                log.warn("File in drop folder is not JSON extension:"+file.getAbsolutePath());
-                moveFileToCompletedFolder(file, validExtension,completedFolderDir);    
+        for (File fileText : files) {                                   
+             //Check segments file is also present.
+            String segmentsFileName=toSegmentsFilename(fileText.getName());
+            File segmentsFile=new File(dropFolderDir, segmentsFileName);
+            
+            System.out.println("loading segmentsfile:"+segmentsFile);
+            boolean segmentsFileExist=segmentsFile.exists();
+             
+            if (!segmentsFileExist) {
+                log.error("Segments file is missing:"+segmentsFile.getAbsolutePath());
+             //   moveFileToCompletedFolder(fileText, segmentsFileExist,completedFolderDir);    
+              //  moveFileToCompletedFolder(segmentsFile, segmentsFileExist,completedFolderDir);
                 continue; //Skip processing            
             }
             
-            boolean success=process(file);
-            moveFileToCompletedFolder(file, success,completedFolderDir);
+            boolean success=process(fileText);
+           // moveFileToCompletedFolder(file, success,completedFolderDir); //TODO!
             parsedSucces++;
-            log.info("Completed indexing transcription:"+file.getName());
+            log.info("Completed indexing transcription:"+fileText.getName());
         }
 
                         
@@ -71,7 +91,7 @@ public class TranscriptionJob {
      */
     private static boolean process(File file) {         
         try {
-           TranscriptionDto transcription = TranscriptionIndexer.parseFile(file.getAbsolutePath());           
+           TranscriptionDto transcription = TranscriptionIndexer.parseFile(file.getAbsolutePath(),null);           
            DsStorageClient storageClient = new DsStorageClient(ServiceConfig.getDsStorageUrl());
            storageClient.createOrUpdateTranscription(transcription);                     
         }
@@ -86,6 +106,7 @@ public class TranscriptionJob {
     /*
      * Validate file has json extension
      */
+    /*
     private static boolean validateFileJson(File file) {
         String extension=FilenameUtils.getExtension(file.getName());
      
@@ -95,7 +116,7 @@ public class TranscriptionJob {
 
         return true;                    
     }
- 
+*/ 
     /*
     * Will move file from drop folder to completed folder.
     * Suffix 'completed' or 'failed' will be added to file as new extension depending on success
@@ -114,6 +135,10 @@ public class TranscriptionJob {
         Path from= file.toPath();
         Path to =  Paths.get(dropFolder+"/"+newFileName);        
         Files.move(from, to, StandardCopyOption.REPLACE_EXISTING);                    
+    }
+    
+    private static String toSegmentsFilename(String filename) {
+        return filename.replace(".ner.json", ".segments.fw.json");
     }
     
 }

@@ -23,26 +23,32 @@ public class TranscriptionIndexer {
     
     private static final Logger log = LoggerFactory.getLogger(TranscriptionIndexer.class);  
        
-   /* Just for 
+ 
     public static void main(String[] args) throws Exception {
-        String file="/home/teg/transcriptions_drop_folder/result_2025-10-28T09.11.08_0405154f-5543-4907-bf26-996d471596cb.mp3.json";
-        TranscriptionDto dto = parseFileToFlatMapStructure(file);
+        String transcriptionFile="/home/teg/transcriptions_release_v2/fffe2a89-360f-45b6-867c-984849b6b342.ner.json";
+        String segmentsFile="/home/teg/transcriptions_release_v2/fffe2a89-360f-45b6-867c-984849b6b342.segments.fw.json";
+        
+        TranscriptionDto dto = parseFile(transcriptionFile,segmentsFile);
         System.out.println(dto);
     }
-    */
+
     
     /**
      * Parse a json file into a  TranscriptionDto object
      *     
      * Will throw exception if parsing fails. 
      */
-    public static TranscriptionDto parseFile(String file) throws Exception{
+    public static TranscriptionDto parseFile(String transcriptionFile, String segmentsFile) throws Exception{
     
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss",Locale.getDefault());
         
         TranscriptionDto transcription = new TranscriptionDto();
-        String jsonString = Files.readString(Path.of(file), Charset.forName("UTF-8"));
-    
+        String  transcriptionString = Files.readString(Path.of(transcriptionFile), Charset.forName("UTF-8"));
+        String  segmentsFileString = Files.readString(Path.of(segmentsFile), Charset.forName("UTF-8"));
+        System.out.println(transcriptionString);
+        System.out.println(segmentsFileString);
+        return null;
+        /*
         Gson gson = new Gson();
         JsonElement element = gson.fromJson (jsonString, JsonElement.class);
         JsonObject obj = element.getAsJsonObject();
@@ -81,6 +87,7 @@ public class TranscriptionIndexer {
         }        
         transcription.setTranscriptionLines(b.toString());        
         return transcription;
+    */
     }
           
 }
