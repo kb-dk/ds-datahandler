@@ -25,10 +25,10 @@ public class TranscriptionIndexer {
        
  
     public static void main(String[] args) throws Exception {
-        String transcriptionFile="/home/teg/transcriptions_release_v2/fffe2a89-360f-45b6-867c-984849b6b342.ner.json";
-        String segmentsFile="/home/teg/transcriptions_release_v2/fffe2a89-360f-45b6-867c-984849b6b342.segments.fw.json";
-        
-        TranscriptionDto dto = parseFile(transcriptionFile,segmentsFile);
+        String transcriptionFile="/home/teg/transcriptions_release_v1/fffe2a89-360f-45b6-867c-984849b6b342.ner.json";
+        String segmentsFile="/home/teg/transcriptions_release_v1/fffe2a89-360f-45b6-867c-984849b6b342.segments.fw.json";
+        String infoFile="/home/teg/transcriptions_release_v1/fffe2a89-360f-45b6-867c-984849b6b342.info.fw.json";
+        TranscriptionDto dto = parseFile(transcriptionFile,segmentsFile,infoFile);
         System.out.println(dto);
     }
 
@@ -38,46 +38,42 @@ public class TranscriptionIndexer {
      *     
      * Will throw exception if parsing fails. 
      */
-    public static TranscriptionDto parseFile(String transcriptionFile, String segmentsFile) throws Exception{
-    
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss",Locale.getDefault());
+    public static TranscriptionDto parseFile(String transcriptionFile, String segmentsFile, String infoFile) throws Exception{
+            
         
         TranscriptionDto transcription = new TranscriptionDto();
-        String  transcriptionString = Files.readString(Path.of(transcriptionFile), Charset.forName("UTF-8"));
+        String  transcriptionFileString = Files.readString(Path.of(transcriptionFile), Charset.forName("UTF-8"));
         String  segmentsFileString = Files.readString(Path.of(segmentsFile), Charset.forName("UTF-8"));
-        System.out.println(transcriptionString);
-        System.out.println(segmentsFileString);
-        return null;
-        /*
+        String  infoFileString = Files.readString(Path.of(infoFile), Charset.forName("UTF-8"));
+
         Gson gson = new Gson();
-        JsonElement element = gson.fromJson (jsonString, JsonElement.class);
-        JsonObject obj = element.getAsJsonObject();
-                   
-        String filename= obj.get("filename").getAsString();
-        String timestamp=obj.get("timestamp").getAsString();    
-        JsonObject content= obj.get("content").getAsJsonObject();
-        String transcriptionText=content.get("text").getAsString();
+        JsonElement transcriptionJson = gson.fromJson (transcriptionFileString, JsonElement.class);
+        JsonObject transcriptionJsonObject = transcriptionJson.getAsJsonObject();
+        JsonElement segmentsJson = gson.fromJson (segmentsFileString, JsonElement.class);
+        JsonArray segmentsJsonArray = segmentsJson.getAsJsonArray(); 
+        JsonElement infoJson = gson.fromJson (infoFileString, JsonElement.class);
+        JsonObject infoJsonObject = infoJson.getAsJsonObject();
+        String fileId=transcriptionJsonObject.get("file_id").getAsString();                   
+        String segmentLines=extractTranscriptionLines(segmentsJsonArray);
+                     
+        String transcriptionText=transcriptionJsonObject.get("transcription").getAsString();
+        //This field is no longer present in any of the two transcriptions files, so just use parse time instead. It is not used by any business logic anyway.
+        long mtime = System.currentTimeMillis()*1000; //mtime format in ds project is 1/1000000 precision. 
+        String fileName=infoJsonObject.get("source_basename").getAsString();
+        //Consider extracting the duration as well in a future version, but this require database changes. It is in the info file
         
-        transcription.setFileName(filename);
-        long mtime = LocalDateTime.parse(timestamp, formatter).atOffset(ZoneOffset.UTC).toInstant().toEpochMilli();        
+        transcription.setFileId(fileId);
+        transcription.setFileName(fileName);
         transcription.setmTime(mtime);
         transcription.setTranscription(transcriptionText);
-        transcription.setFileName(filename);
+        transcription.setTranscriptionLines(segmentLines);
+        return transcription;    
+    }
         
-        
-        String fileId=filename;
-        // remove extension if it is there
-        int  extensionStart=filename.indexOf(".");
-        if (extensionStart > 0) {
-            fileId=filename.substring(0,extensionStart);
-        }
-        transcription.setFileId(fileId);;
-        
+    private static String extractTranscriptionLines( JsonArray segmentsJsonObject) { 
         StringBuilder b = new StringBuilder();
-        //all lines        
-        JsonArray segments = content.get("segments").getAsJsonArray(); 
-        for (int i =0 ;i <segments.size() ; i++) {
-             JsonObject segment = segments.get(i).getAsJsonObject();
+        for (int i =0 ;i <segmentsJsonObject.size() ; i++) {
+             JsonObject segment = segmentsJsonObject.get(i).getAsJsonObject();
              String start = segment.get("start").getAsString();
              String end = segment.get("end").getAsString();
              String text = segment.get("text").getAsString();            
@@ -85,9 +81,7 @@ public class TranscriptionIndexer {
              b.append(transcriptionLine);
              b.append("\n"); //new line between each           
         }        
-        transcription.setTranscriptionLines(b.toString());        
-        return transcription;
-    */
+        return b.toString();        
     }
           
 }

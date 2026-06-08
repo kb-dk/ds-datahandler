@@ -25,7 +25,7 @@ public class TranscriptionsTest {
         String json="transcriptions/transcription-test.json";
         URL file = Resolver.resolveURL(json);
         
-        TranscriptionDto trans= TranscriptionIndexer.parseFile(file.getFile());
+        TranscriptionDto trans= TranscriptionIndexer.parseFile(file.getFile(),null,null);
         assertEquals("0405154f-5543-4907-bf26-996d471596cb.mp3",trans.getFileName());
         assertEquals(1761642668000L,trans.getmTime()); //Date formattet to millis                
         assertEquals("for nyt personale. Og efter en tur i stormagasinet er der mere at glæde sig til.",trans.getTranscription());                
