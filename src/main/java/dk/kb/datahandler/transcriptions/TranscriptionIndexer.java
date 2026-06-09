@@ -23,23 +23,28 @@ public class TranscriptionIndexer {
     
     private static final Logger log = LoggerFactory.getLogger(TranscriptionIndexer.class);  
        
- 
-    public static void main(String[] args) throws Exception {
-        String transcriptionFile="/home/teg/transcriptions_release_v1/fffe2a89-360f-45b6-867c-984849b6b342.ner.json";
-        String segmentsFile="/home/teg/transcriptions_release_v1/fffe2a89-360f-45b6-867c-984849b6b342.segments.fw.json";
-        String infoFile="/home/teg/transcriptions_release_v1/fffe2a89-360f-45b6-867c-984849b6b342.info.fw.json";
-        TranscriptionDto dto = parseFile(transcriptionFile,segmentsFile,infoFile);
-        System.out.println(dto);
-    }
-
-    
     /**
-     * Parse a json file into a  TranscriptionDto object
-     *     
-     * Will throw exception if parsing fails. 
+     * Parse the 3 transcription data files together and create the transcriptionDto.<br>
+     * 
+     * Overview of how the 3 files are mapped to the transcriptionDto<br><br>
+     *
+     * <table border=1>
+     *  <th>Transcription file type</th><th>json field</th><th>TranscriptionDTO</th>
+     *  <tr><td>ner.json</td><td>file_id</td><td>fileId</td></tr>
+     *  <tr><td>ner.json</td><td>transcription</td><td>transcription</td></tr>
+     *  <tr><td>segments.fw.json</td><td>start<br>end<br> text<br></td><td>transcriptionLines<br> (start - end text)</td></tr>
+     *  <tr><td>(none)</td><td>(data not files)</td><td>mTime (use time now)</td></tr>
+     *  <tr><td>info.fw.json</td><td>source_basename</td><td>fileName</td></tr>
+     * </table>
+     * 
+     *
+     * @param transcriptionFile - the file with suffix ner.json
+     * @param segmentsFile - the file with suffix suffix ner.json
+     * @param infoFile - the file with suffix info.fw.json
+     * 
+     * @return The transcriptionDto with the combined transcription data from the 3 files. Will throw exception if parsing fail.
      */
-    public static TranscriptionDto parseFile(String transcriptionFile, String segmentsFile, String infoFile) throws Exception{
-            
+    public static TranscriptionDto parseFile(String transcriptionFile, String segmentsFile, String infoFile) throws Exception{            
         
         TranscriptionDto transcription = new TranscriptionDto();
         String  transcriptionFileString = Files.readString(Path.of(transcriptionFile), Charset.forName("UTF-8"));
@@ -69,7 +74,13 @@ public class TranscriptionIndexer {
         transcription.setTranscriptionLines(segmentLines);
         return transcription;    
     }
-        
+
+    /** 
+     * Extract the start,end,text from each json object in the json array and 
+     * concatenate them as <start> - <end> <text> <newline> for each object.
+     * 
+     * @param segmentsJsonObject JsonArray object from the segments.fw.json file.
+     */
     private static String extractTranscriptionLines( JsonArray segmentsJsonObject) { 
         StringBuilder b = new StringBuilder();
         for (int i =0 ;i <segmentsJsonObject.size() ; i++) {

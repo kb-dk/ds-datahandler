@@ -16,15 +16,31 @@ import dk.kb.util.webservice.exception.InvalidArgumentServiceException;
 
 public class TranscriptionJob {
     private static final Logger log = LoggerFactory.getLogger(TranscriptionJob.class);
-       
-    public static  void main(String[] args) throws Exception {
-        String dropFolder="/home/teg/transcriptions_release_v1/";
-        String completedFolder="/home/teg/transcriptions_release_v2_completed/";
-        int success= TranscriptionJob.processTranscriptions(dropFolder,completedFolder);
-        System.out.println("succes:"+success);                
-    }
     
-    
+    /**
+     * Process all files in the transcription drop folder.<br>
+     * Each transcription is created from 3 different files that have same name but different suffixes.<br>
+     * 
+     * Example names of the 3 files: <br>  
+     *  <ul>
+     *   <li>ab6afdbc-baa7-4f91-80f8-00ef54b9ee7e.info.fw.json</li>
+     *   <li>ab6afdbc-baa7-4f91-80f8-00ef54b9ee7e.ner.json</li>   
+     *   <li>ab6afdbc-baa7-4f91-80f8-00ef54b9ee7e.segments.fw.json</li>
+     *  </ul>
+     * 
+     * When each transcription is process the 3 files will be moved to the completed folder and added and additional suffix. <br>
+     * For success the suffix '.completed' will be all (all 3 files)<br>
+     * In case of parsing error or missing files the suffix '.failed' will be all (all of the 3 files in the drop folder)<br>
+     * <br>
+     * A successful transcription will be send to the ds-storage module.<br> 
+     * The ds-storage module will persist the transcriptions and touch the relevant storage record so it is marked for delta indexing. <br>
+     * The ds-present module has a config property that will fetch transcriptions from the ds-storage module at index time so they are part of the solr document sent to solr.<br>
+     * <br>
+     * @param dropFolderFilPath The full path to the drop folder for transcriptions.
+     * @param completedFolderFilePath  The full path to the completed folder for transcriptions.
+     * 
+     * @returns The number of successful transcriptions created. 
+     */
     public synchronized static int processTranscriptions(String dropFolderFilePath,String completedFolderFilePath) throws Exception{     
         validateFoldersExist(dropFolderFilePath, completedFolderFilePath);
         log.debug("Starting transcriptionjob with dropFolder='{}' and completedFolder='{}'",dropFolderFilePath,completedFolderFilePath);                        
@@ -81,7 +97,7 @@ public class TranscriptionJob {
     }
     
     /*
-     * But folders must exist.
+     * Both folders must exist.
      */
     private static void validateFoldersExist(String dropFolderFilePath,String completedFolderFilePath) {
         //Validate folders exists on file system already
@@ -96,11 +112,15 @@ public class TranscriptionJob {
         }        
     }
     
-    /*
-     * File must already been validated to be json-file before calling this method
-     * Process the file and send the data to ds-storage. 
+    /**
+     * File must already been validated to exist before this method is called.
+     * Process the 3 transcriptions files and send the data to ds-storage. The ds_record matching the file_id will be touched 
+     * so that it will be selected next time delta-index is started and the transcription will be searchable.
      * 
-     * Will return true if success.
+     * @param transcriptionFile File with suffix: .ner.json
+     * @param segmentsFile File with suffix: segments.fw.json
+     * @param infoFile File with suffix: info.fw.json
+     * @re
      */
     private static boolean process(File transcriptionFile ,File segmentsFile, File infoFile ) {         
         try {
@@ -116,7 +136,6 @@ public class TranscriptionJob {
     }
     
    
- 
     /*
     * Will move file from drop folder to completed folder.
     * Suffix 'completed' or 'failed' will be added to file as new extension depending on success

@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed API method that called ds-storage to enrich kaltura id from mapping table. (Mappe table has been deleted)
 
 - Create minimum client jar. Cross module dependencies uses this new jar instead of the full classes jar.
+
+- Transcription parsing changed since data format was changed. To create a transcription 3 different files must be present
+  in the dropfolder. First path of the name is the same (file_id) and suffixes are: *.ner.json *.ner.json and *.info.fw.json.
+  For every transcription parsed all 3 files will be moved to the completed folder. The will all have an additional 
+  suffixed add depending on success or failure: .completed or .failed.
+  The transcription v1 delivery files for the drop folder can be found here:
+  digisam@ds-devel01.kb.dk:/home/digisam/transcriptions/transcriptions_release_v1
+  
+  
  
 ## [4.0.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-4.0.2) - 2026-25-03
 
