@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Clear up unittest so it can build without aegis. Added properties to default-behaviour and marked one unittest as integration since it require aegis.
 - Removed API method that called ds-storage to enrich kaltura id from mapping table. (Mappe table has been deleted)
+- Changed processUpload to return number of streams uploaded (1 or 0) and removed the numberStreamsUploaded arg. uploadStreamsToKaltura now keeps track of the count of streams uploaded instead of trying to pass the var to processUpload to be updated.
+- Changed hasStreamFileError to return StreamErrorDto instead of String as stated in javadoc. 
 
 - Create minimum client jar. Cross module dependencies uses this new jar instead of the full classes jar.
 
