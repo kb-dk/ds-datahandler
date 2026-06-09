@@ -180,8 +180,10 @@ paths:
     post:
       tags:
         - '${project.name}'
-      summary: 'Will process transcription json-files in the configured Drop-folder. Each transcription will be create or updated in the database
-      The transcription files will be moved to the configured Completed-folder. Each will be have appended .fail or .complete as last extension'
+      summary: 'Will process transcription json-files in the configured drop-folder. Each transcription will be created or update existing in the database
+      The transcription files will be moved to the configured completed-folder on success or failure. Each will be have appended .fail or .completed as last extension
+      Each transcription is split into 3 files having suffix extension <file_id>.ner.json , <file_id>.segments.fw.json and <file_id>.info.fw.json.       
+      All 3 files are parsed to extract data and all 3 are moved to the completed folder.'
       security: 
         - KBOAuth:
           - any   
