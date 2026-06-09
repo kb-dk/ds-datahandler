@@ -19,8 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the dropfolder. First path of the name is the same (file_id) and suffixes are: *.ner.json *.ner.json and *.info.fw.json.
   For every transcription parsed all 3 files will be moved to the completed folder. The will all have an additional 
   suffixed add depending on success or failure: .completed or .failed.
-  The transcription v1 delivery files for the drop folder can be found here:
-  digisam@ds-devel01.kb.dk:/home/digisam/transcriptions/transcriptions_release_v1
+  The transcription v1 delivery files for the drop folder can on devel-release server
+  
   
   
  
