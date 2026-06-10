@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.kaltura.KalturaUtil;
+import dk.kb.datahandler.transcriptions.TranscriptionIndexer;
+import dk.kb.storage.model.v1.TranscriptionDto;
 
 @Tag("integration")
 public class KalturaFilePathUtilTest {
@@ -29,7 +31,7 @@ public class KalturaFilePathUtilTest {
     
     @Test   
     void streamPathResolvingTest() throws Exception {
-        
+            
         //Test all 4 different combinations.        
         String domsVideoPath= KalturaUtil.generateStreamPath("1/6/b/6/16b6a4bc-ea57-47c1-b535-efacfb85ea3a.mp4","DOMS","VideoObject");
         assertEquals("/radio-tv/1/6/b/6/16b6a4bc-ea57-47c1-b535-efacfb85ea3a.mp4", domsVideoPath);
