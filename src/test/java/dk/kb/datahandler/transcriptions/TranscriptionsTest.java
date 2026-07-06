@@ -20,16 +20,23 @@ public class TranscriptionsTest {
     private static final Logger log = LoggerFactory.getLogger(TranscriptionsTest.class);
 
     @Test
-    void parseTranscriptionJsonTest() throws Exception {
+    void parseTranscriptionFilesTest() throws Exception {
+               
+        //Load all 3 files and test mapping to TranscriptionDto
+        String ner="transcriptions/ab6afdbc-baa7-4f91-80f8-00ef54b9ee7e.ner.json";
+        URL nerFile = Resolver.resolveURL(ner);
+        String segments="transcriptions/ab6afdbc-baa7-4f91-80f8-00ef54b9ee7e.segments.fw.json";
+        URL segmentsFile = Resolver.resolveURL(segments);
+        String info="transcriptions/ab6afdbc-baa7-4f91-80f8-00ef54b9ee7e.info.fw.json";
+        URL infoFile = Resolver.resolveURL(info);
+        TranscriptionDto trans= TranscriptionIndexer.parseFile(nerFile.getFile(),segmentsFile.getFile(),infoFile.getFile());
+       
+        assertEquals("ab6afdbc-baa7-4f91-80f8-00ef54b9ee7e.mp4",trans.getFileName());
+        assertEquals("ab6afdbc-baa7-4f91-80f8-00ef54b9ee7e",trans.getFileId());
+        assertEquals("Her er transcriptions segment1. Og her er transcriptions segment 2",trans.getTranscription());                       
         
-        String json="transcriptions/transcription-test.json";
-        URL file = Resolver.resolveURL(json);
-        
-        TranscriptionDto trans= TranscriptionIndexer.parseFile(file.getFile());
-        assertEquals("0405154f-5543-4907-bf26-996d471596cb.mp3",trans.getFileName());
-        assertEquals(1761642668000L,trans.getmTime()); //Date formattet to millis                
-        assertEquals("for nyt personale. Og efter en tur i stormagasinet er der mere at glæde sig til.",trans.getTranscription());                
-        assertTrue(trans.getTranscriptionLines().startsWith("0.19 - 1.53  for nyt personale.\n")); //Notice double white space and new line                        
-    }
+        String transcriptionLines=trans.getTranscriptionLines();
+        assertTrue(transcriptionLines.startsWith("73.55 - 115.25 Her er transcription segment1\n")); //Notice double white space and new line
+   }
     
 }

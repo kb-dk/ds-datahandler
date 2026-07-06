@@ -23,55 +23,68 @@ public class TranscriptionIndexer {
     
     private static final Logger log = LoggerFactory.getLogger(TranscriptionIndexer.class);  
        
-   /* Just for 
-    public static void main(String[] args) throws Exception {
-        String file="/home/teg/transcriptions_drop_folder/result_2025-10-28T09.11.08_0405154f-5543-4907-bf26-996d471596cb.mp3.json";
-        TranscriptionDto dto = parseFileToFlatMapStructure(file);
-        System.out.println(dto);
-    }
-    */
-    
     /**
-     * Parse a json file into a  TranscriptionDto object
-     *     
-     * Will throw exception if parsing fails. 
+     * Parse the 3 transcription data files together and create the transcriptionDto.<br>
+     * 
+     * Overview of how the 3 files are mapped to the transcriptionDto<br><br>
+     *
+     * <table border=1>
+     *  <th>Transcription file type</th><th>json field</th><th>TranscriptionDTO</th>
+     *  <tr><td>ner.json</td><td>file_id</td><td>fileId</td></tr>
+     *  <tr><td>ner.json</td><td>transcription</td><td>transcription</td></tr>
+     *  <tr><td>segments.fw.json</td><td>start<br>end<br> text<br></td><td>transcriptionLines<br> (start - end text)</td></tr>
+     *  <tr><td>(none)</td><td>(data not files)</td><td>mTime (use time now)</td></tr>
+     *  <tr><td>info.fw.json</td><td>source_basename</td><td>fileName</td></tr>
+     * </table>
+     * 
+     *
+     * @param transcriptionFile - the file with suffix ner.json
+     * @param segmentsFile - the file with suffix suffix ner.json
+     * @param infoFile - the file with suffix info.fw.json
+     * 
+     * @return The transcriptionDto with the combined transcription data from the 3 files. Will throw exception if parsing fail.
      */
-    public static TranscriptionDto parseFile(String file) throws Exception{
-    
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss",Locale.getDefault());
+    public static TranscriptionDto parseFile(String transcriptionFile, String segmentsFile, String infoFile) throws Exception{            
         
         TranscriptionDto transcription = new TranscriptionDto();
-        String jsonString = Files.readString(Path.of(file), Charset.forName("UTF-8"));
-    
+        String  transcriptionFileString = Files.readString(Path.of(transcriptionFile), Charset.forName("UTF-8"));
+        String  segmentsFileString = Files.readString(Path.of(segmentsFile), Charset.forName("UTF-8"));
+        String  infoFileString = Files.readString(Path.of(infoFile), Charset.forName("UTF-8"));
+
         Gson gson = new Gson();
-        JsonElement element = gson.fromJson (jsonString, JsonElement.class);
-        JsonObject obj = element.getAsJsonObject();
-                   
-        String filename= obj.get("filename").getAsString();
-        String timestamp=obj.get("timestamp").getAsString();    
-        JsonObject content= obj.get("content").getAsJsonObject();
-        String transcriptionText=content.get("text").getAsString();
+        JsonElement transcriptionJson = gson.fromJson (transcriptionFileString, JsonElement.class);
+        JsonObject transcriptionJsonObject = transcriptionJson.getAsJsonObject();
+        JsonElement segmentsJson = gson.fromJson (segmentsFileString, JsonElement.class);
+        JsonArray segmentsJsonArray = segmentsJson.getAsJsonArray(); 
+        JsonElement infoJson = gson.fromJson (infoFileString, JsonElement.class);
+        JsonObject infoJsonObject = infoJson.getAsJsonObject();
+        String fileId=transcriptionJsonObject.get("file_id").getAsString();                   
+        String segmentLines=extractTranscriptionLines(segmentsJsonArray);
+                     
+        String transcriptionText=transcriptionJsonObject.get("transcription").getAsString();
+        //This field is no longer present in any of the two transcriptions files, so just use parse time instead. It is not used by any business logic anyway.
+        long mtime = System.currentTimeMillis()*1000; //mtime format in ds project is 1/1000000 precision. 
+        String fileName=infoJsonObject.get("source_basename").getAsString();
+        //Consider extracting the duration as well in a future version, but this require database changes. It is in the info file
         
-        transcription.setFileName(filename);
-        long mtime = LocalDateTime.parse(timestamp, formatter).atOffset(ZoneOffset.UTC).toInstant().toEpochMilli();        
+        transcription.setFileId(fileId);
+        transcription.setFileName(fileName);
         transcription.setmTime(mtime);
         transcription.setTranscription(transcriptionText);
-        transcription.setFileName(filename);
-        
-        
-        String fileId=filename;
-        // remove extension if it is there
-        int  extensionStart=filename.indexOf(".");
-        if (extensionStart > 0) {
-            fileId=filename.substring(0,extensionStart);
-        }
-        transcription.setFileId(fileId);;
-        
+        transcription.setTranscriptionLines(segmentLines);
+        return transcription;    
+    }
+
+    /** 
+     * Extract the start,end,text from each json object in the json array and 
+     * concatenate them as <start> - <end> <text> <newline> for each object.
+     * 
+     * @param segmentsJsonObject JsonArray object from the segments.fw.json file.
+     */
+    private static String extractTranscriptionLines( JsonArray segmentsJsonObject) { 
         StringBuilder b = new StringBuilder();
-        //all lines        
-        JsonArray segments = content.get("segments").getAsJsonArray(); 
-        for (int i =0 ;i <segments.size() ; i++) {
-             JsonObject segment = segments.get(i).getAsJsonObject();
+        for (int i =0 ;i <segmentsJsonObject.size() ; i++) {
+             JsonObject segment = segmentsJsonObject.get(i).getAsJsonObject();
              String start = segment.get("start").getAsString();
              String end = segment.get("end").getAsString();
              String text = segment.get("text").getAsString();            
@@ -79,8 +92,7 @@ public class TranscriptionIndexer {
              b.append(transcriptionLine);
              b.append("\n"); //new line between each           
         }        
-        transcription.setTranscriptionLines(b.toString());        
-        return transcription;
+        return b.toString();        
     }
           
 }

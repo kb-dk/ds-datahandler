@@ -1,0 +1,27 @@
+[
+  {
+    "id": 1,
+    "seek": 0,
+    "start": 73.55,
+    "end": 115.25,
+    "text": "Her er transcription segment1",
+    "avg_logprob": -0.04557431586147324,
+    "compression_ratio": 1.6428571428571428,
+    "no_speech_prob": 0.040435791015625,
+    "words": null,
+    "temperature": 0.0
+  },
+  {
+    "id": 2,
+    "seek": 2860,
+    "start": 115.63,
+    "end": 175.44,
+    "text": "Og her er transcription segment 2",
+    "avg_logprob": -0.032548302844647437,
+    "compression_ratio": 1.658878504672897,
+    "no_speech_prob": 0.0762939453125,
+    "words": null,
+    "temperature": 0.0
+  }
+ 
+]
