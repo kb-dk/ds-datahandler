@@ -189,8 +189,23 @@ paths:
       responses:
         '204':
           description: No Content - The job finished and the server did not deliver any content.
-                
-                
+
+  /rerun-cluster:
+    post:
+      tags:
+        - '${project.name}'
+      summary: 'Fetch new rows from remote rerun clusters table, save it to our rerun_cluster table, update mtime in ds_records table and return number of rows inserted or updated in rerun_clusters table'
+      security:
+        - KBOAuth:
+            - any
+      operationId: updateRerunClusterTable
+      responses:
+        '201':
+          description: 'Return the number of rows inserted or updated in rerun_clusters table'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordsCount'
 
   # The ping service should be in all projects, should not do any advanced processing
   # and should respond quickly with a simple message, e.g. "pong".
@@ -494,16 +509,19 @@ components:
         - solr index
         - kaltura upload
         - transcriptions
+        - rerun clusters
       x-enum-varnames:
         - OAI_HARVEST
         - SOLR_INDEX
         - KALTURA_UPLOAD
         - TRANSCRIPTIONS
+        - RERUN_CLUSTERS
       x-enum-descriptions:
         - oai harvest
         - solr index
         - kaltura upload
         - transcriptions
+        - rerun clusters
 
     JobStatus:
       type: string
@@ -522,6 +540,14 @@ components:
         - completed
         - stopped
         - failed
+
+    RecordsCount:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: 'Number of rows inserted and/or updated'
 
     Whoami:
       type: object
