@@ -340,6 +340,33 @@ public class DsDatahandlerFacade {
     }
 
     /**
+     * Fetch new rows from remote rerun clusters table, save it to our rerun_cluster table, update mtime in ds_records
+     * table and return number of rows inserted or updated in rerun_clusters table.
+     *
+     * @param user the
+     * @return RecordsCountDto number of rows inserted or updated
+     */
+    public static RecordsCountDto updateRerunClustersTable(String user) {
+        JobDto jobDto = startJob(TypeDto.DELTA, CategoryDto.RERUN_CLUSTERS, null, null, user);
+        try {
+            DsStorageClient dsStorageApiClient = getDsStorageApiClient();
+            dk.kb.storage.model.v1.RecordsCountDto returnedRrecordsCountDto = dsStorageApiClient.updateRerunClustersTable();
+
+            RecordsCountDto recordsCountDto = new RecordsCountDto();
+            recordsCountDto.setCount(returnedRrecordsCountDto.getCount());
+
+            updateJob(jobDto, JobStatusDto.COMPLETED, null, OffsetDateTime.now(ZoneOffset.UTC), recordsCountDto.getCount(), null);
+            log.info("Inserted/updated rows in rerun_clusters table:'{}'", recordsCountDto.getCount());
+
+            return recordsCountDto;
+        } catch (Exception exception) {
+            log.error("Updating rerun clusters failed with jobId='{}'. Exception: ", jobDto.getId(), exception);
+            updateJob(jobDto, JobStatusDto.FAILED, exception.getMessage(), OffsetDateTime.now(ZoneOffset.UTC), null, null);
+            throw exception;
+        }
+    }
+
+    /**
      * This method will be called by the {@link #oaiIngestJobScheduler(String, ArrayList)}-method}<br>
      * The scheduler method will set up the job and responsible for status of the job. <br>
      * The target will be harvest full for this interval using the resumptionToken from the response and call recursively.<br>
@@ -424,7 +451,7 @@ public class DsDatahandlerFacade {
                 sessionDurationSeconds, sessionRefreshThreshold, conversionQueueThreshold, conversionQueueDelaySeconds);
     }
 
-    private static DsStorageClient getDsStorageApiClient() {
+    public static DsStorageClient getDsStorageApiClient() {
         if (storageClient != null) {
             return storageClient;
         }

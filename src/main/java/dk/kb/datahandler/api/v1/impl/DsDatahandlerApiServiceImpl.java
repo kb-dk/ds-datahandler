@@ -3,6 +3,7 @@ package dk.kb.datahandler.api.v1.impl;
 import dk.kb.datahandler.api.v1.DsDatahandlerApi;
 import dk.kb.datahandler.config.ServiceConfig;
 import dk.kb.datahandler.facade.DsDatahandlerFacade;
+import dk.kb.datahandler.model.v1.RecordsCountDto;
 import dk.kb.datahandler.model.v1.TypeDto;
 import dk.kb.datahandler.model.v1.OaiTargetDto;
 import dk.kb.datahandler.webservice.KBAuthorizationInterceptor;
@@ -170,7 +171,22 @@ public class DsDatahandlerApiServiceImpl extends ImplBase implements DsDatahandl
              throw handleException(e);
          }                       
      }
-    
+
+    /**
+     * Fetch new rows from remote rerun clusters table, save it to our rerun_cluster table, update mtime in ds_records
+     * table and return number of rows inserted or updated in rerun_clusters table.
+     *
+     * @return RecordsCountDto number of rows inserted or updated
+     */
+    @Override
+    public RecordsCountDto updateRerunClustersTable() {
+        try {
+            return DsDatahandlerFacade.updateRerunClustersTable(getCurrentUsername());
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     /**
      * Gets the name of the current user from the OAuth token.
      * @return
