@@ -340,8 +340,9 @@ public class DsDatahandlerFacade {
     }
 
     /**
-     * Fetch new rows from remote rerun clusters table, save it to our rerun_cluster table, update mtime in ds_records
-     * table and return number of rows inserted or updated in rerun_clusters table.
+     * Calls ds-storage via DsStorageClient that fetch new rows from remote p3rerun database in table clusters table,
+     * save it to our rerun_clusters table, update mtime in ds_records table and
+     * return number of rows inserted or updated in rerun_clusters table in a `RecordsCountDto` object.
      *
      * @param user the
      * @return RecordsCountDto number of rows inserted or updated

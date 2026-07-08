@@ -5,6 +5,23 @@ All notable changes to ds-datahandler will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added endpoint `POST /rerun_clusters` that calls ds-storage via DsStorageClient that fetch new rows from remote 
+  `p3rerun` database in table `clusters` table, save it to our `rerun_clusters` table, update `mtime` in `ds_records` 
+  table and return number of rows inserted or updated in `rerun_clusters` table in a `RecordsCountDto` object.
+
+### Changed
+
+
+### Deleted
+
+
+### Fixed
+
+
 ## [5.0.0](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-5.0.0) - 2026-06-10
 
 ### Changed
@@ -20,9 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   For every transcription parsed all 3 files will be moved to the completed folder. The will all have an additional 
   suffixed add depending on success or failure: .completed or .failed.
   The transcription v1 delivery files for the drop folder can on devel-release server
-  
-  
-  
  
 ## [4.0.2](https://github.com/kb-dk/ds-datahandler/releases/tag/ds-datahandler-4.0.2) - 2026-25-03
 
